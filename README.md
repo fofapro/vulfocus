@@ -97,7 +97,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fofapro/vulfocus/issues)
 
-微信群: 扫描以下二维码加我的个人微信，会把大家拉到 Vulfocus 官方微信群。
+微信群: 通过扫描以下二维码加入并且备注 `申请 Vulfocus` 加入 Vulfocus 官方微信群。
 
 <img src="./imgs/wechat.jpeg" widht="500px" height="500px"  />
 
