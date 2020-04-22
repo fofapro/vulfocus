@@ -1,4 +1,9 @@
 .DS_Store
+
+imgs/.DS_Store
+images/.DS_Stor
+.idea/
+vulfocus-api/.idea/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
