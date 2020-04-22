@@ -1,0 +1,14 @@
+Django==2.2.5
+django-cors-headers==3.1.0
+django-filter==2.2.0
+djangorestframework==3.10.3
+djangorestframework-jwt==1.11.0
+Markdown==3.1.1
+PyJWT==1.7.1
+pytz==2019.2
+sqlparse==0.3.0
+IPy==1.0
+docker==3.7.3
+docker-compose==1.25.4
+docker-pycreds==0.4.0
+dockerpty==0.4.1
