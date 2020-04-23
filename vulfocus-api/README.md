@@ -57,7 +57,7 @@ ExecStart=/usr/bin/dockerd -H tcp://127.0.0.1:2375 -H unix://var/run/docker.sock
 client_max_body_size 4096M;
 ```
 
-其中 2048M（2GB） 为上传文件最大限制，可根据实际进行修改，最小配置为 200M 。
+其中 4096M（4GB） 为上传文件最大限制，可根据实际进行修改，最小配置为 200M 。
 
 #### Linux 部署
 

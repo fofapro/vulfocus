@@ -15,7 +15,9 @@ docker run -d -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=x
 
 ![](./imgs/1.png)
 
-### Vulfocus API
+### 自定义安装
+
+#### Vulfocus API
 
 环境：
 
@@ -58,9 +60,9 @@ python manage.py createsuperuser
 python manage.py runserver 0.0.0.0:8000
 ```
 
-#### 部署
+##### 部署
 
-##### Docker 配置
+###### Docker 配置
 
 配置 Docker 2375 端口（可根据实际情况进行修改），修改 docker 配置文件，加入以下信息：
 
@@ -76,7 +78,7 @@ client_max_body_size 2048M;
 
 其中 2048M（2GB） 为上传文件最大限制，可根据实际进行修改，最小配置为 200M 。
 
-##### Linux 部署
+###### Linux 部署
 
 修改 nginx 配置目录 `sites-enabled` 中 `default` 文件 ，server 节点添加以下代码：
 
@@ -86,7 +88,7 @@ location /api/ {
 }
 ```
 
-##### Windows 部署
+###### Windows 部署
 
 修改 nginx 配置文件 `nginx.conf` ，server 添加以下代码：
 
@@ -96,7 +98,7 @@ location /api/ {
 }
 ```
 
-##### nginx 参考配置文件
+###### nginx 参考配置文件
 
 以下为 nginx 参考配置文件：
 
@@ -129,7 +131,7 @@ http {
 }
 ```
 
-### Vulfocus Frontend
+#### Vulfocus Frontend
 
 vulfocus 前端项目，通过 Element-ui + VUE 构建。
 
@@ -139,9 +141,9 @@ vulfocus 前端项目，通过 Element-ui + VUE 构建。
 - node：v12.16.2
 - npm：6.14.4
 
-#### 部署
+##### 部署
 
-##### 项目构建
+###### 项目构建
 
 安装依赖：
 
@@ -156,11 +158,11 @@ npm run build:prod
 
 将 dist 目录部署至 nginx 中，默认 nginx 静态目录位于 `/var/www/html`。
 
-##### 发行版本
+###### 发行版本
 
 通过 [https://github.com/fofapro/vulfocus/releases](https://github.com/fofapro/vulfocus/releases) 下载最新发布的版本。
 
-#### 开发
+##### 开发
 
 ```shell script
 npm run dev
