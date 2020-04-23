@@ -154,8 +154,11 @@ USE_TZ = True
 client = docker.DockerClient(base_url='unix://var/run/docker.sock')
 # 靶场绑定 IP，提供用户访问靶场与 Docker 服务IP保持一致。
 VUL_IP = ""
-if os.environ['VUL_IP']:
-    VUL_IP = os.environ['VUL_IP']
+try:
+    if os.environ['VUL_IP']:
+        VUL_IP = os.environ['VUL_IP']
+except Exception as e:
+    pass
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
