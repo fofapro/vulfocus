@@ -32,6 +32,15 @@
       "contributions": [
         "question"
       ]
+    },
+    {
+      "login": "lxyevil",
+      "name": "lxyevil",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/17840712?v=4",
+      "profile": "https://github.com/lxyevil",
+      "contributions": [
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,
