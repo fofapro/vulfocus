@@ -4,7 +4,7 @@
   ],
   "imageSize": 100,
   "commit": false,
-  "badgeTemplate": "<img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" />"
+  "badgeTemplate": "<img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" />",
   "contributors": [
     {
       "login": "anonymity3712",
