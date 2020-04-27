@@ -8,7 +8,7 @@ Vulfocus 是一个漏洞集成平台，将漏洞环境 docker 镜像，放入即
   <img src="https://img.shields.io/github/release/fofapro/vulfocus.svg?color=blue&label=update&style=flat-square" />
   <img src="https://img.shields.io/github/license/fofapro/vulfocus?style=flat-square" />
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<img src="https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square" />
+<img src="https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square" />
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -146,6 +146,7 @@ Thanks goes to these wonderful people :
     <td align="center"><a href="https://github.com/hackwuli"><img src="https://avatars1.githubusercontent.com/u/47844992?v=4" width="100px;" alt=""/><br /><sub><b>hackwuli</b></sub></a><br /><a href="#question-hackwuli" title="Answering Questions">💬</a></td>
     <td align="center"><a href="https://github.com/lxyevil"><img src="https://avatars3.githubusercontent.com/u/17840712?v=4" width="100px;" alt=""/><br /><sub><b>lxyevil</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=lxyevil" title="Tests">⚠️</a></td>
     <td align="center"><a href="https://github.com/littleheary"><img src="https://avatars3.githubusercontent.com/u/26987382?v=4" width="100px;" alt=""/><br /><sub><b>littleheary</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/pulls?q=is%3Apr+reviewed-by%3Alittleheary" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/luobei-Dynamic"><img src="https://avatars2.githubusercontent.com/u/13211734?v=4" width="100px;" alt=""/><br /><sub><b>luobei-Dynamic</b></sub></a><br /><a href="#ideas-luobei-Dynamic" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
