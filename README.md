@@ -8,7 +8,7 @@ Vulfocus 是一个漏洞集成平台，将漏洞环境 docker 镜像，放入即
   <img src="https://img.shields.io/github/release/fofapro/vulfocus.svg?color=blue&label=update&style=flat-square" />
   <img src="https://img.shields.io/github/license/fofapro/vulfocus?style=flat-square" />
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<img src="https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square" />
+<img src="https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square" />
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -148,6 +148,9 @@ Thanks goes to these wonderful people :
     <td align="center"><a href="https://github.com/littleheary"><img src="https://avatars3.githubusercontent.com/u/26987382?v=4" width="100px;" alt=""/><br /><sub><b>littleheary</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/pulls?q=is%3Apr+reviewed-by%3Alittleheary" title="Reviewed Pull Requests">👀</a></td>
     <td align="center"><a href="https://github.com/q2118cs"><img src="https://avatars0.githubusercontent.com/u/18305067?v=4" width="100px;" alt=""/><br /><sub><b>Rai Sun</b></sub></a><br /><a href="#ideas-q2118cs" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/luobei-Dynamic"><img src="https://avatars2.githubusercontent.com/u/13211734?v=4" width="100px;" alt=""/><br /><sub><b>luobei-Dynamic</b></sub></a><br /><a href="#ideas-luobei-Dynamic" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/wanglaiqi"><img src="https://avatars3.githubusercontent.com/u/9366714?v=4" width="100px;" alt=""/><br /><sub><b>wanglaiqi</b></sub></a><br /><a href="#ideas-wanglaiqi" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
