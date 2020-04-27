@@ -114,19 +114,23 @@ GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fo
 
 ## FAQ
 
-镜像启动后立即访问地址失败？
+**镜像启动后立即访问地址失败？**
 
 1. 根据镜像的大小，启动时间会有不同的延迟，一般在几秒以内。
 
-提交完 flag 后会有卡住？
+**提交完 flag 后会有卡住？**
 
 1. 在提交完正确flag后，会进行镜像关闭的动作，所以会有几秒的延迟。
 
-拉取镜像时一直卡在哪里
+**拉取镜像时一直卡在哪里**
 
 1. 由于网络延迟或镜像太大的原因时间会长一点。
 
 2. 镜像名称填错，也会卡在哪里，建议强刷一下。
+
+**Centos 无权限操作Docker**
+
+[centos7 docker版本应用无法添加镜像](https://github.com/fofapro/vulfocus/issues/6)
 
 ## Contributors ✨
 
