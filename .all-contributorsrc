@@ -41,6 +41,15 @@
       "contributions": [
         "test"
       ]
+    },
+    {
+      "login": "littleheary",
+      "name": "littleheary",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/26987382?v=4",
+      "profile": "https://github.com/littleheary",
+      "contributions": [
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
