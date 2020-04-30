@@ -113,6 +113,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "Becivells",
+      "name": "李大壮",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/12883127?v=4",
+      "profile": "https://github.com/Becivells",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
