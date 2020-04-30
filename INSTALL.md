@@ -271,7 +271,7 @@ http {
        index index.html;
        }
        location /api {
-              uwsgi_pass  unix://////data/tmp/vulfocus_uwsgi.sock;
+              uwsgi_pass  unix:/data/tmp/vulfocus_uwsgi.sock;
               uwsgi_read_timeout 600;
               uwsgi_param SCRIPT_NAME /api;
               include     /etc/nginx/uwsgi_params;
@@ -294,7 +294,7 @@ http {
 directory=/data/venv_py
 command=/data/venv_py/bin/uwsgi --ini /data/etc/vulfocus_uwsgi.ini
 numprocs=1
-user=nginx
+user=root
 startretries=3
 startsecs=5
 autostart=true
