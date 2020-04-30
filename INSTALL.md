@@ -294,7 +294,7 @@ http {
 directory=/data/venv_py
 command=/data/venv_py/bin/uwsgi --ini /data/etc/vulfocus_uwsgi.ini
 numprocs=1
-user=root
+user=nginx
 startretries=3
 startsecs=5
 autostart=true
@@ -310,6 +310,14 @@ stdout_logfile=/data/log/vulfoucs_uwsgi.log
 
 ```
 chown -R nginx. /data
+```
+
+使用 `unix://var/run/docker.sock` **连接 docker 需要配置** 使用 tcp 套接字无需修改
+
+```
+groupadd docker
+usermod -aG docker nginx
+systemctl restart docker
 ```
 
 #### 开机自启动
@@ -334,3 +342,28 @@ firewall-cmd --add-port=80/tcp --permanent
 firewall-cmd --add-port=443/tcp --permanent
 systemctl restart firewalld.service
 ```
+
+### 问题
+
+拉取镜像会报 500 错误这个是 `/var/run/docker.sock` 权限问题
+
+三种解决方案
+
+1. 修改 `/etc/supervisord.d/vulfoucs.ini` 配置文件
+
+   ```
+   # user=nginx # 改前
+   user=root # 改后
+   ```
+
+2. 配置 Docker URL（`vulfocus/settings.py`），启用 `tcp://127.0.0.1:2375`
+
+3. 添加 docker 用户组把 nginx 用户加进去
+
+   ```
+   groupadd docker
+   usermod -aG docker nginx
+   systemctl restart docker
+   ```
+
+   
