@@ -17,18 +17,19 @@ docker run -d -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=x
 
 ## 自定义安装
 
+**以 Centos 7 为例主机已经关闭 `selinux`**
+
 环境：
 
 - 语言：python3
 - 数据库：sqlite3
 - 框架：Django
 - API：djangorestframework
-- 系统：Centos7, 其他系统也可以
+- 系统：Centos 7 , 其他系统也可以
 
 ### 安装依赖
 
 #### 安装需要的软件和开发环境
-
 ```
 yum -y install epel-release
 yum install gcc -y
@@ -327,3 +328,9 @@ systemctl start nginx
 systemctl start docker
 ```
 
+#### 防火墙配置
+```shell script
+firewall-cmd --add-port=80/tcp --permanent
+firewall-cmd --add-port=443/tcp --permanent
+systemctl restart firewalld.service
+```
