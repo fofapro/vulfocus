@@ -169,17 +169,10 @@ npm install
 npm run build:prod
 ```
 
-将 dist 目录部署至 nginx 中，默认 nginx 静态目录位于 `/var/www/html`。
-
 #### 发行版本
 
 通过 [https://github.com/fofapro/vulfocus/releases](https://github.com/fofapro/vulfocus/releases) 下载最新发布的版本。
 
-#### 开发
-
-```shell script
-npm run dev
-```
 
 ### nginx 配置
 
