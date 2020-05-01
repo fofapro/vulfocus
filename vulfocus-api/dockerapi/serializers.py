@@ -2,6 +2,9 @@
 from rest_framework import serializers
 from dockerapi.models import ImageInfo, ContainerVul, SysLog
 from user.models import UserProfile
+from tasks.models import TaskInfo
+from django.db.models import Q
+import json
 
 
 class ImageInfoSerializer(serializers.ModelSerializer):
@@ -27,6 +30,18 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             status["status"] = ""
             status["is_check"] = False
             status["container_id"] = ""
+        # 查询正在拉取镜像的任务
+        operation_args = {
+            "image_name": obj.image_name,
+            "image_vul_name": obj.image_vul_name,
+            "rank": obj.rank,
+            "image_desc": obj.image_desc,
+        }
+        task_info = TaskInfo.objects.filter(task_status=1, operation_type=1, operation_args=json.dumps(operation_args)).order_by("-create_date").first()
+        if task_info:
+            status["task_id"] = str(task_info.task_id)
+        else:
+            status["task_id"] = ""
         return status
 
     class Meta:
@@ -61,7 +76,10 @@ class ContainerVulSerializer(serializers.ModelSerializer):
 
     def conname(self, obj):
         if obj:
-            return obj.image_id.image_name
+            if obj.image_id:
+                return obj.image_id.image_name
+            else:
+                return ""
         else:
             return ""
 

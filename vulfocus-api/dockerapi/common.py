@@ -7,6 +7,7 @@
 # @Software: PyCharm
 
 HTTP_OK = 200
+HTTP_OK_RUNNING = 1001
 HTTP_ERR = 500
 HTTP_BULD = 201
 
@@ -34,5 +35,13 @@ class R:
         return {
             "data": data,
             "status": HTTP_BULD,
+            "msg": msg
+        }
+
+    @staticmethod
+    def running(data=None, msg=''):
+        return {
+            "data": data,
+            "status": HTTP_OK_RUNNING,
             "msg": msg
         }

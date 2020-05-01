@@ -74,11 +74,15 @@
 
 <script>
   import { containerList,containerStop,containerStart,containerDel } from '@/api/container'
+  import { getTask } from '@/api/tasks'
   export default {
     name: 'image',
     data(){
       return {
-        tableData: []
+        tableData: [],
+        runContainerInterval: "",
+        stopContainerInterval: "",
+        deleteContainerInterval: "",
       }
     },
     created(){
@@ -92,53 +96,92 @@
       },
       stopContainer(row){
         containerStop(row.container_id).then(response => {
-          let rsData = response.data
-          if (rsData.code === "202"){
-            this.$message({
-              type: 'success',
-              message: '停止成功'
-            });
-            this.initTable()
-          }else{
-            this.$message({
-              type: 'error',
-              message: rsData.msg
-            })
-          }
+          let taskId = response.data["data"]
+          this.stopContainerInterval = window.setInterval(() => {
+              setTimeout(()=>{
+                getTask(taskId).then(response=>{
+                  let responseStatus = response.data["status"]
+                  let responseData = response.data
+                  if (responseStatus === 1001){
+                    // 一直轮训
+                  }else{
+                    clearInterval(this.stopContainerInterval)
+                    if(responseStatus === 200){
+                      this.$message({
+                        type: "success",
+                        message: "删除成功"
+                      });
+                      this.initTable()
+                    }else{
+                      this.$message({
+                        type: "error",
+                        message: responseData["msg"]
+                      })
+                    }
+                  }
+                })
+              },1)
+          },1000)
         })
       },
       startContainer(row){
         containerStart(row.container_id).then(response => {
-          let rsData = response.data
-          if (response.status === 201){
-            this.$message({
-              type: 'success',
-              message: '启动成功'
-            });
-            this.initTable()
-          }else{
-            this.$message({
-              type: 'error',
-              message: rsData.msg
-            })
-          }
+          let taskId = response.data["data"]
+          this.runContainerInterval = window.setInterval(() => {
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(this.runContainerInterval)
+                  if(responseStatus === 200){
+                    this.$message({
+                      type: "success",
+                      message: "启动成功"
+                    });
+                    this.initTable()
+                  }else{
+                    this.$message({
+                      type: "error",
+                      message: responseData["msg"]
+                    })
+                  }
+                }
+              })
+            },1)
+          },1000)
         })
       },
       delContainer(row){
         containerDel(row.container_id).then(response => {
-          let rsData = response.data
-          if (rsData.code === "201" || response.status === 201){
-            this.$message({
-              type: 'success',
-              message: '删除成功'
-            });
-            this.initTable()
-          }else{
-            this.$message({
-              type: 'error',
-              message: rsData.msg
-            })
-          }
+          let taskId = response.data["data"]
+          this.deleteContainerInterval = window.setInterval(() => {
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(this.deleteContainerInterval)
+                  if (responseStatus === 200) {
+                    this.$message({
+                      type: 'success',
+                      message: '删除成功'
+                    });
+                    this.initTable()
+                  }else{
+                    this.$message({
+                    message: responseData["msg"],
+                    type: "error",
+                    })
+                  }
+                }
+              })
+            },1)
+          },1000)
         })
       }
     }

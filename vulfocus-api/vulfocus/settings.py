@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'v!bz(7o_5u_4m-m7dgl-&-%81018li0u2)923fd)sp-pw%=c()'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -34,6 +34,7 @@ AUTH_USER_MODEL = "user.UserProfile"
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -43,7 +44,17 @@ INSTALLED_APPS = [
     'user',
     'corsheaders',
     'dockerapi',
+    'tasks',
 ]
+# Celery settings
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+
+#: Only add pickle to this list if your broker is secured
+#: from unwanted access (see userguide/security.html)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_TASK_SERIALIZER = 'json'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -148,6 +159,9 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# 默认启动容器最长时间为 60s，可根据实际情况调整
+DOCKER_CONTAINER_TIME = 60
 
 # docker api 连接， 本机默认为 127.0.0.1
 # client = docker.DockerClient("tcp://127.0.0.1:2375")

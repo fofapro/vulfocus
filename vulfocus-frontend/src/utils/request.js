@@ -25,7 +25,7 @@ service.interceptors.request.use(
   },
   error => {
     // do something with request error
-    console.log(error) // for debug
+    // console.log(error) // for debug
     return Promise.reject(error)
   }
 )
@@ -82,7 +82,7 @@ service.interceptors.response.use(
   },
   error => {
     let response = error.response
-    console.log(response)
+    // console.log(response)
     let status = response.status
     // data
     let data = response.data
