@@ -30,7 +30,6 @@ def create_image_task(image_info, user_info, request_ip, image_file=None):
     """
     user_id = user_info.id
     task_id = create_create_image_task(image_info=image_info, user_info=user_info)
-    print(task_id)
     if user_info.is_superuser:
         image_name = image_info.image_name
         image_desc = image_info.image_desc
@@ -488,7 +487,6 @@ def create_create_image_task(image_info, user_info):
     task_info = TaskInfo(task_name="拉取镜像：" + image_name, user_id=user_id, task_status=1, task_msg=json.dumps({}),
                          task_start_date=timezone.now(), operation_type=1,
                          operation_args=json.dumps(args), create_date=timezone.now(), update_date=timezone.now())
-    print(task_info)
     task_info.save()
     return str(task_info.task_id)
 

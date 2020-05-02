@@ -16,3 +16,17 @@ export function ImageDelete(id) {
     url: '/images/'+id+'/delete/'
   })
 }
+
+export function ImageLocal() {
+  return request({
+    url: '/images/local/local/'
+  })
+}
+
+export function ImageLocalAdd(data) {
+  return request({
+    url: '/images/local/local_add/',
+    method: 'post',
+    data
+  })
+}

@@ -5,7 +5,6 @@ from rest_framework.decorators import action
 from dockerapi.models import ImageInfo
 from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer, SysLogSerializer
 from dockerapi.models import ContainerVul
-from vulfocus.settings import VUL_IP
 import django.utils
 import django.utils.timezone as timezone
 from .common import R
@@ -13,6 +12,7 @@ from django.db.models import Q
 from .models import SysLog
 import json
 from tasks import tasks
+from vulfocus.settings import client, VUL_IP
 from tasks.models import TaskInfo
 
 
@@ -100,6 +100,50 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         else:
             pass
         return JsonResponse(R.ok(task_id, msg="拉取镜像 %s 任务下发成功" % (image_name, )))
+
+    @action(methods=["get"], detail=True, url_path="local")
+    def local(self, request, pk=None):
+        user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build(msg="权限不足"))
+        local_images = client.images.list()
+        db_image_list = ImageInfo.objects.filter(is_ok=True)
+        db_image_name_list = []
+        for db_image in db_image_list:
+            db_image_name_list.append(db_image.image_name)
+        result_info = []
+        for image_info in local_images:
+            for image_tag in image_info.tags:
+                tmp_info = {"name": image_tag, "flag": False}
+                if image_tag in db_image_name_list:
+                    tmp_info["flag"] = True
+                result_info.append(tmp_info)
+        return JsonResponse(R.ok(result_info))
+
+    @action(methods=["post"], detail=True, url_path="local_add")
+    def batch_local_add(self, request, pk=None):
+        user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build(msg="权限不足"))
+        image_name_str = request.POST.get("image_names", "")
+        image_names = image_name_str.split(",")
+        rsp_msg = []
+        for image_name in image_names:
+            if not image_name:
+                continue
+            if ":" not in image_name:
+                image_name += ":latest"
+            image_info = ImageInfo.objects.filter(image_name=image_name).first()
+            if not image_info:
+                image_vul_name = image_name[:image_name.rfind(":")]
+                image_info = ImageInfo(image_name=image_name, image_vul_name=image_vul_name, image_desc=image_vul_name,
+                                       rank=2.5, is_ok=False, create_date=timezone.now(), update_date=timezone.now())
+                image_info.save()
+            task_id = tasks.create_image_task(image_info=image_info, user_info=user, request_ip=get_request_ip(request),
+                                              image_file=None)
+            if task_id:
+                rsp_msg.append("拉取镜像 %s 任务下发成功" % (image_name,))
+        return JsonResponse(R.ok(data=rsp_msg))
 
     @action(methods=["get"], detail=True, url_path="delete")
     def delete_image(self, request, pk=None):

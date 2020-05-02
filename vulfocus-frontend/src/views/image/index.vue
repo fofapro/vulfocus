@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
-      <el-dialog :visible.sync="centerDialogVisible"width="60%">
-        <el-tabs type="border-card">
-          <el-tab-pane label="添加">
+      <el-dialog :visible.sync="centerDialogVisible" title="添加" width="60%">
+        <el-tabs value="add" @tab-click="handleClick">
+          <el-tab-pane name="add" label="添加">
             <el-form label-width="80px"
                      v-loading="loading"
                      element-loading-text="添加中">
@@ -30,6 +30,10 @@
               </el-form-item>
               <el-form-item label="Rank">
                 <el-input-number v-model="vulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
+                &nbsp;&nbsp;&nbsp;
+                <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
+                  <i class="el-icon-info"></i>
+                </el-tooltip>
               </el-form-item>
               <el-form-item label="描述">
                 <el-input type="textarea" v-model="vulInfo.desc" size="medium"></el-input>
@@ -39,8 +43,33 @@
               </el-form-item>
             </el-form>
           </el-tab-pane>
-          <el-tab-pane label="本地导入">配置管理</el-tab-pane>
-          <el-tab-pane label="批量下载">角色管理</el-tab-pane>
+          <el-tab-pane name="local" label="本地导入">
+            <div class="filter-container">
+              <el-input v-model="localSearch" style="width: 230px;" size="medium"></el-input>
+              <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-circle-plus-outline" @click="batchLocalAdd">
+                一键导入
+              </el-button>&nbsp;&nbsp;&nbsp;
+              <el-tooltip content="一键导入默认导入分数为 2.5 分,漏洞名称为镜像名称,漏洞描述为漏洞名称" placement="top">
+                <i class="el-icon-info"></i>
+              </el-tooltip>
+            </div>
+            <el-table :data="localImageList.filter(data => !localSearch || data.name.toLowerCase().includes(localSearch.toLowerCase()))" @selection-change="handleSelectLocalImages" tooltip-effect="dark" style="width: 100%" v-loading="localLoading">
+              <el-table-column type="selection" width="55"></el-table-column>
+              <el-table-column prop="name" label="名称" :show-overflow-tooltip=true> </el-table-column>
+              <el-table-column label="标签" width="120">
+                <template slot-scope="{row}">
+                  <el-tag v-if="row.flag===true" effect="dark" type="info">已导入</el-tag>
+                  <el-tag v-else-if="row.flag===false" effect="dark">未导入</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column fixed="right" label="操作" width="120">
+                <template slot-scope="{row}">
+                  <el-button @click.native.prevent="handleLocalRemove(row.name)" type="danger" size="small">移除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane name="batch" label="批量下载">批量下载</el-tab-pane>
         </el-tabs>
     </el-dialog>
     <div class="filter-container">
@@ -52,53 +81,16 @@
         添加
       </el-button>
     </div>
-    <el-table
-      :data="tableData"
-      border
-      stripe
-      align = "center"
-      style="width: 100%">
-      <el-table-column
-        type="index"
-        width="50">
-      </el-table-column>
-      <el-table-column
-        prop="image_name"
-        label="镜像名称"
-        :show-overflow-tooltip=true
-        width="220">
-      </el-table-column>
-      <el-table-column
-        prop="image_vul_name"
-        label="漏洞名称"
-        :show-overflow-tooltip=true
-        width="180">
-      </el-table-column>
-      <el-table-column
-        prop="image_port"
-        label="端口"
-        width="100">
-      </el-table-column>
-      <el-table-column
-        prop="rank"
-        label="分数"
-        width="50">
-      </el-table-column>
-      <el-table-column
-        prop="image_desc"
-        :show-overflow-tooltip=true
-        label="描述"
-        width="340">
-      </el-table-column>
-      <el-table-column
-        fixed="right"
-        label="操作"
-        width="220">
+    <el-table :data="tableData" border stripe align = "center" style="width: 100%">
+      <el-table-column type="index" width="50"> </el-table-column>
+      <el-table-column prop="image_name" label="镜像名称" :show-overflow-tooltip=true ></el-table-column>
+      <el-table-column prop="image_vul_name" label="漏洞名称" :show-overflow-tooltip=true></el-table-column>
+      <el-table-column prop="image_port" label="端口" width="150"></el-table-column>
+      <el-table-column prop="rank" label="分数" width="50"></el-table-column>
+      <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
+      <el-table-column fixed="right" label="操作" width="220">
         <template slot-scope="{row}">
-<!--          <el-tag effect="dark" type="danger" v-if="row.is_ok === false && row.status.task_id === ''"><i class="el-icon-switch-button"></i>镜像不存在</el-tag>-->
-<!--          <el-tag effect="dark" v-else-if="row.is_ok === false && row.status.task_id !== ''"><i class="el-icon-loading"></i>下载中</el-tag>-->
           <el-tag effect="dark" v-if="row.is_ok === false"><i class="el-icon-loading"></i>下载中</el-tag>
-<!--          || (row.is_ok === false && row.status.task_id === '')-->
           <el-button
             v-if="(row.is_ok === true)"
             size="mini"
@@ -114,9 +106,8 @@
 <script>
   import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
-  import { ImageAdd, ImageDelete } from "@/api/image"
+  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd } from "@/api/image"
   import { getTask,batchTask } from '@/api/tasks'
-
 
   export default {
     name: 'index',
@@ -124,6 +115,7 @@
       return {
         tableData: [],
         search: "",
+        localSearch: "",
         centerDialogVisible: false,
         startCon: false,
         vulInfo: {
@@ -137,14 +129,16 @@
         loading: false,
         summaries:[],
         taskCheckInterval :null,
-        tmpImageNameList:[]
-      //  image_id
+        tmpImageNameList:[],
+        localImageList:[],
+        tmpLocalImageList:[],
+        localLoading: true,
+        selectLocalImages: []
       }
     },
     created() {
       this.initTableData()
       this.initSummariesList()
-      // this.checkTaskStatus()
     },
     methods:{
       querySearchAsync(queryString, cb) {
@@ -309,7 +303,7 @@
           }
           if(this.tmpImageNameList.indexOf(image_name) > 0){
             this.$message({
-              message: taskMsg["data"]["msg"],
+              message: image_name+" 添加成功",
               type: "success",
             })
             this.removeArray(this.tmpImageNameList, image_name)
@@ -346,11 +340,80 @@
       },
       removeArray(taskList,val){
         for(let i = 0; i < taskList.length; i++) {
-          if(taskList[i] == val) {
+          if(taskList[i] === val) {
             taskList.splice(i, 1);
             break;
           }
         }
+      },
+      loadLocalImages(){
+        this.localLoading = true
+        ImageLocal().then(response => {
+          let resp = response.data
+          let status = resp.status
+          let data = resp.data
+          if(status === 200){
+            this.localImageList = data
+            this.tmpLocalImageList = data
+          }
+          this.localLoading = false
+        })
+      },
+      handleClick(tab, event) {
+        let name = tab.name
+        if(name === "local"){
+          this.loadLocalImages()
+        }else{
+
+        }
+      },
+      handleLocalRemove(name){
+        for(let i = 0; i < this.localImageList.length; i++) {
+          if(this.localImageList[i].name === name) {
+            this.localImageList.splice(i, 1);
+            break;
+          }
+        }
+      },
+      handleSelectLocalImages(val){
+        let image_names = []
+        for(let i in val){
+          image_names.push(val[i].name)
+        }
+        this.selectLocalImages = image_names
+      },
+      batchLocalAdd(){
+        if (this.selectLocalImages.length === 0){
+          return
+        }
+        let data = new FormData()
+        data.set("image_names", this.selectLocalImages.join(","))
+        ImageLocalAdd(data).then(response => {
+          let rsp = response.data
+          let data = rsp.data
+          let status = rsp.status
+          if(status === 200){
+            for(let i = 0; i < data.length; i ++){
+              let msg = data[i]
+              let tmpMsg = msg.replace("拉取镜像", "").replace("任务下发成功", "").replace(" ", "")
+              this.tmpImageNameList.push(tmpMsg)
+              this.$message({message: msg,type: "success"})
+            }
+            this.centerDialogVisible = false
+            this.initTableData()
+          }else if(status === 201){
+            this.$message({
+              message: rsp["msg"],
+              type: "info",
+            })
+          }else{
+            this.$message({
+              message: rsp["msg"],
+              type: "error",
+              duration: 3 * 1000
+            })
+          }
+        })
       }
     }
   }
