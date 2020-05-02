@@ -185,7 +185,7 @@ client_max_body_size 2048M;
 
 其中 2048M（2GB） 为上传文件最大限制，可根据实际进行修改，最小配置为 200M 。
 
-####带证书多 vhost 的 nginx 配置文件
+#### 带证书多 vhost 的 nginx 配置文件
 
 **位置：**`/etc/nginx/conf.d/vulfocus.xxx.net.conf`
 
