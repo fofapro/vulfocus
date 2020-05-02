@@ -32,7 +32,7 @@ class TaskSet(viewsets.ReadOnlyModelViewSet):
         return JsonResponse(R.ok())
 
     @action(methods=["post"], detail=True, url_path='batch')
-    def get_task(self, request, pk=None):
+    def get_batch_task(self, request, pk=None):
         task_id_str = request.POST.get("task_ids", "")
         task_id_list = task_id_str.split(",")
         task_list = TaskInfo.objects.filter(task_id__in=task_id_list)

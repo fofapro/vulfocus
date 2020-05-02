@@ -34,7 +34,6 @@ AUTH_USER_MODEL = "user.UserProfile"
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -163,9 +162,18 @@ USE_TZ = True
 # 默认启动容器最长时间为 60s，可根据实际情况调整
 DOCKER_CONTAINER_TIME = 60
 
-# docker api 连接， 本机默认为 127.0.0.1
-# client = docker.DockerClient("tcp://127.0.0.1:2375")
-client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+try:
+    # DOCKER_URL tcp://127.0.0.1:2375 or unix://var/run/docker.sock
+    DOCKER_URL = os.environ['DOCKER_URL']
+except:
+    DOCKER_URL = "unix://var/run/docker.sock"
+
+if DOCKER_URL.startswith("unix:"):
+    client = docker.DockerClient(base_url=DOCKER_URL)
+else:
+    client = docker.DockerClient(DOCKER_URL)
+
+
 # 靶场绑定 IP，提供用户访问靶场与 Docker 服务IP保持一致。
 VUL_IP = ""
 try:

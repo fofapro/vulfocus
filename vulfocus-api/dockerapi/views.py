@@ -99,7 +99,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
             return JsonResponse(json.loads(task_msg))
         else:
             pass
-        return JsonResponse(R.ok(task_id, msg="拉取镜像 %s 任务下发成功" % (image_name, )))
+        return JsonResponse(R.ok(task_id, msg="拉取镜像%s任务下发成功" % (image_name, )))
 
     @action(methods=["get"], detail=True, url_path="local")
     def local(self, request, pk=None):
@@ -142,7 +142,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
             task_id = tasks.create_image_task(image_info=image_info, user_info=user, request_ip=get_request_ip(request),
                                               image_file=None)
             if task_id:
-                rsp_msg.append("拉取镜像 %s 任务下发成功" % (image_name,))
+                rsp_msg.append("拉取镜像%s任务下发成功" % (image_name,))
         return JsonResponse(R.ok(data=rsp_msg))
 
     @action(methods=["get"], detail=True, url_path="delete")

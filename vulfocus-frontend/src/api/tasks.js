@@ -9,7 +9,7 @@ export function getTask(task_id) {
 
 export function batchTask(data) {
   return request({
-    url: '/tasks/aaa/batch/',
+    url: '/tasks/batch/batch/',
     method: 'post',
     data
   })

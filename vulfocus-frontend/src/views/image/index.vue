@@ -181,6 +181,15 @@
         clearInterval(this.taskCheckInterval)
         ImgList(undefined, true).then(response => {
           this.tableData = response.data
+          this.tableData.forEach((item, index, arr) => {
+            let image_name = item.image_name
+            if(this.tmpImageNameList.indexOf(image_name) > -1){
+              this.$message({
+                message: image_name+" 添加成功",
+                type: "success",
+              })
+            }
+          })
           let tmpTableData = response.data
           this.taskCheckInterval = window.setInterval(() => {
             setTimeout(()=>{
@@ -229,7 +238,6 @@
           if(msg != null && (msg.indexOf("成功") > -1 || msg.indexOf("失败") > -1 )){
             let tmpMsg = msg.replace("拉取镜像", "").replace("任务下发成功", "").replace(" ", "")
             this.tmpImageNameList.push(tmpMsg)
-            console.log(this.tmpImageNameList)
             if(msg.indexOf("成功") > -1 ){
               this.$message({
                 message: msg,
@@ -296,17 +304,9 @@
         tableData.forEach((item, index, arr) => {
           let isOk = item["is_ok"]
           let taskId = item["status"]["task_id"]
-          let image_name = item.image_name
           if ((isOk === false && taskId != null && taskId !== "")){
             taskList.push(taskId)
             taskDict[taskId] = item
-          }
-          if(this.tmpImageNameList.indexOf(image_name) > 0){
-            this.$message({
-              message: image_name+" 添加成功",
-              type: "success",
-            })
-            this.removeArray(this.tmpImageNameList, image_name)
           }
         })
         let taskIdStr = taskList.join(",")
@@ -395,9 +395,9 @@
           if(status === 200){
             for(let i = 0; i < data.length; i ++){
               let msg = data[i]
-              let tmpMsg = msg.replace("拉取镜像", "").replace("任务下发成功", "").replace(" ", "")
+              let tmpMsg = msg.replace(" ", "").replace("拉取镜像", "").replace("任务下发成功", "")
               this.tmpImageNameList.push(tmpMsg)
-              this.$message({message: msg,type: "success"})
+              this.$message({message: msg,type: "success",duration: 1.5 * 1000})
             }
             this.centerDialogVisible = false
             this.initTableData()

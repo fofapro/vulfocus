@@ -19,8 +19,6 @@ from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet
 from user.views import UserRegView, UserSet
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView
-from django.contrib import admin
-from django.urls import path
 from tasks.views import TaskSet
 
 router = routers.DefaultRouter()
@@ -38,5 +36,4 @@ urlpatterns = [
     url(r'^user/logout', LogoutView.as_view(), name="logout"),
     url(r'user/info', get_user_info.as_view()),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('admin/', admin.site.urls),
 ]

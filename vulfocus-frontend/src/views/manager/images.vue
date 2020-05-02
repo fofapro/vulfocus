@@ -79,10 +79,7 @@
     name: 'image',
     data(){
       return {
-        tableData: [],
-        runContainerInterval: "",
-        stopContainerInterval: "",
-        deleteContainerInterval: "",
+        tableData: []
       }
     },
     created(){
@@ -97,7 +94,7 @@
       stopContainer(row){
         containerStop(row.container_id).then(response => {
           let taskId = response.data["data"]
-          this.stopContainerInterval = window.setInterval(() => {
+          let tmpStopContainerInterval = window.setInterval(() => {
               setTimeout(()=>{
                 getTask(taskId).then(response=>{
                   let responseStatus = response.data["status"]
@@ -105,7 +102,7 @@
                   if (responseStatus === 1001){
                     // 一直轮训
                   }else{
-                    clearInterval(this.stopContainerInterval)
+                    clearInterval(tmpStopContainerInterval)
                     if(responseStatus === 200){
                       this.$message({
                         type: "success",
@@ -127,7 +124,7 @@
       startContainer(row){
         containerStart(row.container_id).then(response => {
           let taskId = response.data["data"]
-          this.runContainerInterval = window.setInterval(() => {
+          let tmpRunContainerInterval = window.setInterval(() => {
             setTimeout(()=>{
               getTask(taskId).then(response=>{
                 let responseStatus = response.data["status"]
@@ -135,7 +132,7 @@
                 if (responseStatus === 1001){
                   // 一直轮训
                 }else{
-                  clearInterval(this.runContainerInterval)
+                  clearInterval(tmpRunContainerInterval)
                   if(responseStatus === 200){
                     this.$message({
                       type: "success",
@@ -157,7 +154,7 @@
       delContainer(row){
         containerDel(row.container_id).then(response => {
           let taskId = response.data["data"]
-          this.deleteContainerInterval = window.setInterval(() => {
+          let tmpDeleteContainerInterval = window.setInterval(() => {
             setTimeout(()=>{
               getTask(taskId).then(response=>{
                 let responseStatus = response.data["status"]
@@ -165,7 +162,7 @@
                 if (responseStatus === 1001){
                   // 一直轮训
                 }else{
-                  clearInterval(this.deleteContainerInterval)
+                  clearInterval(tmpDeleteContainerInterval)
                   if (responseStatus === 200) {
                     this.$message({
                       type: 'success',
