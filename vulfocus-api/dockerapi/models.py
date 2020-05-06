@@ -64,3 +64,14 @@ class SysLog(models.Model):
 
     class Meta:
         db_table = "sys_log"
+
+
+class SysConfig(models.Model):
+    """
+    数据库字段内容禁止删除
+    """
+    config_key = models.CharField(max_length=255, verbose_name="配置名称对应key", unique=True)
+    config_value = models.TextField(verbose_name="对应值", null=True, default="")
+
+    class Meta:
+        db_table = "sys_config"

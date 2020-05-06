@@ -108,7 +108,7 @@ export const asyncRoutes = [
     path: '/manager',
     component: Layout,
     redirect: '/manager',
-    meta: {role: ['admin'],title: "账户管理", icon: 'table'},
+    meta: {role: ['admin'],title: "系统管理", icon: 'table'},
     children: [
       {
       path: 'user',
@@ -130,6 +130,12 @@ export const asyncRoutes = [
         name: 'log',
         component: () => import("@/views/manager/log"),
         meta: { title: '操作日志记录', icon: 'table' , role: ['admin']}
+      },
+      {
+        path: 'setting',
+        component: () => import('@/views/manager/setting'),
+        name: 'setting',
+        meta: { title: '系统配置', icon: 'setting', noCache: true }
       }
    ]
   },

@@ -7,13 +7,14 @@ from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer, S
 from dockerapi.models import ContainerVul
 import django.utils
 import django.utils.timezone as timezone
-from .common import R
+from .common import R, DEFAULT_CONFIG, get_setting_config
 from django.db.models import Q
-from .models import SysLog
+from .models import SysLog, SysConfig
 import json
 from tasks import tasks
 from vulfocus.settings import client, VUL_IP
 from tasks.models import TaskInfo
+from rest_framework.decorators import api_view
 
 
 def get_request_ip(request):
@@ -42,22 +43,22 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                 query = query.strip()
                 if flag and flag == "flag":
                     image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
-                                                       | Q(image_desc__contains=query))
+                                                       | Q(image_desc__contains=query)).order_by('-create_date')
                 else:
                     image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
-                                                       | Q(image_desc__contains=query),is_ok=True)
+                                                       | Q(image_desc__contains=query),is_ok=True).order_by('-create_date')
             else:
                 if flag and flag == "flag":
-                    image_info_list = ImageInfo.objects.filter()
+                    image_info_list = ImageInfo.objects.filter().order_by('-create_date')
                 else:
-                    image_info_list = ImageInfo.objects.filter(is_ok=True)
+                    image_info_list = ImageInfo.objects.filter(is_ok=True).order_by('-create_date')
         else:
             if query:
                 query = query.strip()
                 image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
-                                                       | Q(image_desc__contains=query),is_ok=True)
+                                                       | Q(image_desc__contains=query), is_ok=True).order_by('-create_date')
             else:
-                image_info_list = ImageInfo.objects.filter(is_ok=True)
+                image_info_list = ImageInfo.objects.filter(is_ok=True).order_by('-create_date')
         return image_info_list
 
     def destroy(self, request, *args, **kwargs):
@@ -202,7 +203,7 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         user = request.user
         flag = request.GET.get("flag", "")
         if flag == 'list' and user.is_superuser:
-            container_vul_list = ContainerVul.objects.all()
+            container_vul_list = ContainerVul.objects.all().order_by('-create_date')
         else:
             container_vul_list = ContainerVul.objects.all().filter(user_id=self.request.user.id, time_model_id="")
         return container_vul_list
@@ -242,7 +243,6 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
     def delete_container(self, request, pk=None):
         user_info = request.user
         container_vul = self.get_object()
-        # user_id = user_info.id
         task_id = tasks.delete_container_task(container_vul=container_vul, user_info=user_info,
                                               request_ip=get_request_ip(request))
         return JsonResponse(R.ok(task_id))
@@ -290,9 +290,64 @@ class SysLogSet(viewsets.ModelViewSet):
         request = self.request
         user = request.user
         if user.is_superuser:
-            return SysLog.objects.all().filter()
+            return SysLog.objects.all().order_by('-create_date')
         else:
             return []
+
+
+@api_view(http_method_names=["GET"])
+def get_setting(request):
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    rsp_data = get_setting_config()
+    return JsonResponse(R.ok(data=rsp_data))
+
+
+@api_view(http_method_names=["POST"])
+def update_setting(request):
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    username = request.POST.get("username", DEFAULT_CONFIG["username"])
+    pwd = request.POST.get("pwd", DEFAULT_CONFIG["pwd"])
+    time = request.POST.get("time", DEFAULT_CONFIG["time"])
+    msg = "修改成功"
+    try:
+        time = int(time)
+        if time != 0 and time < 60:
+            time = int(DEFAULT_CONFIG["time"])
+            msg = "过期时间修改为默认值 30 分钟成功"
+    except:
+        time = int(DEFAULT_CONFIG["time"])
+    username_config = SysConfig.objects.filter(config_key="username").first()
+    if not username_config:
+        username_config = SysConfig(config_key="username", config_value=DEFAULT_CONFIG["username"])
+        username_config.save()
+    else:
+        if username_config.config_value != username:
+            username_config.config_value = username
+            username_config.save()
+
+    pwd_config = SysConfig.objects.filter(config_key="pwd").first()
+    if not pwd_config:
+        pwd_config = SysConfig(config_key="pwd", config_value=DEFAULT_CONFIG["pwd"])
+        pwd_config.save()
+    else:
+        if pwd_config.config_value != pwd:
+            pwd_config.config_value = pwd
+            pwd_config.save()
+
+    time_config = SysConfig.objects.filter(config_key="time").first()
+    if not time_config:
+        time_config = SysConfig(config_key="time", config_value=DEFAULT_CONFIG["time"])
+        time_config.save()
+    else:
+        if time_config.config_value != time:
+            time_config.config_value = time
+            time_config.save()
+    rsp_data = get_setting_config()
+    return JsonResponse(R.ok(msg=msg, data=rsp_data))
 
 
 def get_local_ip():

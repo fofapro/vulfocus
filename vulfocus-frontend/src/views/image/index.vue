@@ -32,7 +32,7 @@
                 <el-input-number v-model="vulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
                 &nbsp;&nbsp;&nbsp;
                 <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
-                  <i class="el-icon-info"></i>
+                  <i class="el-icon-question"></i>
                 </el-tooltip>
               </el-form-item>
               <el-form-item label="描述">
@@ -50,7 +50,7 @@
                 一键导入
               </el-button>&nbsp;&nbsp;&nbsp;
               <el-tooltip content="一键导入默认导入分数为 2.5 分,漏洞名称为镜像名称,漏洞描述为漏洞名称" placement="top">
-                <i class="el-icon-info"></i>
+                <i class="el-icon-question"></i>
               </el-tooltip>
             </div>
             <el-table :data="localImageList.filter(data => !localSearch || data.name.toLowerCase().includes(localSearch.toLowerCase()))" @selection-change="handleSelectLocalImages" tooltip-effect="dark" style="width: 100%" v-loading="localLoading">
@@ -69,7 +69,7 @@
               </el-table-column>
             </el-table>
           </el-tab-pane>
-          <el-tab-pane name="batch" label="批量下载">批量下载</el-tab-pane>
+<!--          <el-tab-pane name="batch" label="批量下载">批量下载</el-tab-pane>-->
         </el-tabs>
     </el-dialog>
     <div class="filter-container">
@@ -184,10 +184,15 @@
           this.tableData.forEach((item, index, arr) => {
             let image_name = item.image_name
             if(this.tmpImageNameList.indexOf(image_name) > -1){
-              this.$message({
+              // this.$message({
+              //   message: image_name+" 添加成功",
+              //   type: "success",
+              // })
+              this.$notify({
+                title: '成功',
                 message: image_name+" 添加成功",
-                type: "success",
-              })
+                type: 'success'
+              });
             }
           })
           let tmpTableData = response.data
@@ -239,26 +244,41 @@
             let tmpMsg = msg.replace("拉取镜像", "").replace("任务下发成功", "").replace(" ", "")
             this.tmpImageNameList.push(tmpMsg)
             if(msg.indexOf("成功") > -1 ){
-              this.$message({
+              // this.$message({
+              //   message: msg,
+              //   type: "success",
+              // })
+              this.$notify({
+                title: '成功',
                 message: msg,
-                type: "success",
-              })
+                type: 'success'
+              });
               this.centerDialogVisible = false
               this.initTableData()
             }else{
-              this.$message({
+              // this.$message({
+              //   message: msg,
+              //   type: "error",
+              //   duration: 3 * 1000
+              // })
+              this.$notify({
+                title: msg,
                 message: msg,
-                type: "error",
-                duration: 3 * 1000
-              })
+                type: 'error'
+              });
               this.centerDialogVisible = false
             }
           }else{
-            this.$message({
+            // this.$message({
+            //   message: data["msg"],
+            //   type: "success",
+            //   duration: 3 * 1000
+            // })
+            this.$notify({
+              title: '成功',
               message: data["msg"],
-              type: "success",
-              duration: 3 * 1000
-            })
+              type: 'success'
+            });
             this.centerDialogVisible = false
             this.initTableData()
           }
@@ -273,15 +293,25 @@
           ImageDelete(row.image_id).then(response => {
             let data = response.data
             if(data.status === 200){
-              this.$message({
-                type: 'success',
-                message: '删除成功!'
-              })
+              // this.$message({
+              //   type: 'success',
+              //   message: '删除成功!'
+              // })
+              this.$notify({
+                title: '成功',
+                message: '删除成功!',
+                type: 'success'
+              });
               this.initTableData()
             }else{
-              this.$message({
-                type: 'error',
-                message: data.msg
+              // this.$message({
+              //   type: 'error',
+              //   message: data.msg
+              // });
+              this.$notify({
+                title: '失败',
+                message: data.msg,
+                type: 'error'
               });
             }
           })
@@ -322,15 +352,26 @@
                 this.removeArray(taskList, key)
                 taskDict[key].is_ok = true
                 if(taskMsg["data"]["status"] === 200){
-                  this.$message({
+                  // this.$message({
+                  //   message: taskMsg["data"]["msg"],
+                  //   type: "success",
+                  // })
+
+                  this.$notify({
+                    title: '成功',
                     message: taskMsg["data"]["msg"],
-                    type: "success",
-                  })
+                    type: 'success'
+                  });
                 }else{
-                  this.$message({
+                  // this.$message({
+                  //   message: taskMsg["data"]["msg"],
+                  //   type: "error",
+                  // })
+                  this.$notify({
+                    title: '失败',
                     message: taskMsg["data"]["msg"],
-                    type: "error",
-                  })
+                    type: 'error'
+                  });
                 }
               }
             }
@@ -397,21 +438,37 @@
               let msg = data[i]
               let tmpMsg = msg.replace(" ", "").replace("拉取镜像", "").replace("任务下发成功", "")
               this.tmpImageNameList.push(tmpMsg)
-              this.$message({message: msg,type: "success",duration: 1.5 * 1000})
+
+              this.$notify({
+                title: '成功',
+                message: msg,
+                type: 'success'
+              });
+              // this.$message({message: msg,type: "success",duration: 1.5 * 1000})
             }
             this.centerDialogVisible = false
             this.initTableData()
           }else if(status === 201){
-            this.$message({
+            // this.$message({
+            //   message: rsp["msg"],
+            //   type: "info",
+            // })
+            this.$notify({
+              title: '失败',
               message: rsp["msg"],
-              type: "info",
-            })
+              type: 'info'
+            });
           }else{
-            this.$message({
+            // this.$message({
+            //   message: rsp["msg"],
+            //   type: "error",
+            //   duration: 3 * 1000
+            // })
+            this.$notify({
+              title: '失败',
               message: rsp["msg"],
-              type: "error",
-              duration: 3 * 1000
-            })
+              type: 'error'
+            });
           }
         })
       }

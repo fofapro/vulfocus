@@ -13,7 +13,7 @@ import json
 
 class TaskSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TaskSetSerializer
-    queryset = TaskInfo.objects.all()
+    queryset = TaskInfo.objects.all().order_by('-create_date')
 
     @action(methods=["get"], detail=True, url_path='get')
     def get_task(self, request, pk=None):

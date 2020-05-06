@@ -140,12 +140,14 @@ export default {
                   }else if (responseStatus === 201){
                     this.$message({
                       message: response.data["msg"],
-                      type: "info",
+                      type: "error",
                     })
+                    this.centerDialogVisible = false
                   }else{
                     this.$message({message:  response.data["msg"],
                       type: "error",
                     })
+                    this.centerDialogVisible = false
                   }
                 }
               })
