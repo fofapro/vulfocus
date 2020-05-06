@@ -18,7 +18,7 @@
           </el-form-item>
           <el-form-item>
             <!--<div slot="footer" class="dialog-footer">-->
-            <el-button type="primary" @click="subflag(container_id,input.trim())" :disabled="Cstatus">提 交</el-button>
+            <el-button type="primary" @click="subflag(container_id,input.trim())" :disabled="cStatus">提 交</el-button>
             <!--</div>-->
           </el-form-item>
         </el-form>
@@ -33,9 +33,9 @@
         <el-card :body-style="{ padding: '8px' }" shadow="hover"
                  @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
           <div class="clearfix" >
-          <svg-icon icon-class="bug"  style="font-size: 20px;"/>
+            <svg-icon icon-class="bug"  style="font-size: 20px;"/>
             <div style="display: inline-block;color: #20a0ff" >
-              <i v-if="item.status.status && item.status.is_check" class="el-icon-check"></i>
+              <i v-if="item.status.status === 'stop' && item.status.is_check" class="el-icon-check"></i>
               <i v-else-if="item.status.status === 'running'" class="el-icon-loading"></i>
             </div>
             <el-rate
@@ -66,25 +66,25 @@
 </template>
 
 <script>
-import { ImgList,ContainerSTATUS,SubFlag,ContainerSTART,ContainerDelete,ContainerStop,ContainerStart } from '@/api/docker'
-import Message from 'element-ui/packages/message/src/main'
+import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop } from '@/api/docker'
+import { getTask } from '@/api/tasks'
 
 export default {
   name: 'Dashboard',
     data() {
       return {
-          listdata: [],
-          vul_host: "",
-          centerDialogVisible: false,
-          startCon:false,
-          input: "",
-          images_id: "",
-          container_id: "",
-          images_name: "",
-          images_desc: "",
-          item_raw_data: "",
-          Cstatus: false,
-          search: ""
+        listdata: [],
+        vul_host: "",
+        centerDialogVisible: false,
+        startCon:false,
+        input: "",
+        images_id: "",
+        container_id: "",
+        images_name: "",
+        images_desc: "",
+        item_raw_data: "",
+        cStatus: true,
+        search: ""
        };
     },
     created() {
@@ -96,80 +96,80 @@ export default {
               this.listdata = response.data
           })
       },
-      Cifno(id,raw_data){
-        ContainerSTATUS(id).then(response => {
-          let container_status = response.data.container_status
-          if(container_status === 'stop'){
-            // 启动
-            ContainerStart(id).then(response=>{
-              if(response.status===201){
-                this.vul_host = response.data.info
-                this.container_id = id
-                raw_data.status.status = 'running'
-                raw_data.status.container_id = container_id
-                this.startCon = false
-                this.Cstatus = false
-              }
-            })
-          }else if(container_status === 'running'){
-            this.vul_host = response.data.vul_host
-          }
-        })
-      },
       open(id,images_name,images_desc,status,container_id,raw_data) {
-          this.images_id = ''
-          this.images_name = ''
-          this.images_desc = ''
-          this.container_id = ''
-          this.item_raw_data = ''
-          this.startCon = 'loading'
-          this.item_raw_data = raw_data
-          this.images_id = id
-          this.images_name = images_name
-          this.images_desc = images_desc
-          this.centerDialogVisible = true
-          if(raw_data.status.is_check === true){
-            this.$message({
-              message:  '该题目已经通过',
-              type: 'success',
-            })
-            this.centerDialogVisible = false
-          }
-          ContainerSTART(id).then(response=>{
-            if(response.status===201){
-              container_id = response.data.container_id;
-              this.container_id = container_id;
-              this.vul_host = response.data.info
-              raw_data.status.status = 'running'
-              raw_data.status.container_id = container_id
-              this.startCon = false
-              this.Cstatus = false
-              this.container_id = container_id
-            }else if(response.status === 202){
-              this.$message({
-                message: response.data.msg,
-                type: 'info',
-              })
-            }else {
-              this.$message({message:  response.data.msg,
-                type: 'error',
-              })
-              this.centerDialogVisible = false
-            }
+        this.images_id = ""
+        this.images_name = ""
+        this.images_desc = ""
+        this.container_id = ""
+        this.item_raw_data = ""
+        this.vul_host = ""
+        this.startCon = "loading"
+        this.cStatus = true
+        this.item_raw_data = raw_data
+        this.images_id = id
+        this.images_name = images_name
+        this.images_desc = images_desc
+        this.centerDialogVisible = true
+        if(raw_data.status.is_check === true){
+          this.$message({
+            message:  "该题目已经通过",
+            type: "success",
           })
+          this.centerDialogVisible = false
+        }
+        ContainerSTART(id).then(response=>{
+          let taskId = response.data["data"]
+          let tmpRunContainerInterval = window.setInterval(() => {
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                console.log(responseStatus)
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(tmpRunContainerInterval)
+                  if (responseStatus === 200){
+                    container_id = responseData["data"]["id"]
+                    this.container_id = container_id
+                    this.vul_host = responseData["data"]["host"]
+                    raw_data.status.status = responseData["data"]["status"]
+                    raw_data.status.container_id = container_id
+                    this.startCon = false
+                    this.cStatus = false
+                  }else if (responseStatus === 201){
+                    this.$message({
+                      message: response.data["msg"],
+                      type: "info",
+                    })
+                  }else{
+                    this.$message({message:  response.data["msg"],
+                      type: "error",
+                    })
+                  }
+                }
+              })
+            },1)
+          },2000)
+        })
       },
       subflag(id,flag) {
           SubFlag(id,flag).then(response => {
-            if (response.data.code === "2002"|| response.data.code === "2003" || response.data.code === '2001') {
+            let responseData = response.data
+            if(responseData["status"] === 200){
               this.$message({
-                message:  'Flag错误',
-                type: 'error',
+                message:  "恭喜！通过",
+                type: "success",
               })
-            }
-            if (response.data.code === "2000") {
+            }else if(responseData.status === 201){
               this.$message({
-                message:  '恭喜！通过',
-                type: 'success',
+                message: responseData["msg"],
+                type: "info",
+              })
+            }else{
+              this.$message({
+                message:  responseData["msg"],
+                type: "error",
               })
             }
             this.centerDialogVisible = false
@@ -182,18 +182,32 @@ export default {
          * 停止容器运行
          */
         ContainerStop(container_id).then(response=>{
-          if(response.status === 201){
-            this.$message({
-              message: response.data.msg,
-              type: 'success',
-            })
-            raw.status.status = 'stop'
-          }else{
-            this.$message({
-              message: '容器停止失败',
-              type: 'error',
-            })
-          }
+          let taskId = response.data["data"]
+          let tmpStopContainerInterval = window.setInterval(() => {
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(tmpStopContainerInterval)
+                  if (responseStatus === 200){
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "success",
+                    })
+                    raw.status.status = "stop"
+                  }else{
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "error",
+                    })
+                  }
+                }
+              })
+            },1)
+          },2000)
         })
       },
       Delete(container_id,raw){
@@ -201,30 +215,70 @@ export default {
          * 删除容器
          */
         ContainerDelete(container_id).then(response=>{
-          if(response.status === 201){
-            // 清空状态码
-            raw.status.status = ''
-            // 清空 image_id
-            this.images_id = ''
-            // 清空 image_name
-            this.images_name = ''
-            // 清空 image_desc
-            this.images_desc = ''
-            // 清空 container_id
-            this.container_id = ''
-            // 清空 item_raw_data
-            this.item_raw_data = ''
-            raw.status.container_id = ''
-            this.$message({
-              message: response.data.msg,
-              type: 'success',
-            })
-          }else{
-            this.$message({
-              message: '容器删除失败',
-              type: 'error',
-            })
-          }
+          let taskId = response.data["data"]
+          let tmpDeleteContainerInterval = window.setInterval(() => {
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(tmpDeleteContainerInterval)
+                  if (responseStatus === 200){
+                    // 清空状态码
+                    raw.status.status = ""
+                    // 清空 image_id
+                    this.images_id = ""
+                    // 清空 image_name
+                    this.images_name = ""
+                    // 清空 image_desc
+                    this.images_desc = ""
+                    // 清空 container_id
+                    this.container_id = ""
+                    // 清空 item_raw_data
+                    this.item_raw_data = ""
+                    raw.status.container_id = ""
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "success",
+                    })
+                  }else{
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "error",
+                    })
+                  }
+                }
+              })
+            },1)
+          },2000)
+
+
+          // if(response.status === 201){
+          //   // 清空状态码
+          //   raw.status.status = ''
+          //   // 清空 image_id
+          //   this.images_id = ''
+          //   // 清空 image_name
+          //   this.images_name = ''
+          //   // 清空 image_desc
+          //   this.images_desc = ''
+          //   // 清空 container_id
+          //   this.container_id = ''
+          //   // 清空 item_raw_data
+          //   this.item_raw_data = ''
+          //   raw.status.container_id = ''
+          //   this.$message({
+          //     message: response.data.msg,
+          //     type: 'success',
+          //   })
+          // }else{
+          //   this.$message({
+          //     message: '容器删除失败',
+          //     type: 'error',
+          //   })
+          // }
         })
       },
       handleQuery(){

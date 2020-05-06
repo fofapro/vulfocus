@@ -54,7 +54,7 @@ class LogoutView(View):
         return JsonResponse({"msg": "OK"})
 
 
-class UserRegView(viewsets.mixins.CreateModelMixin,viewsets.GenericViewSet):
+class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
     authentication_classes = []
     permission_classes = []
     queryset = UserProfile.objects.all()
