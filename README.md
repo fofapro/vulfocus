@@ -74,24 +74,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 初期 Vulfocus 的漏洞镜像会较少，可能无法满足你的需求，所以非常期望大家来一起维护 Vulfocus，当你发现你的一些漏洞环境在 Vulfocus 中找不到时，可以提交供大家使用。一个有问题的环境可能会影响到使用者的情绪。因此我们对社区提交的漏洞环境会进行审核。贡献者在提交漏洞环境的时候，可提供相应的复现工具或流程，加速环境的审核。
 
-### 方式
-
-- 提交 dockerfile
-- 也可以上传到 [https://hub.docker.com](https://hub.docker.com) ，把镜像的名称提供给我们，镜像名称的命令规则如：框架（CMS、组件）-漏洞编号，例如：`vulfocus/spring-cve_2017_8046`
-
-
-- 例：
-    vulfocus/webmin-cve_2019_15107
-    vulfocus/spring-cve_2017_8046
-
-### 流程
-
-- fork [vulfocus](https://github.com/fofapro/vulfocus) 至个人项目，然后 clone 项目。
-
-- 提交 dockerfile 至 [images](./images/) 文件夹中创建漏洞名称，然后将 dockerfile 放置该目录下，最后将环境信息提交至 [`images/README.md`](./images/README.md)。
-- 贡献者以 PR 的方式向 github Vulfocus 社区仓库内提交 漏洞环境， 提交位置: [https://github.com/fofapro/vulfocus/dockerfile/](https://github.com/fofapro/vulfocus/dockerfile/)
-- 我们会根据提供的 dockerfile，确定镜像环境是否可用。
-- 审核完成后镜像会放进 https://hub.docker.com/u/vulfocus 仓库供大家使用。
+[镜像贡献](./images/CONTRIBUTION.md)
 
 ## 📝 讨论区
 

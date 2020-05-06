@@ -7,13 +7,14 @@ from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer, S
 from dockerapi.models import ContainerVul
 import django.utils
 import django.utils.timezone as timezone
-from .common import R
+from .common import R, DEFAULT_CONFIG, docker_login
 from django.db.models import Q
-from .models import SysLog
+from .models import SysLog, SysConfig
 import json
 from tasks import tasks
 from vulfocus.settings import client, VUL_IP
 from tasks.models import TaskInfo
+from rest_framework.decorators import api_view
 
 
 def get_request_ip(request):
@@ -295,6 +296,73 @@ class SysLogSet(viewsets.ModelViewSet):
             return []
 
 
+@api_view(http_method_names=["GET"])
+def get_setting(request):
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    rsp_data = get_setting_config()
+    return JsonResponse(R.ok(data=rsp_data))
+
+
+@api_view(http_method_names=["POST"])
+def update_setting(request):
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    username = request.POST.get("username", DEFAULT_CONFIG["username"])
+    pwd = request.POST.get("pwd", DEFAULT_CONFIG["pwd"])
+    time = request.POST.get("time", DEFAULT_CONFIG["time"])
+    try:
+        time = int(time)
+    except:
+        time = int(DEFAULT_CONFIG["time"])
+    username_config = SysConfig.objects.filter(config_key="username").first()
+    if not username_config:
+        username_config = SysConfig(config_key="username", config_value=DEFAULT_CONFIG["username"])
+        username_config.save()
+    else:
+        if username_config.config_value != username:
+            username_config.config_value = username
+            username_config.save()
+
+    pwd_config = SysConfig.objects.filter(config_key="pwd").first()
+    if not pwd_config:
+        pwd_config = SysConfig(config_key="pwd", config_value=DEFAULT_CONFIG["pwd"])
+        pwd_config.save()
+    else:
+        if pwd_config.config_value != pwd:
+            pwd_config.config_value = pwd
+            pwd_config.save()
+
+    time_config = SysConfig.objects.filter(config_key="time").first()
+    if not time_config:
+        time_config = SysConfig(config_key="time", config_value=DEFAULT_CONFIG["time"])
+        time_config.save()
+    else:
+        if time_config.config_value != time:
+            time_config.config_value = time
+            time_config.save()
+    rsp_data = get_setting_config()
+    return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
+
+
+def get_setting_config():
+    """
+    获取配置信息
+    """
+    rsp_data = {}
+    for config_key in DEFAULT_CONFIG:
+        config = SysConfig.objects.filter(config_key=config_key).first()
+        config_value = DEFAULT_CONFIG[config_key]
+        if not config:
+            config = SysConfig(config_key=config_key, config_value=config_value)
+            config.save()
+        config_value = config.config_value
+        rsp_data[config_key] = config_value
+    return rsp_data
+
+
 def get_local_ip():
     """
     获取本机IP
@@ -310,3 +378,4 @@ def get_local_ip():
     finally:
         s.close()
     return local_ip
+

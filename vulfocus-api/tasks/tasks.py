@@ -13,6 +13,8 @@ from vulfocus.settings import client, DOCKER_CONTAINER_TIME, VUL_IP
 import json
 import django.utils.timezone as timezone
 import random
+from dockerapi.common import DEFAULT_CONFIG
+from dockerapi.views import get_setting_config
 from dockerapi.models import ContainerVul, ImageInfo
 from user.models import UserProfile
 from docker.models.images import Image
@@ -122,9 +124,23 @@ def create_container_task(container_vul, user_info, request_ip):
         sys_log = SysLog(user_id=user_id, operation_type="容器", operation_name="启动", ip=request_ip,
                          operation_value=operation_args["image_vul_name"], operation_args=json.dumps(operation_args))
         sys_log.save()
-        add_chain_sig = chain(run_container.s(container_vul.container_id, user_id, task_id) |
-                              stop_container.s().set(countdown=30*10))
-        add_chain_sig.apply_async()
+        setting_config = get_setting_config()
+        try:
+            countdown = int(setting_config["time"])
+        except:
+            countdown = int(DEFAULT_CONFIG["time"])
+        if countdown == 0:
+            run_container.delay(container_vul.container_id, user_id, task_id)
+        elif countdown != 0 and countdown > 60:
+            add_chain_sig = chain(run_container.s(container_vul.container_id, user_id, task_id) |
+                                  stop_container.s().set(countdown=countdown))
+            add_chain_sig.apply_async()
+        else:
+            task_info = TaskInfo.objects.filter(task_id=task_id).first()
+            task_info.task_msg = json.dumps(R.build(msg="停止时间最小为 1 分钟"))
+            task_info.task_status = 4
+            task_info.update_date = timezone.now()
+            task_info.save()
     else:
         task_info = TaskInfo.objects.filter(task_id=task_id).first()
         task_info.task_msg = json.dumps(R.build(msg="权限不足"))

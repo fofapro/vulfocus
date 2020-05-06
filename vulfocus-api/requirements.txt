@@ -12,3 +12,4 @@ docker==3.7.3
 docker-compose==1.25.4
 docker-pycreds==0.4.0
 dockerpty==0.4.1
+celery==4.4.2

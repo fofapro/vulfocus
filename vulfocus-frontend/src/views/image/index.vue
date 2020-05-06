@@ -32,7 +32,7 @@
                 <el-input-number v-model="vulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
                 &nbsp;&nbsp;&nbsp;
                 <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
-                  <i class="el-icon-info"></i>
+                  <i class="el-icon-question"></i>
                 </el-tooltip>
               </el-form-item>
               <el-form-item label="描述">
@@ -69,7 +69,7 @@
               </el-table-column>
             </el-table>
           </el-tab-pane>
-          <el-tab-pane name="batch" label="批量下载">批量下载</el-tab-pane>
+<!--          <el-tab-pane name="batch" label="批量下载">批量下载</el-tab-pane>-->
         </el-tabs>
     </el-dialog>
     <div class="filter-container">

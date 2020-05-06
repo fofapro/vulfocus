@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from rest_framework import routers
-from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet
+from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting
 from user.views import UserRegView, UserSet
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView
@@ -35,5 +35,7 @@ urlpatterns = [
     url(r'^user/login', obtain_jwt_token),
     url(r'^user/logout', LogoutView.as_view(), name="logout"),
     url(r'user/info', get_user_info.as_view()),
+    url(r'setting/get', get_setting),
+    url(r'setting/update', update_setting),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

@@ -5,11 +5,26 @@
 # @Site    :
 # @File    : common.py
 # @Software: PyCharm
+from vulfocus.settings import client
 
 HTTP_OK = 200
 HTTP_OK_RUNNING = 1001
 HTTP_ERR = 500
 HTTP_BULD = 201
+
+DEFAULT_CONFIG = {
+    "username": "vulshare",
+    "pwd": "2a295233-801b-4efb-9f78-916330b984f6",
+    "time": 30 * 60
+}
+
+
+def docker_login(username, pwd):
+    try:
+        client.login(username=username, password=pwd)
+        return True
+    except:
+        return False
 
 
 class R:
@@ -45,3 +60,4 @@ class R:
             "status": HTTP_OK_RUNNING,
             "msg": msg
         }
+

@@ -1,71 +1,25 @@
 <template>
   <div class="app-container">
     <el-table
-      :data="tableData"
-      border
-      stripe
-      style="width: 100%">
-      <el-table-column
-        type="index"
-        width="50">
-      </el-table-column>
-      <el-table-column
-        prop="vul_name"
-        width="150"
-        :show-overflow-tooltip=true
-        label="漏洞名称">
-      </el-table-column>
-      <el-table-column
-        :show-overflow-tooltip=true
-        prop="user_name"
-        width="100"
-        label="用户名">
-      </el-table-column>
-      <el-table-column
-        prop="vul_host"
-        width="200"
-        :show-overflow-tooltip=true
-        label="访问地址">
-      </el-table-column>
-      <el-table-column
-        label="状态"
-        width="85">
+      :data="tableData" border stripe style="width: 100%">
+      <el-table-column type="index" width="50"></el-table-column>
+      <el-table-column prop="vul_name" width="150" :show-overflow-tooltip=true label="漏洞名称"></el-table-column>
+      <el-table-column :show-overflow-tooltip=true prop="user_name" width="100" label="用户名"></el-table-column>
+      <el-table-column prop="vul_host" width="200" :show-overflow-tooltip=true label="访问地址"></el-table-column>
+      <el-table-column label="状态" width="85">
         <template slot-scope="{row}">
           <el-tag>{{row.container_status}}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column
-        prop="vul_desc"
-        :show-overflow-tooltip=true
-        width="300"
-        label="漏洞描述">
-      </el-table-column>
-      <el-table-column
-        prop="combination_desc"
-        label="操作"
-        :show-overflow-tooltip=true>
+      <el-table-column prop="vul_desc" :show-overflow-tooltip=true width="300" label="漏洞描述"></el-table-column>
+      <el-table-column prop="combination_desc" label="操作" :show-overflow-tooltip=true>
         <template slot-scope="{row}">
-          <el-button
-            size="mini"
-            type="primary"
-            icon="el-icon-caret-left"
-            v-if="row.container_status === 'stop'"
-            @click="startContainer(row)"
-          >启动</el-button>
-          <el-button
-            size="mini"
-            type="primary"
-            icon="el-icon-loading"
-            v-if="row.container_status === 'running'"
-            @click="stopContainer(row)"
-          >停止</el-button>
-          <el-button
-            size="mini"
-            type="danger"
-            icon="el-icon-delete"
-            v-if="row.container_status === 'running' || row.container_status === 'stop'"
-            @click="delContainer(row)"
-          >删除</el-button>
+          <el-button size="mini" type="primary" icon="el-icon-caret-left" v-if="row.container_status === 'stop'"
+            @click="startContainer(row)" >启动</el-button>
+          <el-button size="mini" type="primary" icon="el-icon-loading" v-if="row.container_status === 'running'"
+            @click="stopContainer(row)" >停止</el-button>
+          <el-button size="mini" type="danger" icon="el-icon-delete" v-if="row.container_status === 'running' || row.container_status === 'stop'"
+            @click="delContainer(row)" >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
