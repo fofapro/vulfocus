@@ -1,11 +1,11 @@
 <template>
   <div class="login-container">
+
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
 
-      <div class="title-container">
-        <h3 class="title">登入</h3>
+      <div class="title-container" align="center" style="margin-bottom: 15%;">
+        <img src="login_icon.png" />
       </div>
-
       <el-form-item prop="username">
         <span class="svg-container">
           <svg-icon icon-class="user" />
@@ -49,18 +49,10 @@
 </template>
 
 <script>
-// import { validUsername } from '@/utils/validate'
 
 export default {
   name: 'Login',
   data() {
-    // const validateUsername = (rule, value, callback) => {
-    //   if (!validUsername(value)) {
-    //     callback(new Error('Please enter the correct user name'))
-    //   } else {
-    //     callback()
-    //   }
-    // }
     const validatePassword = (rule, value, callback) => {
       if (value.length < 1) {
         callback(new Error('The password can not be less than 6 digits'))
@@ -74,7 +66,6 @@ export default {
         password: ''
       },
       loginRules: {
-        // username: [{ required: true, trigger: 'blur', validator: validateUsername }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       loading: false,

@@ -21,7 +21,7 @@ export default {
     Navbar,
     Sidebar,
     AppMain,
-      TagsView
+    TagsView
   },
   mixins: [ResizeMixin],
   computed: {

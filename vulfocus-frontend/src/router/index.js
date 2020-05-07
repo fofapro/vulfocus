@@ -115,7 +115,7 @@ export const asyncRoutes = [
       affix: true,
       name: 'user',
       component: () => import("@/views/manager/user"),
-      meta: { title: '用户信息管理', icon: 'table' , role: ['admin']}
+      meta: { title: '用户信息管理', icon: 'user' , role: ['admin']}
       },
       {
         path: 'images',
@@ -129,7 +129,7 @@ export const asyncRoutes = [
         affix: true,
         name: 'log',
         component: () => import("@/views/manager/log"),
-        meta: { title: '操作日志记录', icon: 'table' , role: ['admin']}
+        meta: { title: '操作日志记录', icon: 'log' , role: ['admin']}
       },
       {
         path: 'setting',

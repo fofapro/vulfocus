@@ -21,6 +21,8 @@ from docker.models.images import Image
 from docker.errors import NotFound, ImageNotFound
 from .models import TaskInfo
 from dockerapi.common import R, HTTP_ERR
+import datetime
+
 from dockerapi.models import SysLog
 import traceback
 from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer
@@ -130,9 +132,9 @@ def create_container_task(container_vul, user_info, request_ip):
         except:
             countdown = int(DEFAULT_CONFIG["time"])
         if countdown == 0:
-            run_container.delay(container_vul.container_id, user_id, task_id)
+            run_container.delay(container_vul.container_id, user_id, task_id, countdown)
         elif countdown != 0 and countdown >= 60:
-            add_chain_sig = chain(run_container.s(container_vul.container_id, user_id, task_id) |
+            add_chain_sig = chain(run_container.s(container_vul.container_id, user_id, task_id, countdown) |
                                   stop_container.s().set(countdown=countdown))
             add_chain_sig.apply_async()
         else:
@@ -203,7 +205,7 @@ def delete_container_task(container_vul, user_info, request_ip):
 
 
 @shared_task(name="tasks.run_container")
-def run_container(container_id, user_id, tmp_task_id):
+def run_container(container_id, user_id, tmp_task_id, countdown):
     """
     运行 docker 容器
     :param container_id: 漏洞容器数据库 id
@@ -292,15 +294,28 @@ def run_container(container_id, user_id, tmp_task_id):
         vul_flag = "flag-{bmh%s}" % (uuid.uuid4(),)
         command = 'touch /tmp/%s' % (vul_flag,)
         vul_host = get_local_ip() + ":" + container_port
+    task_start_date = timezone.now()
+    if countdown != 0 and countdown >= 60:
+        task_end_date = task_start_date + datetime.timedelta(seconds=countdown)
+    elif countdown == 0:
+        task_end_date = None
+    else:
+        countdown = int(DEFAULT_CONFIG["time"])
+        task_end_date = task_start_date + datetime.timedelta(seconds=countdown)
     if "running" == docker_container.status:
         msg_data = R.ok(data={
             "host": container_vul.vul_host,
             "port": container_vul.vul_port,
-            "id": str(container_vul.container_id)
+            "id": str(container_vul.container_id),
+            "status": "running",
+            "start_date": int(task_start_date.timestamp()),
+            "end_date": 0 if not task_end_date else int(task_end_date.timestamp())
         })
         search_task = TaskInfo.objects.filter(user_id=user_id, task_msg=json.dumps(msg_data), operation_type=2,
-                                          operation_args=json.dumps(args), task_name="运行容器：" + image_name).first()
+                                              operation_args=json.dumps(args), task_end_date=task_end_date,
+                                              task_name="运行容器：" + image_name).order_by("-create_date").first()
         if not search_task:
+            task_info.task_status = 3
             task_info.task_msg = json.dumps(msg_data)
             task_info.update_date = timezone.now()
             task_info.operation_args = json.dumps(args)
@@ -330,6 +345,8 @@ def run_container(container_id, user_id, tmp_task_id):
             msg["data"]["port"] = vul_port
             msg["data"]["id"] = str(container_vul.container_id)
             msg["data"]["status"] = container_status
+            msg["data"]["start_date"] = int(task_start_date.timestamp())
+            msg["data"]["end_date"] = 0 if not task_end_date else int(task_end_date.timestamp())
             # 容器状态
             container_vul.container_status = container_status
             # 容器 id
@@ -343,6 +360,10 @@ def run_container(container_id, user_id, tmp_task_id):
             # 验证 flag
             container_vul.container_flag = vul_flag
             container_vul.save()
+            task_start_date = timezone.now()
+            # start 时间
+            task_info.task_start_date = task_start_date
+            task_info.task_end_date = task_end_date
             task_info.task_status = 3
         task_info.task_msg = json.dumps(msg)
         task_info.update_date = timezone.now()
@@ -552,7 +573,6 @@ def create_run_container_task(container_vul, user_info):
                                             operation_type=2, task_name="运行容器：" + image_name).first()
     if not task_info:
         task_info = TaskInfo(task_name="运行容器：" + image_name, user_id=user_id, task_status=1,
-                             task_start_date=timezone.now(),
                              operation_type=2, operation_args=json.dumps(args), task_msg="", create_date=timezone.now(),
                              update_date=timezone.now())
         task_info.save()

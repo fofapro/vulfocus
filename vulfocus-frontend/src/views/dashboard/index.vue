@@ -29,22 +29,36 @@
           查询
         </el-button>
       </el-col>
-      <el-col :span="6" v-for="(item,index) in listdata" :key="index"  style="padding-bottom: 18px;">
+      <el-col :span="8" v-for="(item,index) in listdata" :key="index"  style="padding-bottom: 18px;">
         <el-card :body-style="{ padding: '8px' }" shadow="hover"
                  @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
           <div class="clearfix" >
-            <svg-icon icon-class="bug"  style="font-size: 20px;"/>
+            <div style="display: inline-block;">
+              <svg-icon icon-class="bug"  style="font-size: 20px;"/>
+            </div>
             <div style="display: inline-block;color: #20a0ff" >
               <i v-if="item.status.status === 'stop' && item.status.is_check" class="el-icon-check"></i>
               <i v-else-if="item.status.status === 'running'" class="el-icon-loading"></i>
+              <svg-icon v-else-if="item.status.status === 'stop' && item.status.is_check === false" icon-class="stop" />
             </div>
-            <el-rate
-              v-model=item.rank
-              disabled
-              show-score
-              text-color="#ff9900"
-              score-template={value}>
-            </el-rate>
+            <div style="display: inline-block;" v-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date !== 0">
+              <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
+                <i class="el-icon-time"></i>
+              </el-tooltip>
+              <count-down style="display: inline-block;" v-on:end_callback="countDownE_cb(1)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
+            </div>
+            <div style="display: inline-block;" v-else-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date === 0">
+              <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
+                <i class="el-icon-time"></i>
+              </el-tooltip>
+              <p style="display: inline-block;">-1</p>
+            </div>
+            <div v-else style="display: inline-block;">
+              <p style="display: inline-block;"></p>
+            </div>
+            <div>
+              <el-rate v-model=item.rank disabled show-score text-color="#ff9900" score-template={value}></el-rate>
+            </div>
           </div>
           <div style="padding: 5px;" >
             <div class="container-title">
@@ -68,28 +82,33 @@
 <script>
 import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop } from '@/api/docker'
 import { getTask } from '@/api/tasks'
-
+import CountDown from 'vue2-countdown'
 export default {
   name: 'Dashboard',
-    data() {
-      return {
-        listdata: [],
-        vul_host: "",
-        centerDialogVisible: false,
-        startCon:false,
-        input: "",
-        images_id: "",
-        container_id: "",
-        images_name: "",
-        images_desc: "",
-        item_raw_data: "",
-        cStatus: true,
-        search: ""
-       };
+  components: {
+    CountDown
+  },
+  replace:true,
+  data() {
+    return {
+      listdata: [],
+      vul_host: "",
+      centerDialogVisible: false,
+      startCon:false,
+      startTime:(new Date()).getTime(),
+      input: "",
+      images_id: "",
+      container_id: "",
+      images_name: "",
+      images_desc: "",
+      item_raw_data: "",
+      cStatus: true,
+      search: ""
+      };
     },
-    created() {
-      this.ListData()
-    },
+  created() {
+    this.ListData()
+  },
   methods:{
       ListData() {
           ImgList().then(response => {
@@ -116,14 +135,18 @@ export default {
             type: "success",
           })
           this.centerDialogVisible = false
-        }
-        ContainerSTART(id).then(response=>{
+        }else if(raw_data.status.status === "running"){
+          this.vul_host = raw_data.status.host
+          this.container_id = raw_data.status.container_id
+          this.startCon = false
+          this.cStatus = false
+        }else{
+          ContainerSTART(id).then(response=>{
           let taskId = response.data["data"]
           let tmpRunContainerInterval = window.setInterval(() => {
             setTimeout(()=>{
               getTask(taskId).then(response=>{
                 let responseStatus = response.data["status"]
-                console.log(responseStatus)
                 let responseData = response.data
                 if (responseStatus === 1001){
                   // 一直轮训
@@ -133,6 +156,9 @@ export default {
                     container_id = responseData["data"]["id"]
                     this.container_id = container_id
                     this.vul_host = responseData["data"]["host"]
+                    raw_data.status.now = responseData["data"]["_now"]
+                    raw_data.status.start_date = responseData["data"]["start_date"]
+                    raw_data.status.end_date = responseData["data"]["end_date"]
                     raw_data.status.status = responseData["data"]["status"]
                     raw_data.status.container_id = container_id
                     this.startCon = false
@@ -154,6 +180,7 @@ export default {
             },1)
           },2000)
         })
+        }
       },
       subflag(id,flag) {
           SubFlag(id,flag).then(response => {
@@ -200,6 +227,7 @@ export default {
                       type: "success",
                     })
                     raw.status.status = "stop"
+                    raw.status.start_date = ""
                   }else{
                     this.$message({
                       message: responseData["msg"],
@@ -288,10 +316,9 @@ export default {
           this.listdata = response.data
         })
       }
-  }
-
-
+  },
 }
+
 </script>
 
 <style lang="scss" scoped>

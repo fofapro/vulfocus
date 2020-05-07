@@ -1,11 +1,11 @@
 from django.shortcuts import render
-
 from rest_framework import viewsets
 from .serializers import TaskSetSerializer
 from django.http import JsonResponse
 from rest_framework.decorators import action
 from .models import TaskInfo
 from dockerapi.common import R
+import django.utils.timezone as timezone
 import json
 
 # Create your views here.
@@ -26,6 +26,12 @@ class TaskSet(viewsets.ReadOnlyModelViewSet):
         if task_msg:
             msg = json.loads(task_msg)
             if msg["status"] == 200:
+                if not msg["data"]:
+                    msg["data"] = {
+                        "_now": int(timezone.now().timestamp())
+                    }
+                else:
+                    msg["data"]["_now"] = int(timezone.now().timestamp())
                 return JsonResponse(msg, status=200)
             else:
                 return JsonResponse(msg, status=msg["status"])
