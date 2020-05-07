@@ -3,6 +3,8 @@ from rest_framework import serializers
 from dockerapi.models import ImageInfo, ContainerVul, SysLog
 from user.models import UserProfile
 from tasks.models import TaskInfo
+import django.utils.timezone as timezone
+from .common import R
 from django.db.models import Q
 import json
 
@@ -21,15 +23,35 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         检测是否在时间模式中
         '''
         time_model_id = ''
-        data = ContainerVul.objects.all().filter(user_id=id, image_id=obj.image_id,time_model_id=time_model_id).first()
+        data = ContainerVul.objects.all().filter(user_id=id, image_id=obj.image_id, time_model_id=time_model_id).first()
+
+        status["status"] = ""
+        status["is_check"] = False
+        status["container_id"] = ""
+        status["start_date"] = ""
+        status["end_date"] = ""
+        status["host"] = ""
+        status["port"] = ""
         if data:
+            status["start_date"] = ""
+            status["end_date"] = ""
+            if data.container_status == "running":
+                status["host"] = data.vul_host
+                status["port"] = data.vul_port
+                operation_args = {"image_name": obj.image_name, "user_id": id, "image_port": obj.image_port}
+                task_info = TaskInfo.objects.filter(user_id=id, task_status=3, operation_type=2,
+                                                    operation_args=json.dumps(operation_args)).order_by("-create_date").first()
+                if task_info:
+                    try:
+                        task_msg = json.loads(task_info.task_msg)
+                        status["start_date"] = int(task_msg["data"]["start_date"])
+                        status["end_date"] = int(task_msg["data"]["end_date"])
+                    except:
+                        status["start_date"] = ""
+                        status["end_date"] = ""
             status["status"] = data.container_status
             status["is_check"] = data.is_check
             status["container_id"] = data.container_id
-        else:
-            status["status"] = ""
-            status["is_check"] = False
-            status["container_id"] = ""
         # 查询正在拉取镜像的任务
         operation_args = {
             "image_name": obj.image_name,
@@ -42,6 +64,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             status["task_id"] = str(task_info.task_id)
         else:
             status["task_id"] = ""
+        status["now"] = int(timezone.now().timestamp())
         return status
 
     class Meta:

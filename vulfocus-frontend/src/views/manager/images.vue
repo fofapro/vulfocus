@@ -15,11 +15,19 @@
       <el-table-column prop="combination_desc" label="操作" :show-overflow-tooltip=true>
         <template slot-scope="{row}">
           <el-button size="mini" type="primary" icon="el-icon-caret-left" v-if="row.container_status === 'stop'"
+<<<<<<< HEAD
             @click="startContainer(row)" >启动</el-button>
           <el-button size="mini" type="primary" icon="el-icon-loading" v-if="row.container_status === 'running'"
             @click="stopContainer(row)" >停止</el-button>
           <el-button size="mini" type="danger" icon="el-icon-delete" v-if="row.container_status === 'running' || row.container_status === 'stop'"
             @click="delContainer(row)" >删除</el-button>
+=======
+                     @click="startContainer(row)" >启动</el-button>
+          <el-button size="mini" type="primary" icon="el-icon-loading" v-if="row.container_status === 'running'"
+                     @click="stopContainer(row)" >停止</el-button>
+          <el-button size="mini" type="danger" icon="el-icon-delete" v-if="row.container_status === 'running' || row.container_status === 'stop'"
+                     @click="delContainer(row)" >删除</el-button>
+>>>>>>> dev
         </template>
       </el-table-column>
     </el-table>
@@ -49,29 +57,29 @@
         containerStop(row.container_id).then(response => {
           let taskId = response.data["data"]
           let tmpStopContainerInterval = window.setInterval(() => {
-              setTimeout(()=>{
-                getTask(taskId).then(response=>{
-                  let responseStatus = response.data["status"]
-                  let responseData = response.data
-                  if (responseStatus === 1001){
-                    // 一直轮训
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(tmpStopContainerInterval)
+                  if(responseStatus === 200){
+                    this.$message({
+                      type: "success",
+                      message: "删除成功"
+                    });
+                    this.initTable()
                   }else{
-                    clearInterval(tmpStopContainerInterval)
-                    if(responseStatus === 200){
-                      this.$message({
-                        type: "success",
-                        message: "删除成功"
-                      });
-                      this.initTable()
-                    }else{
-                      this.$message({
-                        type: "error",
-                        message: responseData["msg"]
-                      })
-                    }
+                    this.$message({
+                      type: "error",
+                      message: responseData["msg"]
+                    })
                   }
-                })
-              },1)
+                }
+              })
+            },1)
           },1000)
         })
       },
@@ -125,8 +133,8 @@
                     this.initTable()
                   }else{
                     this.$message({
-                    message: responseData["msg"],
-                    type: "error",
+                      message: responseData["msg"],
+                      type: "error",
                     })
                   }
                 }

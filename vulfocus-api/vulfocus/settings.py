@@ -157,7 +157,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # 默认启动容器最长时间为 60s，可根据实际情况调整
 DOCKER_CONTAINER_TIME = 60
