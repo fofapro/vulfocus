@@ -1,4 +1,5 @@
 ## 贡献漏洞
+
 ### 更改镜像名称
 
 将镜像名称更改为：vulshare/框架+cve编号:个人ID
@@ -29,9 +30,9 @@ docker tag 镜像名称 vulshare/xxx-cve_2020_xxx:r4v3zn
 
 出现  sha256 说明上传成功
 
-![](https://github.com/fofapro/vulfocus/tree/master/imgs/6.png)
+![](../imgs/6.png)
 
 可直接到 https://hub.docker.com/u/vulshare , 进行查看。
 
-![](https://github.com/fofapro/vulfocus/tree/master/imgs/7.png)
+![](../imgs/7.png)
 
