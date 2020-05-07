@@ -76,25 +76,6 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 [镜像贡献](./images/CONTRIBUTION.md)
 
-## 📝 讨论区
-
-如有问题可以在 GitHub 提 issue, 也可在下方的讨论组里
-
-GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fofapro/vulfocus/issues)
-
-微信群: 通过扫描以下二维码加入并且备注 `申请 Vulfocus` 加入 Vulfocus 官方微信群。
-
-<img src="./imgs/wechat.jpeg" widht="500px" height="500px"  />
-
-## 致谢
-
-- [Vue Element Admin](https://github.com/PanJiaChen/vue-element-admin)
-- [Vulhub](https://vulhub.org/)
-
-## 声明
-
-该项目会收集了当下比较流行的漏洞环境，若有侵权，请联系我们！
-
 ## FAQ
 
 **镜像启动后立即访问地址失败？**
