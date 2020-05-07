@@ -6,10 +6,7 @@
 # @File    : common.py
 # @Software: PyCharm
 from vulfocus.settings import client
-<<<<<<< HEAD
-=======
 from .models import SysConfig
->>>>>>> dev
 
 HTTP_OK = 200
 HTTP_OK_RUNNING = 1001
@@ -30,8 +27,6 @@ def docker_login(username, pwd):
     except:
         return False
 
-<<<<<<< HEAD
-=======
 
 def get_setting_config():
     """
@@ -48,7 +43,6 @@ def get_setting_config():
         rsp_data[config_key] = config_value
     return rsp_data
 
->>>>>>> dev
 
 class R:
 
@@ -83,4 +77,3 @@ class R:
             "status": HTTP_OK_RUNNING,
             "msg": msg
         }
-

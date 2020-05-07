@@ -7,11 +7,7 @@ from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer, S
 from dockerapi.models import ContainerVul
 import django.utils
 import django.utils.timezone as timezone
-<<<<<<< HEAD
-from .common import R, DEFAULT_CONFIG, docker_login
-=======
 from .common import R, DEFAULT_CONFIG, get_setting_config
->>>>>>> dev
 from django.db.models import Q
 from .models import SysLog, SysConfig
 import json
@@ -316,17 +312,12 @@ def update_setting(request):
     username = request.POST.get("username", DEFAULT_CONFIG["username"])
     pwd = request.POST.get("pwd", DEFAULT_CONFIG["pwd"])
     time = request.POST.get("time", DEFAULT_CONFIG["time"])
-<<<<<<< HEAD
-    try:
-        time = int(time)
-=======
     msg = "修改成功"
     try:
         time = int(time)
         if time != 0 and time < 60:
             time = int(DEFAULT_CONFIG["time"])
             msg = "过期时间修改为默认值 30 分钟成功"
->>>>>>> dev
     except:
         time = int(DEFAULT_CONFIG["time"])
     username_config = SysConfig.objects.filter(config_key="username").first()
@@ -356,27 +347,7 @@ def update_setting(request):
             time_config.config_value = time
             time_config.save()
     rsp_data = get_setting_config()
-<<<<<<< HEAD
-    return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
-
-
-def get_setting_config():
-    """
-    获取配置信息
-    """
-    rsp_data = {}
-    for config_key in DEFAULT_CONFIG:
-        config = SysConfig.objects.filter(config_key=config_key).first()
-        config_value = DEFAULT_CONFIG[config_key]
-        if not config:
-            config = SysConfig(config_key=config_key, config_value=config_value)
-            config.save()
-        config_value = config.config_value
-        rsp_data[config_key] = config_value
-    return rsp_data
-=======
     return JsonResponse(R.ok(msg=msg, data=rsp_data))
->>>>>>> dev
 
 
 def get_local_ip():
@@ -394,4 +365,3 @@ def get_local_ip():
     finally:
         s.close()
     return local_ip
-

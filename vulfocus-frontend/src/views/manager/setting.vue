@@ -98,8 +98,4 @@
 </script>
 
 <style scoped>
-<<<<<<< HEAD
-
-=======
->>>>>>> dev
 </style>

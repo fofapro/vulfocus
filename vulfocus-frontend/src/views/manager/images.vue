@@ -15,19 +15,11 @@
       <el-table-column prop="combination_desc" label="操作" :show-overflow-tooltip=true>
         <template slot-scope="{row}">
           <el-button size="mini" type="primary" icon="el-icon-caret-left" v-if="row.container_status === 'stop'"
-<<<<<<< HEAD
-            @click="startContainer(row)" >启动</el-button>
-          <el-button size="mini" type="primary" icon="el-icon-loading" v-if="row.container_status === 'running'"
-            @click="stopContainer(row)" >停止</el-button>
-          <el-button size="mini" type="danger" icon="el-icon-delete" v-if="row.container_status === 'running' || row.container_status === 'stop'"
-            @click="delContainer(row)" >删除</el-button>
-=======
                      @click="startContainer(row)" >启动</el-button>
           <el-button size="mini" type="primary" icon="el-icon-loading" v-if="row.container_status === 'running'"
                      @click="stopContainer(row)" >停止</el-button>
           <el-button size="mini" type="danger" icon="el-icon-delete" v-if="row.container_status === 'running' || row.container_status === 'stop'"
                      @click="delContainer(row)" >删除</el-button>
->>>>>>> dev
         </template>
       </el-table-column>
     </el-table>
@@ -148,5 +140,4 @@
 </script>
 
 <style scoped>
-
 </style>

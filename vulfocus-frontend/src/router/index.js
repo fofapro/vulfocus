@@ -129,11 +129,7 @@ export const asyncRoutes = [
         affix: true,
         name: 'log',
         component: () => import("@/views/manager/log"),
-<<<<<<< HEAD
-        meta: { title: '操作日志记录', icon: 'table' , role: ['admin']}
-=======
         meta: { title: '操作日志记录', icon: 'log' , role: ['admin']}
->>>>>>> dev
       },
       {
         path: 'setting',

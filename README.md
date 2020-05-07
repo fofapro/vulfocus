@@ -95,8 +95,6 @@ GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fo
 ## 声明
 
 该项目会收集了当下比较流行的漏洞环境，若有侵权，请联系我们！
-=======
->>>>>>> dev
 
 ## FAQ
 
