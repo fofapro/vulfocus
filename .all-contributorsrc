@@ -122,6 +122,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Vdeem",
+      "name": "Vdeem",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/24988893?v=4",
+      "profile": "https://github.com/Vdeem",
+      "contributions": [
+        "blog"
+      ]
     }
   ],
   "contributorsPerLine": 7,
