@@ -3,13 +3,18 @@
 环境：
 
 - 语言：python3
-- 数据库：sqlite3
-- 框架：Django
+- 数据库：sqlite3、redis
+- 框架：Django、Celery
 - API：djangorestframework
+- 系统：Centos 7 , Other
 
 安装 Docker:
 
 [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
+
+安装 Redis：
+
+[https://www.runoob.com/redis/redis-install.html](https://www.runoob.com/redis/redis-install.html)
 
 安装依赖：
 
@@ -39,6 +44,12 @@ python manage.py createsuperuser
 
 ```
 python manage.py runserver 0.0.0.0:8000
+```
+
+启动 Celery：
+
+```
+celery multi start worker -A vulfocus -l info --logfile=celery.log
 ```
 
 ### 部署

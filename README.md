@@ -8,7 +8,7 @@ Vulfocus 是一个漏洞集成平台，将漏洞环境 docker 镜像，放入即
   <img src="https://img.shields.io/github/release/fofapro/vulfocus.svg?color=blue&label=update&style=flat-square" />
   <img src="https://img.shields.io/github/license/fofapro/vulfocus?style=flat-square" />
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<img src="https://img.shields.io/badge/all_contributors-13-orange.svg?style=flat-square" />
+<img src="https://img.shields.io/badge/all_contributors-14-orange.svg?style=flat-square" />
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -76,25 +76,6 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 [镜像贡献](./images/CONTRIBUTION.md)
 
-## 📝 讨论区
-
-如有问题可以在 GitHub 提 issue, 也可在下方的讨论组里
-
-GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fofapro/vulfocus/issues)
-
-微信群: 通过扫描以下二维码加入并且备注 `申请 Vulfocus` 加入 Vulfocus 官方微信群。
-
-<img src="./imgs/wechat.jpeg" widht="500px" height="500px"  />
-
-## 致谢
-
-- [Vue Element Admin](https://github.com/PanJiaChen/vue-element-admin)
-- [Vulhub](https://vulhub.org/)
-
-## 声明
-
-该项目会收集了当下比较流行的漏洞环境，若有侵权，请联系我们！
-
 ## FAQ
 
 **镜像启动后立即访问地址失败？**
@@ -139,9 +120,34 @@ Thanks goes to these wonderful people :
     <td align="center"><a href="https://github.com/zhangfeitao"><img src="https://avatars0.githubusercontent.com/u/10626929?v=4" width="100px;" alt=""/><br /><sub><b>zhangfeitao</b></sub></a><br /><a href="#ideas-zhangfeitao" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/TORRYGUO"><img src="https://avatars0.githubusercontent.com/u/43666746?v=4" width="100px;" alt=""/><br /><sub><b>TORRYGUO</b></sub></a><br /><a href="#ideas-TORRYGUO" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/Becivells"><img src="https://avatars2.githubusercontent.com/u/12883127?v=4" width="100px;" alt=""/><br /><sub><b>李大壮</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Becivells" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/Vdeem"><img src="https://avatars1.githubusercontent.com/u/24988893?v=4" width="100px;" alt=""/><br /><sub><b>Vdeem</b></sub></a><br /><a href="#blog-Vdeem" title="Blogposts">📝</a></td>
   </tr>
 </table>
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+## 📝 讨论区
+
+如有问题可以在 GitHub 提 issue, 也可在下方的讨论组里
+
+GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fofapro/vulfocus/issues)
+
+微信群: 通过扫描以下二维码加入并且备注 `申请 Vulfocus` 加入 Vulfocus 官方微信群。
+
+<img src="./imgs/wechat.jpeg" widht="500px" height="500px"  />
+
+
+## 更新日志
+
+[更新日志](./CHANGELOG.md)
+
+## 致谢
+
+- [Vue Element Admin](https://github.com/PanJiaChen/vue-element-admin)
+- [Vulhub](https://vulhub.org/)
+
+## 声明
+
+该项目会收集了当下比较流行的漏洞环境，若有侵权，请联系我们！
