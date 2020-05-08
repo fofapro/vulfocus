@@ -9,6 +9,7 @@
       <el-table-column label="状态" width="85">
         <template slot-scope="{row}">
           <el-tag>{{row.container_status}}</el-tag>
+<!--          <el-tag v-if="row.container_status !== 'running'">{{row.container_status}}</el-tag>-->
         </template>
       </el-table-column>
       <el-table-column prop="vul_desc" :show-overflow-tooltip=true width="300" label="漏洞描述"></el-table-column>
@@ -29,12 +30,16 @@
 <script>
   import { containerList,containerStop,containerStart,containerDel } from '@/api/container'
   import { getTask } from '@/api/tasks'
+  import CountDown from 'vue2-countdown'
   export default {
     name: 'image',
     data(){
       return {
         tableData: []
       }
+    },
+    components: {
+      CountDown
     },
     created(){
       this.initTable()

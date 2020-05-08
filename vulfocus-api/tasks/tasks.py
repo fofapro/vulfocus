@@ -502,6 +502,15 @@ def create_image(task_id):
     task_info.save()
 
 
+def share_image(task_id):
+    """
+    贡献镜像
+    :param task_id: 任务 id
+    :return:
+    """
+    pass
+
+
 def create_create_image_task(image_info, user_info):
     """
     创建拉取镜像任务
