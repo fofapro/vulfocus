@@ -41,7 +41,9 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 ### ✨ 使用
 
-![](./imgs/register&login.gif)
+![](./imgs/register.gif)
+
+![](./imgs/login.gif)
 
 1. 安装完成后，访问80端口
 
@@ -53,19 +55,17 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
    (1)、在进行管理中，添加功能
 
-   ![](./imgs/upload_image_pull.gif)
-
-   ![](./imgs/upload_image_file.gif)
+   ![](./imgs/image.gif)
 
    (2)、分别填入漏洞名称、镜像、rank、描述
 
    - 镜像又分为文件和文本
-     - 文本：是从 [https://hub.docker.com/u/vulfocus](https://hub.docker.com/u/vulfocus) 官网拉取镜像。内容为如： `vulfocus/webmin-cve_2019_15107` 。
+  - 文本：是从 [https://hub.docker.com/u/vulfocus](https://hub.docker.com/u/vulfocus) 官网拉取镜像。内容为如： `vulfocus/webmin-cve_2019_15107` 。
      - 文件：本地漏洞镜像打成tar包的形式进行上传。
-
+   
 4. 下载完成后点击启动即可。
 
-![](./imgs/tp5_rce.gif)
+![](./imgs/flag.gif)
 
 5. 镜像启动后，会在环境里写入一个 flag （默认 flag 会写入 **/tmp/** 下），读取到 flag 后填入 flag 窗口，镜像会自动关闭，如需重新启动，需强刷一下，然后再次点击启动即可。
 
