@@ -17,7 +17,6 @@
             <el-input v-model="input" placeholder="请输入Flag：格式flag-{xxxxxxxx}"></el-input>
           </el-form-item>
           <el-form-item>
-            <!--<div slot="footer" class="dialog-footer">-->
             <el-button type="primary" @click="subflag(container_id,input.trim())" :disabled="cStatus">提 交</el-button>
             <!--</div>-->
           </el-form-item>
@@ -35,26 +34,24 @@
           <div class="clearfix" >
             <div style="display: inline-block;">
               <svg-icon icon-class="bug"  style="font-size: 20px;"/>
-            </div>
-            <div style="display: inline-block;color: #20a0ff" >
-              <i v-if="item.status.status === 'stop' && item.status.is_check" class="el-icon-check"></i>
-              <i v-else-if="item.status.status === 'running'" class="el-icon-loading"></i>
-              <svg-icon v-else-if="item.status.status === 'stop' && item.status.is_check === false" icon-class="stop" />
-            </div>
-            <div style="display: inline-block;" v-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date !== 0">
-              <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
-                <i class="el-icon-time"></i>
-              </el-tooltip>
-              <count-down style="display: inline-block;" v-on:end_callback="countDownE_cb(1)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
-            </div>
-            <div style="display: inline-block;" v-else-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date === 0">
-              <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
-                <i class="el-icon-time"></i>
-              </el-tooltip>
-              <p style="display: inline-block;">-1</p>
-            </div>
-            <div v-else style="display: inline-block;">
-              <p style="display: inline-block;"></p>
+              <i style="color: #20a0ff;" v-if="item.status.status === 'stop' && item.status.is_check === true" class="el-icon-check"></i>
+              <i style="color: #20a0ff;" v-else-if="item.status.status === 'running'" class="el-icon-loading"></i>
+              <svg-icon style="color: #20a0ff;" v-else-if="item.status.status === 'stop' && item.status.is_check === false" icon-class="stop" />
+              <div style="display: inline-block;margin: 0;" v-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date !== 0">
+                <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
+                  <i class="el-icon-time"></i>
+                </el-tooltip>
+                <count-down style="display: inline-block;" v-on:end_callback="countDownE_cb(1)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
+              </div>
+              <div style="display: inline-block;" v-else-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date === 0">
+                <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
+                  <i class="el-icon-time"></i>
+                </el-tooltip>
+                <p style="display: inline-block;">-1</p>
+              </div>
+              <div v-else style="display: inline-block;">
+                <p style="display: none"></p>
+              </div>
             </div>
             <div>
               <el-rate v-model=item.rank disabled show-score text-color="#ff9900" score-template={value}></el-rate>
