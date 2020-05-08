@@ -10,7 +10,7 @@ docker pull vulfocus/vulfocus:latest
 ```
 运行 Vulfocus
 ```
-docker create -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=xxx.xxx.xxx.xxx vulfocus:0.2.0
+docker create -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=xxx.xxx.xxx.xxx vulfocus/vulfocus
 docker start container id
 ```
 或者
