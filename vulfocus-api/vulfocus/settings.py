@@ -170,8 +170,10 @@ except:
 
 if DOCKER_URL.startswith("unix:"):
     client = docker.DockerClient(base_url=DOCKER_URL)
+    api_docker_client = docker.APIClient(base_url=DOCKER_URL)
 else:
     client = docker.DockerClient(DOCKER_URL)
+    api_docker_client = docker.APIClient(base_url=DOCKER_URL)
 
 
 # 靶场绑定 IP，提供用户访问靶场与 Docker 服务IP保持一致。
