@@ -110,6 +110,27 @@ def create_image_task(image_info, user_info, request_ip, image_file=None):
     return task_id
 
 
+def share_image_task(image_info, user_info, request_ip):
+    """
+    共享镜像
+    :param image_info: 镜像信息
+    :param user_info: 用户信息
+    :param request_ip: 请求 IP
+    :return:
+    """
+    user_id = user_info.id
+    task_id = create_share_image_task(image_info=image_info, user_info=user_info)
+    if user_info.is_superuser:
+        pass
+    else:
+        task_info = TaskInfo.objects.filter(task_id=task_id).first()
+        task_info.task_msg = json.dumps(R.build(msg="权限不足"))
+        task_info.task_status = 3
+        task_info.update_date = timezone.now()
+        task_info.save()
+    return task_id
+
+
 def create_container_task(container_vul, user_info, request_ip):
     """
     创建漏洞容器
@@ -509,6 +530,29 @@ def share_image(task_id):
     :return:
     """
     pass
+
+
+def create_share_image_task(image_info, user_info):
+    """
+    创建共享镜像任务
+    :param image_info: 镜像信息
+    :param user_info: 用户信息
+    :return:
+    """
+    image_name = image_info.image_name
+    user_id = user_info.id
+    setting_config = get_setting_config()
+    args = {
+        "share_username": setting_config["share_username"],
+        "image_name": image_name,
+        "username": setting_config["username"],
+        "pwd": setting_config["pwd"]
+    }
+    task_info = TaskInfo(task_name="共享镜像："+image_name, user_id=user_id, task_status=1, task_msg=json.dumps({}),
+                         task_start_date=timezone.now(), operation_type=5, operation_args=json.dumps(args),
+                         create_date=timezone.now(), update_date=timezone.now())
+    task_info.save()
+    return str(task_info.task_id)
 
 
 def create_create_image_task(image_info, user_info):
