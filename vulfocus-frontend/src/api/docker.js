@@ -1,11 +1,17 @@
 import request from '@/utils/request'
 
-export function ImgList(data) {
+export function ImgList(data,flag) {
   if(data === undefined){
     data = ""
   }
+  let url = "/images/?query="+data
+  let paramFlag = ""
+  if(flag === true){
+    paramFlag = "flag"
+    url += "&flag="+paramFlag
+  }
   return request({
-    url: '/images/?query='+data,
+    url: url,
     method: 'get'
   })
 }

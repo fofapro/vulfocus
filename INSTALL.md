@@ -4,14 +4,24 @@
 
 ## 快速安装
 
+拉取 Vulfocus 镜像：
 ```
 docker pull vulfocus/vulfocus:latest
+```
+运行 Vulfocus
+```
+docker create -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=xxx.xxx.xxx.xxx vulfocus/vulfocus
+docker start container id
+```
+或者
+```
 docker run -d -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=xxx.xxx.xxx.xxx vulfocus/vulfocus
 ```
-
-其中 `-v /var/run/docker.sock:/var/run/docker.sock` 为 docker  交互文件， `-e VUL_IP=xxx.xxx.xxx.xxx` 为 Docker 服务器 IP ，不能为 127.0.0.1。
-
-默认账户密码为 `admin/admin`。
+- `-v /var/run/docker.sock:/var/run/docker.sock` 为 docker 交互连接。
+- `-e DOCKER_URL` 为 Docker 连接方式，默认通过 `unix://var/run/docker.sock` 进行连接，也可以通过 `tcp://xxx.xxx.xxx.xxx:2375` 进行连接（必须开放 2375 端口）。
+- `-v /vulfocus-api/db.sqlite3:db.sqlite3` 映射数据库为本地文件。
+- `-e VUL_IP=xxx.xxx.xxx.xxx` 为 Docker 服务器 IP ，不能为 127.0.0.1。
+- 默认账户密码为 `admin/admin`。
 
 ![](./imgs/1.png)
 
@@ -22,10 +32,10 @@ docker run -d -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=x
 环境：
 
 - 语言：python3
-- 数据库：sqlite3
-- 框架：Django
+- 数据库：sqlite3、redis
+- 框架：Django、Celery
 - API：djangorestframework
-- 系统：Centos 7 , 其他系统也可以
+- 系统：Centos 7 , Other
 
 ### 安装依赖
 
@@ -34,6 +44,7 @@ docker run -d -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=x
 yum -y install epel-release
 yum install gcc -y
 yum install  nginx supervisor net-tools wget git -y
+yum install redis -y
 ```
 
 ### 安装 docker
@@ -118,6 +129,18 @@ python manage.py createsuperuser
 
 2. 配置 VUL_IP（`vulfocus/settings.py`），修改为 Docker 服务器的 IP。
 
+3. 修改 CELERY_BROKER_URL（`vulfocus/settings.py`），修改为 Redis 连接地址。
+
+#### 启动 Celery
+在 `vulfocus-api` 中启动 Celery：
+```
+celery -A vulfocus worker -l info -E
+```
+后端启动：
+```
+celery multi start worker -A vulfocus -l info --logfile=celery.log
+```
+
 #### 安装uwsgi
 
 ```shell
@@ -180,12 +203,12 @@ npm run build:prod
 配置上传文件大小，修改 `nginx.conf` 文件，http 中加入：
 
 ```
-client_max_body_size 2048M;
+client_max_body_size 4096M;
 ```
 
-其中 2048M（2GB） 为上传文件最大限制，可根据实际进行修改，最小配置为 200M 。
+其中 4096M（4GB） 为上传文件最大限制，可根据实际进行修改，最小配置为 200M 。
 
-####带证书多 vhost 的 nginx 配置文件
+#### 带证书多 vhost 的 nginx 配置文件
 
 **位置：**`/etc/nginx/conf.d/vulfocus.xxx.net.conf`
 

@@ -8,7 +8,7 @@ Vulfocus 是一个漏洞集成平台，将漏洞环境 docker 镜像，放入即
   <img src="https://img.shields.io/github/release/fofapro/vulfocus.svg?color=blue&label=update&style=flat-square" />
   <img src="https://img.shields.io/github/license/fofapro/vulfocus?style=flat-square" />
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<img src="https://img.shields.io/badge/all_contributors-12-orange.svg?style=flat-square" />
+<img src="https://img.shields.io/badge/all_contributors-14-orange.svg?style=flat-square" />
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -41,7 +41,9 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 ### ✨ 使用
 
-![](./imgs/register&login.gif)
+![](./imgs/register.gif)
+
+![](./imgs/login.gif)
 
 1. 安装完成后，访问80端口
 
@@ -53,19 +55,17 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
    (1)、在进行管理中，添加功能
 
-   ![](./imgs/upload_image_pull.gif)
-
-   ![](./imgs/upload_image_file.gif)
+   ![](./imgs/image.gif)
 
    (2)、分别填入漏洞名称、镜像、rank、描述
 
    - 镜像又分为文件和文本
-     - 文本：是从 [https://hub.docker.com/u/vulfocus](https://hub.docker.com/u/vulfocus) 官网拉取镜像。内容为如： `vulfocus/webmin-cve_2019_15107` 。
+  - 文本：是从 [https://hub.docker.com/u/vulfocus](https://hub.docker.com/u/vulfocus) 官网拉取镜像。内容为如： `vulfocus/webmin-cve_2019_15107` 。
      - 文件：本地漏洞镜像打成tar包的形式进行上传。
-
+   
 4. 下载完成后点击启动即可。
 
-![](./imgs/tp5_rce.gif)
+![](./imgs/flag.gif)
 
 5. 镜像启动后，会在环境里写入一个 flag （默认 flag 会写入 **/tmp/** 下），读取到 flag 后填入 flag 窗口，镜像会自动关闭，如需重新启动，需强刷一下，然后再次点击启动即可。
 
@@ -74,43 +74,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 初期 Vulfocus 的漏洞镜像会较少，可能无法满足你的需求，所以非常期望大家来一起维护 Vulfocus，当你发现你的一些漏洞环境在 Vulfocus 中找不到时，可以提交供大家使用。一个有问题的环境可能会影响到使用者的情绪。因此我们对社区提交的漏洞环境会进行审核。贡献者在提交漏洞环境的时候，可提供相应的复现工具或流程，加速环境的审核。
 
-### 方式
-
-- 提交 dockerfile
-- 也可以上传到 [https://hub.docker.com](https://hub.docker.com) ，把镜像的名称提供给我们，镜像名称的命令规则如：框架（CMS、组件）-漏洞编号，例如：`vulfocus/spring-cve_2017_8046`
-
-
-- 例：
-    vulfocus/webmin-cve_2019_15107
-    vulfocus/spring-cve_2017_8046
-
-### 流程
-
-- fork [vulfocus](https://github.com/fofapro/vulfocus) 至个人项目，然后 clone 项目。
-
-- 提交 dockerfile 至 [images](./images/) 文件夹中创建漏洞名称，然后将 dockerfile 放置该目录下，最后将环境信息提交至 [`images/README.md`](./images/README.md)。
-- 贡献者以 PR 的方式向 github Vulfocus 社区仓库内提交 漏洞环境， 提交位置: [https://github.com/fofapro/vulfocus/dockerfile/](https://github.com/fofapro/vulfocus/dockerfile/)
-- 我们会根据提供的 dockerfile，确定镜像环境是否可用。
-- 审核完成后镜像会放进 https://hub.docker.com/u/vulfocus 仓库供大家使用。
-
-## 📝 讨论区
-
-如有问题可以在 GitHub 提 issue, 也可在下方的讨论组里
-
-GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fofapro/vulfocus/issues)
-
-微信群: 通过扫描以下二维码加入并且备注 `申请 Vulfocus` 加入 Vulfocus 官方微信群。
-
-<img src="./imgs/wechat.jpeg" widht="500px" height="500px"  />
-
-## 致谢
-
-- [Vue Element Admin](https://github.com/PanJiaChen/vue-element-admin)
-- [Vulhub](https://vulhub.org/)
-
-## 声明
-
-该项目会收集了当下比较流行的漏洞环境，若有侵权，请联系我们！
+[镜像贡献](./images/CONTRIBUTION.md)
 
 ## FAQ
 
@@ -141,7 +105,7 @@ Thanks goes to these wonderful people :
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/anonymity3712"><img src="https://avatars0.githubusercontent.com/u/40228178?v=4" width="100px;" alt=""/><br /><sub><b>anonymity3712</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/issues?q=author%3Aanonymity3712" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/anonymity3712"><img src="https://avatars0.githubusercontent.com/u/40228178?v=4" width="100px;" alt=""/><br /><sub><b>anonymity3712</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/issues?q=author%3Aanonymity3712" title="Bug reports">🐛</a> <a href="#blog-anonymity3712" title="Blogposts">📝</a></td>
     <td align="center"><a href="https://github.com/TC130"><img src="https://avatars2.githubusercontent.com/u/8563648?v=4" width="100px;" alt=""/><br /><sub><b>TC130</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/issues?q=author%3ATC130" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/hackwuli"><img src="https://avatars1.githubusercontent.com/u/47844992?v=4" width="100px;" alt=""/><br /><sub><b>hackwuli</b></sub></a><br /><a href="#question-hackwuli" title="Answering Questions">💬</a></td>
     <td align="center"><a href="https://github.com/lxyevil"><img src="https://avatars3.githubusercontent.com/u/17840712?v=4" width="100px;" alt=""/><br /><sub><b>lxyevil</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=lxyevil" title="Tests">⚠️</a></td>
@@ -155,9 +119,35 @@ Thanks goes to these wonderful people :
     <td align="center"><a href="https://github.com/daibing125"><img src="https://avatars1.githubusercontent.com/u/49011861?v=4" width="100px;" alt=""/><br /><sub><b>daibing</b></sub></a><br /><a href="#ideas-daibing125" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/zhangfeitao"><img src="https://avatars0.githubusercontent.com/u/10626929?v=4" width="100px;" alt=""/><br /><sub><b>zhangfeitao</b></sub></a><br /><a href="#ideas-zhangfeitao" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/TORRYGUO"><img src="https://avatars0.githubusercontent.com/u/43666746?v=4" width="100px;" alt=""/><br /><sub><b>TORRYGUO</b></sub></a><br /><a href="#ideas-TORRYGUO" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/Becivells"><img src="https://avatars2.githubusercontent.com/u/12883127?v=4" width="100px;" alt=""/><br /><sub><b>李大壮</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Becivells" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/Vdeem"><img src="https://avatars1.githubusercontent.com/u/24988893?v=4" width="100px;" alt=""/><br /><sub><b>Vdeem</b></sub></a><br /><a href="#blog-Vdeem" title="Blogposts">📝</a></td>
   </tr>
 </table>
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+## 📝 讨论区
+
+如有问题可以在 GitHub 提 issue, 也可在下方的讨论组里
+
+GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fofapro/vulfocus/issues)
+
+微信群: 通过扫描以下二维码加入并且备注 `申请 Vulfocus` 加入 Vulfocus 官方微信群。
+
+<img src="./imgs/wechat.jpeg" widht="500px" height="500px"  />
+
+
+## 更新日志
+
+[更新日志](./CHANGELOG.md)
+
+## 致谢
+
+- [Vue Element Admin](https://github.com/PanJiaChen/vue-element-admin)
+- [Vulhub](https://vulhub.org/)
+
+## 声明
+
+该项目会收集了当下比较流行的漏洞环境，若有侵权，请联系我们！

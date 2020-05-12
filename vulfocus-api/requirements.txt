@@ -1,4 +1,4 @@
-Django==2.2.5
+Django==2.2.10
 django-cors-headers==3.1.0
 django-filter==2.2.0
 djangorestframework==3.10.3
@@ -12,3 +12,5 @@ docker==3.7.3
 docker-compose==1.25.4
 docker-pycreds==0.4.0
 dockerpty==0.4.1
+celery==4.4.2
+redis==3.2.0

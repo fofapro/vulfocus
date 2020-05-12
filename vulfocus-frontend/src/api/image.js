@@ -13,7 +13,20 @@ export function ImageAdd(data) {
 
 export function ImageDelete(id) {
   return request({
-    url: '/images/'+id+'/',
-    method: 'DELETE',
+    url: '/images/'+id+'/delete/'
+  })
+}
+
+export function ImageLocal() {
+  return request({
+    url: '/images/local/local/'
+  })
+}
+
+export function ImageLocalAdd(data) {
+  return request({
+    url: '/images/local/local_add/',
+    method: 'post',
+    data
   })
 }

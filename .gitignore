@@ -1,5 +1,5 @@
 .DS_Store
-
+paper/.DS_Store
 vulfocus-api/.DS_Store
 vulfocus-frontend/dist.zip
 imgs/.DS_Store
@@ -65,8 +65,6 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
 
 # Flask stuff:
 instance/
