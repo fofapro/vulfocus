@@ -95,15 +95,15 @@ source ~/.bashrc
 #### 更新 pip
 
 ```shell
-/opt/anaconda3/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pip -U
-/opt/anaconda3/pip install virtualenv -i https://pypi.tuna.tsinghua.edu.cn/simple
+/opt/anaconda3/bin/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pip -U
+/opt/anaconda3/bin/pip install virtualenv -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 #### 安装虚拟环境
 
 ```
 mkdir -p /data/{etc,log,tmp}
-/opt/anaconda3/virtualenv /data/venv_py --python=/opt/anaconda3/bin/python
+/opt/anaconda3/bin/virtualenv /data/venv_py --python=/opt/anaconda3/bin/python
 echo "source /data/venv_py/bin/activate" >> ~/.bashrc
 source ~/.bashrc
 ```
