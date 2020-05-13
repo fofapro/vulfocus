@@ -12,3 +12,8 @@
 
 [tomcat-pass-getshell](./tomcat-pass-getshell/tomcat-pass-getshell.md)  by [anonymity3712](https://github.com/anonymity3712)
 
+[st2-048远程命令执行（CVE-2017-9791）](./CVE-2017-9791/./CVE-2017-9791.md)  by [anonymity3712](https://github.com/anonymity3712)
+
+[WordPress远程命令执行（CVE-2016-10033）](./CVE-2016-10033/./CVE-2016-10033.md)  by [anonymity3712](https://github.com/anonymity3712)
+
+[st2-046远程命令执行（CVE-2017-5638）](./CVE-2017-5638/./CVE-2017-5638.md)  by [anonymity3712](https://github.com/anonymity3712)
