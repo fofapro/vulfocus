@@ -1,4 +1,3 @@
-
 {
   "files": [
     "README.md"
@@ -13,7 +12,8 @@
       "avatar_url": "https://avatars0.githubusercontent.com/u/40228178?v=4",
       "profile": "https://github.com/anonymity3712",
       "contributions": [
-        "bug"
+        "bug",
+        "blog"
       ]
     },
     {
