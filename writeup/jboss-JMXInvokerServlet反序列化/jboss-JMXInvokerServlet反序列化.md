@@ -40,19 +40,19 @@ JBoss Enterprise Web Server (EWS) 2.1,3.0
 
 使用jar包上传一句话木马
 
-![put_shell](.\put_shell.png)
+![put_shell](./put_shell.png)
 
 访问上传地址发现已上传成功
 
 `10.10.11.20:48171/myname/index.jsp`
 
-![shell](.\shell.jpg)
+![shell](./shell.jpg)
 
 
 
 使用冰蝎链接执行命令获得flag
 
-![get_shell](.\get_shell.png)
+![get_shell](./get_shell.png)
 
 通关
 

@@ -44,7 +44,7 @@ Upgrade-Insecure-Requests: 1
 
 执行结果成功
 
-![exp](.\exp.jpg)
+![exp](./exp.jpg)
 
 
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
 
 
-![py-tool](.\py-tool.jpg)
+![py-tool](./py-tool.jpg)
 
 复制结果提交，通关
 
