@@ -2,70 +2,79 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
-| CVE-2017_749 | `docker pull vulfocus/samba-cve_2017_749` | CVE-2017_749 | 1au|
-| CVE-2016-4977 | `docker pull vulfocus/spring-cve_2016_4977` | CVE-2016-4977 | 1au|
-| CVE-2017-11610 | `docker pull vulfocus/supervisord-cve_2017_11610` | CVE-2017-11610 | scholar|
-| tomcat-pass-getshell | `docker pull vulfocus/tomcat-pass-getshell` | tomcat-pass-getshell | scholar|
-| CVE-2017-6920 | `docker pull vulfocus/drupal-cve_2017_6920` | CVE-2017-6920 | Vulfocus|
-| CVE-2018-11776 | `docker pull vulfocus/struts2-cve_2018_11776` | CVE-2018-11776 | Vulfocus|
-| CVE-2018-1297 | `docker pull vulfocus/jmeter-cve_2018_1297` | CVE-2018-1297 | Vulfocus|
-| CVE-2017-7525 | `docker pull vulfocus/jackson-cve_2017_7525` | CVE-2017-7525 | Vulfocus|
-| CVE-2018-7600 | `docker pull vulfocus/drupal-cve_2018_7600` | CVE-2018-7600 | Vulfocus|
-| CVE-2014-3120 | `docker pull vulfocus/elasticsearch-cve_2014_3120` | CVE-2014-3120 | Vulfocus|
-| CVE-2015-1427 | `docker pull vulfocus/elasticsearch-cve_2015_1427` | CVE-2015-1427 | Vulfocus|
-| CVE-2017-12149 | `docker pull vulfocus/jboss-cve_2017_12149` | CVE-2017-12149 | Vulfocus|
-| CVE-2017-7504 | `docker pull vulfocus/jboss-cve_2017_7504` | CVE-2017-7504 | Vulfocus|
-| CVE-2017-5645 | `docker pull vulfocus/log4j-cve_2017_5645` | CVE-2017-5645 | Vulfocus|
-| CVE-2018-1000861 | `docker pull vulfocus/jenkins-cve_2018_1000861` | CVE-2018-1000861 | Vulfocus|
-| CVE-2018-1000533 | `docker pull vulfocus/gitlist-cve_2018_1000533` | CVE-2018-1000533 | Vulfocus|
-| CVE-2019-7238 | `docker pull vulfocus/nexus-cve_2019_7238` | CVE-2019-7238 | Vulfocus|
-| CVE-2017-15715 | `docker pull vulfocus/apache-cve_2017_15715` | CVE-2017-15715 | Vulfocus|
-| php-fpm-fastcgi | `docker pull vulfocus/php-fpm-fastcgi` | php-fpm-fastcgi | Vulfocus|
-| apache-parsing_vulnerability | `docker pull vulfocus/apache-parsing_vulnerability` | apache-parsing_vulnerability | Vulfocus|
-| CVE-2018-10933 | `docker pull vulfocus/libssh-cve_2018_10933` | CVE-2018-10933 | Vulfocus|
-| CVE-2018-15473 | `docker pull vulfocus/openssh-cve_2018_15473` | CVE-2018-15473 | Vulfocus|
-| CVE-2012-1823 | `docker pull vulfocus/phpcgi-cve_2012_1823` | CVE-2012-1823 | Vulfocus|
-| CVE-2018-19518 | `docker pull vulfocus/phpimap-cve_2018_19518` | CVE-2018-19518 | Vulfocus|
-| phpinfo-inclusion | `docker pull vulfocus/phpinfo-inclusion` | phpinfo-inclusion | Vulfocus|
-| CNVD-2015-07557 | `docker pull vulfocus/redis-cnvd_2015_07557` | CNVD-2015-07557 | Vulfocus|
-| CVE-2017-10271 | `docker pull vulfocus/weblogic-cve_2017_10271` | CVE-2017-10271 | Vulfocus|
-| CVE-2018-2628 | `docker pull vulfocus/weblogic-cve_2018_2628` | CVE-2018-2628 | Vulfocus|
-| CVE-2018-2894 | `docker pull vulfocus/weblogic-cve_2018_2894` | CVE-2018-2894 | Vulfocus|
-| shiro-721 | `docker pull vulfocus/shiro-721` | shiro-721 | Vulfocus|
-| CVE-2017-5941 | `docker pull vulfocus/nodejs-cve_2017_5941` | CVE-2017-5941 | Vulfocus|
-| CVE-2016-9565 | `docker pull vulfocus/nagios-cve_2016_9565` | CVE-2016-9565 | Vulfocus|
-| CVE-2020-11651、CVE-2020-11652   | `docker pull vulfocus/saltstack-cve_2020_11651`           | CVE-2020-11651、CVE-2020-11652   | Vulfocus|
-| CVE-2019-12409   | `docker pull vulfocus/solr-cve_2019_12409`           | CVE-2019-12409   | Vulfocus|
-| CVE-2020_10238、CVE-2020-10239、CVE-2020-11890  | `vulfocus/joomla-cve_2020_10238_10239_11890`           | CVE-2020_10238、CVE-2020-10239、CVE-2020-11890   | Vulfocus|
-| CVE-2020-7961    | `docker pull vulfocus/liferay-cve_2020_7961`         | CVE-2020-7961    | Vulfocus|
-| CVE-2020-2883    | `docker pull vulfocus/weblogic-cve_2020_2883`          | CVE-2020-2883    | Vulfocus|
-| CVE-2020-2555    | `docker pull vulfocus/weblogic-cve_2020_2555`          | CVE-2020-2555    | Vulfocus|
-| CVE-2020-2551    | `docker pull vulfocus/weblogic-cve_2020_2551`          | CVE-2020-2551    | Vulfocus|
-| CVE-2020-1938    | `docker pull vulfocus/tomcat-cve_2020_1938`          | CVE-2020-1938    | Vulfocus|
-| CNVD-2019-22238  | `docker pull vulfocus/fastjson-cnvd_2019_22238`      | CNVD-2019-22238  | Vulfocus|
-| CVE-2019-17564   | `docker pull vulfocus/dubbo-cve_2019_17564`          | CVE-2019-17564   | Vulfocus|
-| CVE-2019-15107   | `docker pull vulfocus/webmin-cve_2019_15107`         | CVE-2019-15107   | Vulfocus|
-| CVE-2019-8942    | `docker pull vulfocus/wordpress-cve_2019_8942`       | CVE-2019-8942    | Vulfocus|
-| CNVD-2018-24942  | `docker pull vulfocus/thinkphp-cnvd_2018_24942`      | CNVD-2018-24942  | Vulfocus|
-| CVE-2018_1000861 | `docker pull vulfocus/jenkins-cve2018_1000861`       | CVE-2018_1000861 | Vulfocus|
-| CVE-2018-7600    | `docker pull vulfocus/drupal-cve_2018_7600`          | CVE-2018-7600    | Vulfocus|
-| CVE-2017_1000353 | `docker pull vulfocus/jenkins-cve2017_1000353`       | CVE-2017_1000353 | Vulfocus|
-| CVE-2017-12636   | `docker pull vulfocus/couchdb-cve_2017_12636`        | CVE-2017-12636   | Vulfocus|
-| CVE-2017-12615   | `docker pull vulfocus/tomcat-cve_2017_12615`         | CVE-2017-12615   | Vulfocus|
-| CVE-2017-12149   | `docker pull vulfocus/jboss-cve_2017_12149`          | CVE-2017-12149   | Vulfocus|
-| CVE-2017-9791    | `docker pull vulfocus/struts2-cve_2017_9791`         | CVE-2017-9791    | Vulfocus|
-| CVE-2017_8046    | `docker pull vulfocus/vulfocus/spring-cve_2017_8046` | CVE-2017_8046    | Vulfocus|
-| CVE-2017-7504    | `docker pull vulfocus/jboss-cve_2017_7504`           | CVE-2017-7504    | Vulfocus|
-| CVE-2017-5941    | `docker pull vulfocus/nodejs-cve_2017_594`           | CVE-2017-5941    | Vulfocus|
-| CVE-2017-5638    | `docker pull vulfocus/struts2-cve_2017_5638`         | CVE-2017-5638    | Vulfocus|
-| CVE-2017-3066    | `docker pull vulfocus/coldfision-cve_2017_3066`      | CVE-2017-3066    | Vulfocus|
-| CNVD-2017-02833  | `docker pull vulfocus/fastjson-cnvd_2017_02833`      | CNVD-2017-02833  | Vulfocus|
-| CVE-2016-10033   | `docker pull vulfocus/wordpress-cve_2016_10033`      | CVE-2016-10033   | Vulfocus|
-| CVE-2016-9565    | `docker pull vulfocus/nagios-cve_2016_9565`          | CVE-2016-9565    | Vulfocus|
-| CVE-2016-4437    | `docker pull vulfocus/shiro-cve_2016_4437`           | CVE-2016-4437    | Vulfocus|
-| CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | Vulfocus|
+|CVE-2020-9484|`docker pull vulfocus/tomcat-cve_2020_9484`|CVE-2020-9484|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-8943|`docker pull vulfocus/wordpress-cve_2019_8943`|CVE-2019-8943|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-17215|`docker pull vulfocus/hg532-cve-2017-17215`|CVE-2017-17215|[m2ayill](https://github.com/m2ayill)|
+| CVE-2017_749 | `docker pull vulfocus/samba-cve_2017_749` | CVE-2017_749 |[1au](https://github.com/D4ch1au)|
+| CVE-2016-4977 | `docker pull vulfocus/spring-cve_2016_4977` | CVE-2016-4977 |[1au](https://github.com/D4ch1au)|
+| CVE-2017-11610 | `docker pull vulfocus/supervisord-cve_2017_11610` | CVE-2017-11610 |[scholar](https://github.com/Frivolous-scholar)|
+| tomcat-pass-getshell | `docker pull vulfocus/tomcat-pass-getshell` | tomcat-pass-getshell |[scholar](https://github.com/Frivolous-scholar)|
+| CVE-2017-6920 | `docker pull vulfocus/drupal-cve_2017_6920` | CVE-2017-6920 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-11776 | `docker pull vulfocus/struts2-cve_2018_11776` | CVE-2018-11776 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-1297 | `docker pull vulfocus/jmeter-cve_2018_1297` | CVE-2018-1297 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-7525 | `docker pull vulfocus/jackson-cve_2017_7525` | CVE-2017-7525 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-7600 | `docker pull vulfocus/drupal-cve_2018_7600` | CVE-2018-7600 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2014-3120 | `docker pull vulfocus/elasticsearch-cve_2014_3120` | CVE-2014-3120 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2015-1427 | `docker pull vulfocus/elasticsearch-cve_2015_1427` | CVE-2015-1427 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-12149 | `docker pull vulfocus/jboss-cve_2017_12149` | CVE-2017-12149 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-7504 | `docker pull vulfocus/jboss-cve_2017_7504` | CVE-2017-7504 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-5645 | `docker pull vulfocus/log4j-cve_2017_5645` | CVE-2017-5645 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-1000861 | `docker pull vulfocus/jenkins-cve_2018_1000861` | CVE-2018-1000861 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-1000533 | `docker pull vulfocus/gitlist-cve_2018_1000533` | CVE-2018-1000533 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2019-7238 | `docker pull vulfocus/nexus-cve_2019_7238` | CVE-2019-7238 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-15715 | `docker pull vulfocus/apache-cve_2017_15715` | CVE-2017-15715 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| php-fpm-fastcgi | `docker pull vulfocus/php-fpm-fastcgi` | php-fpm-fastcgi | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| apache-parsing_vulnerability | `docker pull vulfocus/apache-parsing_vulnerability` | apache-parsing_vulnerability | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-10933 | `docker pull vulfocus/libssh-cve_2018_10933` | CVE-2018-10933 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-15473 | `docker pull vulfocus/openssh-cve_2018_15473` | CVE-2018-15473 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2012-1823 | `docker pull vulfocus/phpcgi-cve_2012_1823` | CVE-2012-1823 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-19518 | `docker pull vulfocus/phpimap-cve_2018_19518` | CVE-2018-19518 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| phpinfo-inclusion | `docker pull vulfocus/phpinfo-inclusion` | phpinfo-inclusion | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CNVD-2015-07557 | `docker pull vulfocus/redis-cnvd_2015_07557` | CNVD-2015-07557 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-10271 | `docker pull vulfocus/weblogic-cve_2017_10271` | CVE-2017-10271 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-2628 | `docker pull vulfocus/weblogic-cve_2018_2628` | CVE-2018-2628 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-2894 | `docker pull vulfocus/weblogic-cve_2018_2894` | CVE-2018-2894 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| shiro-721 | `docker pull vulfocus/shiro-721` | shiro-721 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-5941 | `docker pull vulfocus/nodejs-cve_2017_5941` | CVE-2017-5941 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2016-9565 | `docker pull vulfocus/nagios-cve_2016_9565` | CVE-2016-9565 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2020-11651、CVE-2020-11652   | `docker pull vulfocus/saltstack-cve_2020_11651`           | CVE-2020-11651、CVE-2020-11652   | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2019-12409   | `docker pull vulfocus/solr-cve_2019_12409`           | CVE-2019-12409   | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2020_10238、CVE-2020-10239、CVE-2020-11890  | `vulfocus/joomla-cve_2020_10238_10239_11890`           | CVE-2020_10238、CVE-2020-10239、CVE-2020-11890   | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2020-7961    | `docker pull vulfocus/liferay-cve_2020_7961`         | CVE-2020-7961    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2020-2883    | `docker pull vulfocus/weblogic-cve_2020_2883`          | CVE-2020-2883    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2020-2555    | `docker pull vulfocus/weblogic-cve_2020_2555`          | CVE-2020-2555    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2020-2551    | `docker pull vulfocus/weblogic-cve_2020_2551`          | CVE-2020-2551    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2020-1938    | `docker pull vulfocus/tomcat-cve_2020_1938`          | CVE-2020-1938    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CNVD-2019-22238  | `docker pull vulfocus/fastjson-cnvd_2019_22238`      | CNVD-2019-22238  | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2019-17564   | `docker pull vulfocus/dubbo-cve_2019_17564`          | CVE-2019-17564   | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2019-15107   | `docker pull vulfocus/webmin-cve_2019_15107`         | CVE-2019-15107   | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2019-8942    | `docker pull vulfocus/wordpress-cve_2019_8942`       | CVE-2019-8942    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CNVD-2018-24942  | `docker pull vulfocus/thinkphp-cnvd_2018_24942`      | CNVD-2018-24942  | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018_1000861 | `docker pull vulfocus/jenkins-cve2018_1000861`       | CVE-2018_1000861 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018-7600    | `docker pull vulfocus/drupal-cve_2018_7600`          | CVE-2018-7600    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017_1000353 | `docker pull vulfocus/jenkins-cve2017_1000353`       | CVE-2017_1000353 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-12636   | `docker pull vulfocus/couchdb-cve_2017_12636`        | CVE-2017-12636   | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-12615   | `docker pull vulfocus/tomcat-cve_2017_12615`         | CVE-2017-12615   | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-12149   | `docker pull vulfocus/jboss-cve_2017_12149`          | CVE-2017-12149   | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-9791    | `docker pull vulfocus/struts2-cve_2017_9791`         | CVE-2017-9791    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017_8046    | `docker pull vulfocus/vulfocus/spring-cve_2017_8046` | CVE-2017_8046    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-7504    | `docker pull vulfocus/jboss-cve_2017_7504`           | CVE-2017-7504    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-5941    | `docker pull vulfocus/nodejs-cve_2017_594`           | CVE-2017-5941    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-5638    | `docker pull vulfocus/struts2-cve_2017_5638`         | CVE-2017-5638    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017-3066    | `docker pull vulfocus/coldfision-cve_2017_3066`      | CVE-2017-3066    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CNVD-2017-02833  | `docker pull vulfocus/fastjson-cnvd_2017_02833`      | CNVD-2017-02833  | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2016-10033   | `docker pull vulfocus/wordpress-cve_2016_10033`      | CVE-2016-10033   | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2016-9565    | `docker pull vulfocus/nagios-cve_2016_9565`          | CVE-2016-9565    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2016-4437    | `docker pull vulfocus/shiro-cve_2016_4437`           | CVE-2016-4437    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 
 ## 镜像新增日志
+
+2020-05-21
+
+- vulfocus/tomcat-cve_2020_9484
+- vulfocus/wordpress-cve_2019_8943
+- vulfocus/hg532-cve-2017-17215
 
 2020-05-06
 
