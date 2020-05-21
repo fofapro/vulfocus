@@ -79,6 +79,8 @@ ExecStart=/usr/bin/dockerd -H tcp://127.0.0.1:2375 -H unix://var/run/docker.sock
 systemctl daemon-reload
 ```
 
+
+
 ### 安装 Vulfocus API
 
 #### 安装 Python3 (不想源码编译)
@@ -93,15 +95,15 @@ source ~/.bashrc
 #### 更新 pip
 
 ```shell
-/opt/anaconda3/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pip -U
-/opt/anaconda3/pip install virtualenv -i https://pypi.tuna.tsinghua.edu.cn/simple
+/opt/anaconda3/bin/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pip -U
+/opt/anaconda3/bin/pip install virtualenv -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 #### 安装虚拟环境
 
 ```
 mkdir -p /data/{etc,log,tmp}
-/opt/anaconda3/virtualenv /data/venv_py --python=/opt/anaconda3/bin/python
+/opt/anaconda3/bin/virtualenv /data/venv_py --python=/opt/anaconda3/bin/python
 echo "source /data/venv_py/bin/activate" >> ~/.bashrc
 source ~/.bashrc
 ```
@@ -113,6 +115,29 @@ cd /data
 git clone https://github.com/fofapro/vulfocus.git web
 cd /data/web/vulfocus-api/
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+### 数据库配置
+
+#### 如果使用mysql
+```shell script
+yum install mysql-devel 
+pip3 install mysqlclient -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+修改setting文件
+```shell script
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'vulfocus',
+        'HOST':'127.0.0.1',
+        'PORT':3306,
+        'USER':'root',
+        'PASSWORD':os.environ['MYSQLPWD']
+    }
+}
+
+#bug MySQL does not allow unique CharFields to have a max_length > 255
+SILENCED_SYSTEM_CHECKS = ['mysql.E001']
 ```
 
 #### 初始化数据库
@@ -131,7 +156,7 @@ python manage.py createsuperuser
 
 3. 修改 CELERY_BROKER_URL（`vulfocus/settings.py`），修改为 Redis 连接地址。
 
-#### 启动 Celery
+#### 启动 Celery(Celery不需要操做后面有自启)
 在 `vulfocus-api` 中启动 Celery：
 ```
 celery -A vulfocus worker -l info -E
@@ -191,6 +216,15 @@ npm install
 构建项目：
 ```
 npm run build:prod
+```
+
+错误处理:
+
+**node sass error**
+
+```
+npm install -g yarn
+yarn install node-sass
 ```
 
 #### 发行版本
@@ -328,7 +362,22 @@ killasgroup=true
 redirect_stderr=true
 stdout_logfile=/data/log/vulfoucs_uwsgi.log
 ```
+**位置：**`/etc/supervisord.d/celery.ini`
 
+```
+[program:celeryworker]
+command=/data/venv_py/bin/celery -A vulfocus worker -l info -E
+directory=/data/web/vulfocus-api
+user=nginx
+numprocs=1
+stdout_logfile=/data/log/worker_celery.log
+redirect_stderr=true
+autostart=true
+autorestart=true
+startsecs=10
+stopasgroup=true
+priority=999
+```
 ### 权限以及自启
 
 ```
@@ -349,6 +398,7 @@ systemctl restart docker
 systemctl enable nginx
 systemctl enable supervisord
 systemctl enable docker
+systemctl enable redis
 ```
 
 #### 启动
@@ -357,6 +407,7 @@ systemctl enable docker
 systemctl start supervisord
 systemctl start nginx
 systemctl start docker
+systemctl start redis
 ```
 
 #### 防火墙配置
