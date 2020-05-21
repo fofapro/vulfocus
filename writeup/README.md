@@ -22,3 +22,6 @@
 
 [Couchdb 任意命令执行漏洞（CVE-2017-12636）](./CVE-2017-12636/CVE-2017-12636.md)  by [anonymity3712](https://github.com/anonymity3712)
 
+[thinkphp_5.0.21命令执行](./thinkphp_5.0.21命令执行/thinkphp_5命令执行.md)  by [xiajibaxie](https://github.com/xiajibaxie)
+
+[jboss-JMXInvokerServlet反序列化](./jboss-JMXInvokerServlet反序列化/jboss-JMXInvokerServlet反序列化.md)  by [xiajibaxie](https://github.com/xiajibaxie)
