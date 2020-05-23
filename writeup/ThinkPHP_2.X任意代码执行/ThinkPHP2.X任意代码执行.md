@@ -39,8 +39,8 @@ e 配合函数preg_replace()使用, 可以把匹配来的字符串当作正则�
 
 并用菜刀连接
 
-![4](D:\BMH\write_up\ThinkPHP_2.X任意代码执行\4.png)
+![4](./4.png)
 
 连接完成后去 tmp 临时文件下去查看 Flag
 
-![5](D:\BMH\write_up\ThinkPHP_2.X任意代码执行\5.png)
+![5](./5.png)
