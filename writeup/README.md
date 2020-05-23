@@ -27,3 +27,6 @@
 [jboss-JMXInvokerServlet反序列化](./jboss-JMXInvokerServlet反序列化/jboss-JMXInvokerServlet反序列化.md)  by [xiajibaxie](https://github.com/xiajibaxie)
 
 [Struts2-016远程代码执行漏洞（CVE-2013-2251）](./CVE-2013-2251/struts2-016远程命令执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+
+[ThinkPHP_2.X任意代码执行](./ThinkPHP_2.X任意代码执行/ThinkPHP2.X任意代码执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+
