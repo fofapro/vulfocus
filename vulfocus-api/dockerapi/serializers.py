@@ -4,9 +4,10 @@ from dockerapi.models import ImageInfo, ContainerVul, SysLog
 from user.models import UserProfile
 from tasks.models import TaskInfo
 import django.utils.timezone as timezone
-from .common import R
-from django.db.models import Q
 import json
+from vulfocus.settings import REDIS_POOL
+import redis
+r = redis.Redis(connection_pool=REDIS_POOL)
 
 
 class ImageInfoSerializer(serializers.ModelSerializer):
@@ -32,6 +33,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         status["end_date"] = ""
         status["host"] = ""
         status["port"] = ""
+        status["progress"] = 0.0
         if data:
             status["start_date"] = ""
             status["end_date"] = ""
@@ -62,6 +64,12 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         task_info = TaskInfo.objects.filter(task_status=1, operation_type=1, operation_args=json.dumps(operation_args)).order_by("-create_date").first()
         if task_info:
             status["task_id"] = str(task_info.task_id)
+            try:
+                task_log = r.get(str(task_info.task_id))
+                task_log_json = json.loads(task_log)
+                status["progress"] = task_log_json["progress"]
+            except:
+                pass
         else:
             status["task_id"] = ""
         status["now"] = int(timezone.now().timestamp())

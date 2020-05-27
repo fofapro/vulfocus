@@ -1,8 +1,8 @@
 import request from '@/utils/request'
 
-export function getTask(task_id) {
+export function getTask(taskId) {
   return request({
-    url: '/tasks/'+task_id+'/get/',
+    url: '/tasks/'+taskId+'/get/',
     method: 'get'
   })
 }
@@ -12,5 +12,12 @@ export function batchTask(data) {
     url: '/tasks/batch/batch/',
     method: 'post',
     data
+  })
+}
+
+export function progressTask(taskId) {
+  return request({
+    url: '/tasks/'+taskId+'/progress/',
+    method: 'get'
   })
 }

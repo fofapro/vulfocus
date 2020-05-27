@@ -14,7 +14,7 @@ import traceback
 import json
 import django.utils.timezone as timezone
 import random
-from vulfocus.settings import client, api_docker_client, DOCKER_CONTAINER_TIME, VUL_IP
+from vulfocus.settings import client, api_docker_client, DOCKER_CONTAINER_TIME, VUL_IP, REDIS_POOL
 from dockerapi.common import DEFAULT_CONFIG
 from dockerapi.views import get_setting_config
 from dockerapi.models import ContainerVul, ImageInfo
@@ -26,6 +26,8 @@ from dockerapi.common import R, HTTP_ERR
 from dockerapi.models import SysLog
 import datetime
 from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer
+import redis
+r = redis.Redis(connection_pool=REDIS_POOL)
 
 
 def create_image_task(image_info, user_info, request_ip, image_file=None):
@@ -503,16 +505,49 @@ def create_image(task_id):
     msg = {}
     try:
         image = client.images.get(image_name)
+        raise Exception
     except Exception as e:
         image_info.is_ok = False
         image_info.save()
         try:
-            images = client.images.pull(image_name)
-            if Image == type(images):
-                image = images
+            last_info = {}
+            progress_info = {
+                "total": 0,
+                "progress_count": 0,
+                "progress": round(0.0, 2),
+            }
+            black_list = ["total", "progress_count", "progress"]
+            for line in api_docker_client.pull(image_name, stream=True, decode=True):
+                if "status" in line and "progressDetail" in line and "id" in line:
+                    id = line["id"]
+                    status = line["status"]
+                    if len(line["progressDetail"]) > 0:
+                        current = line["progressDetail"]["current"]
+                        total = line["progressDetail"]["total"]
+                        line["progress"] = round((current/total)*100,2)
+                    else:
+                        if (("Download" or "Pull" in status) and ("complete" in status)) or ("Verifying" in status):
+                            line["progress"] = round(100.00, 2)
+                        else:
+                            line["progress"] = round(0.00, 2)
+                    progress_info[id] = line
+                    progress_info["total"] = len(progress_info) - len(black_list)
+                    progress_count = 0
+                    for key in progress_info:
+                        if key in black_list:
+                            continue
+                        if 100.00 != progress_info[key]["progress"]:
+                            continue
+                        progress_count += 1
+                    progress_info["progress_count"] = progress_count
+                    progress_info["progress"] = round((progress_count/progress_info["total"])*100, 2)
+                    r.set(str(task_id), json.dumps(progress_info,ensure_ascii=False))
+                    print(json.dumps(progress_info, ensure_ascii=False))
+                last_info = line
+            if "status" in last_info and ("Downloaded newer image for" in last_info["status"] or "Image is up to date for" in last_info["status"]):
+                image = client.images.get(image_name)
             else:
-                if len(images) > 0:
-                    image = images[0]
+                raise Exception
         except ImageNotFound:
             msg = R.build(msg="%s 不存在")
         except Exception:

@@ -7,8 +7,9 @@ from .models import TaskInfo
 from dockerapi.common import R
 import django.utils.timezone as timezone
 import json
-
-# Create your views here.
+import redis
+from vulfocus.settings import REDIS_POOL
+r = redis.Redis(connection_pool=REDIS_POOL)
 
 
 class TaskSet(viewsets.ReadOnlyModelViewSet):
@@ -44,8 +45,42 @@ class TaskSet(viewsets.ReadOnlyModelViewSet):
         task_list = TaskInfo.objects.filter(task_id__in=task_id_list)
         result = {}
         for task_info in task_list:
+            progress = 0.0
+            task_log = r.get(str(task_info.task_id))
+            if task_log:
+                try:
+                    task_log_json = json.loads(task_log)
+                    progress = task_log_json["progress"]
+                except:
+                    pass
             result[str(task_info.task_id)] = {
                 "status": task_info.task_status,
-                "data": json.loads(task_info.task_msg)
+                "data": json.loads(task_info.task_msg),
+                "progress": progress
             }
         return JsonResponse(R.ok(data=result))
+
+    @action(methods=["get"], detail=True, url_path='progress')
+    def get_task_progress(self, request, pk=None):
+        task_info = self.get_object()
+        task_id = task_info.task_id
+        task_log = r.get(str(task_id))
+        if task_log:
+            task_log_json = json.loads(task_log)
+            data = {
+                "total": task_log_json["total"],
+                "progress_count": task_log_json["progress_count"],
+                "progress": task_log_json["progress"],
+                "layer": []
+            }
+            black_list = ["total", "progress_count", "progress"]
+            layer_list = []
+            for key in task_log_json:
+                if key in black_list:
+                    continue
+                layer_list.append(task_log_json[key])
+            data["layer"] = layer_list
+            return JsonResponse(R.ok(data=data))
+        else:
+            return JsonResponse(R.ok())
+

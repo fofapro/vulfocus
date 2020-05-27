@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-      <el-dialog :visible.sync="centerDialogVisible" title="添加" width="60%">
+    <el-dialog :visible.sync="centerDialogVisible" title="添加" width="60%">
         <el-tabs value="add" @tab-click="handleClick">
           <el-tab-pane name="add" label="添加">
             <el-form label-width="80px"
@@ -69,8 +69,18 @@
               </el-table-column>
             </el-table>
           </el-tab-pane>
-<!--          <el-tab-pane name="batch" label="批量下载">批量下载</el-tab-pane>-->
         </el-tabs>
+    </el-dialog>
+    <el-dialog :visible.sync="progressShow" :title=progress.title width="60%" :before-close="closeProgress">
+      <div v-loading="progressLoading">
+        <el-row v-for="(item,index) in progress.layer" style="margin-bottom: 10px; height: 24px;" >
+          <el-tag style="float: left; width: 15%;height: 24px; line-height: 24px;" align="center">{{item.id}}</el-tag>
+          <div style="float: left;width: 80%;margin-left: 10px;">
+            <el-progress :percentage="item.progress" :text-inside="true" :stroke-width="24" status="success" v-if="item.progress === 100.0"></el-progress>
+            <el-progress :percentage="item.progress" :text-inside="true" :stroke-width="24" v-else></el-progress>
+          </div>
+        </el-row>
+      </div>
     </el-dialog>
     <div class="filter-container">
       <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
@@ -90,8 +100,15 @@
       <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
       <el-table-column fixed="right" label="操作" width="220">
         <template slot-scope="{row}">
-          <el-tag effect="dark" v-if="row.is_ok === false"><i class="el-icon-loading"></i>下载中</el-tag>
-          <el-button
+          <el-tag style="display: inline-block;" @click="openProgress(row)" effect="dark" v-if="row.is_ok === false">
+            <div style="display: inline-block;float: left"><span>下载中</span></div>
+            <div style="display: inline-block;float: left">
+              <el-progress style="margin-left: 3px;margin-top:6px;" type="circle" :stroke-width="3"
+                           :show-text="false" :text-inside="false" :percentage="row.status.progress"
+                           :width="20"></el-progress>
+            </div>
+          </el-tag>
+          <el-button style="display: inline-block;float: left"
             v-if="(row.is_ok === true)"
             size="mini"
             type="danger"
@@ -107,7 +124,7 @@
   import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
   import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd } from "@/api/image"
-  import { getTask,batchTask } from '@/api/tasks'
+  import { getTask,batchTask,progressTask } from '@/api/tasks'
 
   export default {
     name: 'index',
@@ -133,7 +150,17 @@
         localImageList:[],
         tmpLocalImageList:[],
         localLoading: true,
-        selectLocalImages: []
+        selectLocalImages: [],
+        progressShow:false,
+        progressLoading:false,
+        progress:{
+          "title":"",
+          "layer":[],
+          "total":0,
+          "count":0,
+          "progress":0.0,
+          "progressInterval": null,
+        }
       }
     },
     created() {
@@ -184,10 +211,6 @@
           this.tableData.forEach((item, index, arr) => {
             let image_name = item.image_name
             if(this.tmpImageNameList.indexOf(image_name) > -1){
-              // this.$message({
-              //   message: image_name+" 添加成功",
-              //   type: "success",
-              // })
               this.$notify({
                 title: '成功',
                 message: image_name+" 添加成功",
@@ -213,6 +236,38 @@
         this.vulInfo.name = ""
         this.vulInfo.vul_name = ""
         this.vulInfo.desc = ""
+      },
+      openProgress(row){
+        this.progressShow = true
+        this.progressLoading = true
+        let taskId = row.status.task_id
+        this.progress.title = row.image_name
+        this.progress.progressInterval = window.setInterval(() => {
+          setTimeout(()=>{
+            this.progressLoading = false
+            progressTask(taskId).then(response => {
+              if(response.data.data != null  && response.data.status === 200){
+                this.progress.count = response.data.data.progress_count
+                this.progress.progress = response.data.data.progress
+                this.progress.total = response.data.data.total
+                this.progress.layer = response.data.data.layer
+                if(this.progress.progress === 100.0 || (this.progress.count !== 0 && this.progress.total !== 0 && this.progress.count === this.progress.total)){
+                  clearInterval(this.progress.progressInterval)
+                  this.progressShow = false
+                }
+              }
+            })
+          },1.5)
+        },2000)
+      },
+      closeProgress(){
+        this.progressShow = false
+        this.progressLoading = false
+        try {
+          clearInterval(this.progress.progressInterval)
+        }catch (e) {
+
+        }
       },
       changeType(){
         if(this.imgType === 'file'){
@@ -352,27 +407,24 @@
                 this.removeArray(taskList, key)
                 taskDict[key].is_ok = true
                 if(taskMsg["data"]["status"] === 200){
-                  // this.$message({
-                  //   message: taskMsg["data"]["msg"],
-                  //   type: "success",
-                  // })
-
+                  let taskMsgData = taskMsg["data"]["data"]
+                  let imagePort = taskMsgData.replace("{\"image_port\":","").replace("}", "").replace(":", "").replace("\"", "").replace('"','')
+                  taskDict[key].image_port = imagePort
                   this.$notify({
                     title: '成功',
                     message: taskMsg["data"]["msg"],
                     type: 'success'
                   });
                 }else{
-                  // this.$message({
-                  //   message: taskMsg["data"]["msg"],
-                  //   type: "error",
-                  // })
                   this.$notify({
                     title: '失败',
                     message: taskMsg["data"]["msg"],
                     type: 'error'
                   });
                 }
+              }else{
+                taskDict[key].status.progress = taskMsg["progress"]
+                console.log(taskDict[key])
               }
             }
           })
