@@ -505,7 +505,6 @@ def create_image(task_id):
     msg = {}
     try:
         image = client.images.get(image_name)
-        raise Exception
     except Exception as e:
         image_info.is_ok = False
         image_info.save()
