@@ -71,6 +71,10 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 ## 镜像新增日志
 
+2020-05-227
+
+- vulfocus/aria2-rce
+
 2020-05-21
 
 - vulfocus/tomcat-cve_2020_9484
