@@ -8,7 +8,7 @@ Vulfocus 是一个漏洞集成平台，将漏洞环境 docker 镜像，放入即
   <img src="https://img.shields.io/github/release/fofapro/vulfocus.svg?color=blue&label=update&style=flat-square" />
   <img src="https://img.shields.io/github/license/fofapro/vulfocus?style=flat-square" />
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<img src="https://img.shields.io/badge/all_contributors-18-orange.svg?style=flat-square" />
+<img src="https://img.shields.io/badge/all_contributors-19-orange.svg?style=flat-square" />
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
@@ -127,6 +127,7 @@ Thanks goes to these wonderful people :
     <td align="center"><a href="https://github.com/Frivolous-scholar"><img src="https://avatars0.githubusercontent.com/u/48624840?v=4" width="100px;" alt=""/><br /><sub><b>Frivolous-scholar</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Frivolous-scholar" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/D4ch1au"><img src="https://avatars3.githubusercontent.com/u/46175208?v=4" width="100px;" alt=""/><br /><sub><b>D4ch1au</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=D4ch1au" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/M2ayill"><img src="https://avatars2.githubusercontent.com/u/22850233?v=4" width="100px;" alt=""/><br /><sub><b>M2ayill</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=m2ayill" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Whippet0"><img src="https://avatars0.githubusercontent.com/u/46486374?v=4" width="100px;" alt=""/><br /><sub><b>Whippet</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Whippet0" title="Code">💻</a></td>
   </tr>
 </table>
 
