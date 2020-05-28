@@ -30,3 +30,4 @@
 
 [ThinkPHP_2.X任意代码执行](./ThinkPHP_2.X任意代码执行/ThinkPHP2.X任意代码执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
+[seacms-v6.53 命令执行漏洞](./seacms-v6.53%20命令执行漏洞/seacms-v6.53%20命令执行漏洞.md) by [Aa1141415869](https://github.com/Aa1141415869)
