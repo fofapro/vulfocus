@@ -100,10 +100,11 @@
       <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
       <el-table-column fixed="right" label="操作" width="220">
         <template slot-scope="{row}">
-          <el-tag style="display: inline-block;" @click="openProgress(row)" effect="dark" v-if="row.is_ok === false">
+          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
+                  @click="openProgress(row)" effect="dark" v-if="row.is_ok === false">
             <div style="display: inline-block;float: left"><span>下载中</span></div>
             <div style="display: inline-block;float: left">
-              <el-progress style="margin-left: 3px;margin-top:6px;" type="circle" :stroke-width="3"
+              <el-progress style="margin-left: 3px;margin-top:3px;" type="circle" :stroke-width="3"
                            :show-text="false" :text-inside="false" :percentage="row.status.progress"
                            :width="20"></el-progress>
             </div>
@@ -114,6 +115,21 @@
             type="danger"
             icon="el-icon-delete"
             @click="handleDelete(row)">删除</el-button>
+          <el-button style="display: inline-block;float: left"
+                     v-if="(row.is_ok === true && row.status.status !== 'share')"
+                     size="mini"
+                     type="primary"
+                     icon="el-icon-share"
+                     @click="shareImg(row)">分享</el-button>
+          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
+                  @click="openProgress(row,1)" effect="dark" v-if="row.is_ok === true && row.status.status === 'share'">
+            <div style="display: inline-block;float: left"><span>分享中</span></div>
+            <div style="display: inline-block;float: left">
+              <el-progress style="margin-left: 3px;margin-top:3px;" type="circle" :stroke-width="3"
+                           :show-text="false" :text-inside="false" :percentage="row.status.progress"
+                           :width="20"></el-progress>
+            </div>
+          </el-tag>
         </template>
       </el-table-column>
     </el-table>
@@ -151,8 +167,8 @@
         tmpLocalImageList:[],
         localLoading: true,
         selectLocalImages: [],
-        progressShow:false,
-        progressLoading:false,
+        progressShow: false,
+        progressLoading: false,
         progress:{
           "title":"",
           "layer":[],
@@ -237,11 +253,15 @@
         this.vulInfo.vul_name = ""
         this.vulInfo.desc = ""
       },
-      openProgress(row){
+      openProgress(row,flag){
         this.progressShow = true
         this.progressLoading = true
         let taskId = row.status.task_id
-        this.progress.title = row.image_name
+        if(flag === 1){
+          this.progress.title = "下载镜像："+row.image_name
+        }else{
+          this.progress.title = "分享镜像："+row.image_name
+        }
         this.progress.progressInterval = window.setInterval(() => {
           setTimeout(()=>{
             this.progressLoading = false
@@ -299,10 +319,6 @@
             let tmpMsg = msg.replace("拉取镜像", "").replace("任务下发成功", "").replace(" ", "")
             this.tmpImageNameList.push(tmpMsg)
             if(msg.indexOf("成功") > -1 ){
-              // this.$message({
-              //   message: msg,
-              //   type: "success",
-              // })
               this.$notify({
                 title: '成功',
                 message: msg,
@@ -311,11 +327,6 @@
               this.centerDialogVisible = false
               this.initTableData()
             }else{
-              // this.$message({
-              //   message: msg,
-              //   type: "error",
-              //   duration: 3 * 1000
-              // })
               this.$notify({
                 title: msg,
                 message: msg,
@@ -324,11 +335,6 @@
               this.centerDialogVisible = false
             }
           }else{
-            // this.$message({
-            //   message: data["msg"],
-            //   type: "success",
-            //   duration: 3 * 1000
-            // })
             this.$notify({
               title: '成功',
               message: data["msg"],
@@ -339,6 +345,10 @@
           }
         })
       },
+      shareImg(row){
+        row.status.status = 'share'
+        console.log(row)
+      },
       handleDelete(row){
         this.$confirm('确认删除?', '提示', {
           confirmButtonText: '确定',
@@ -348,10 +358,6 @@
           ImageDelete(row.image_id).then(response => {
             let data = response.data
             if(data.status === 200){
-              // this.$message({
-              //   type: 'success',
-              //   message: '删除成功!'
-              // })
               this.$notify({
                 title: '成功',
                 message: '删除成功!',
@@ -359,10 +365,6 @@
               });
               this.initTableData()
             }else{
-              // this.$message({
-              //   type: 'error',
-              //   message: data.msg
-              // });
               this.$notify({
                 title: '失败',
                 message: data.msg,
