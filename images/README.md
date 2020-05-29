@@ -2,6 +2,7 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|aria2-rce|`docker pull vulfocus/aria2-rce`|aria2-rce|[Whippet0](https://github.com/Whippet0)|
 |CVE-2020-9484|`docker pull vulfocus/tomcat-cve_2020_9484`|CVE-2020-9484|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-8943|`docker pull vulfocus/wordpress-cve_2019_8943`|CVE-2019-8943|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2017-17215|`docker pull vulfocus/hg532-cve-2017-17215`|CVE-2017-17215|[m2ayill](https://github.com/m2ayill)|
@@ -69,6 +70,10 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 | CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 
 ## 镜像新增日志
+
+2020-05-227
+
+- vulfocus/aria2-rce
 
 2020-05-21
 

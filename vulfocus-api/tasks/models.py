@@ -20,7 +20,7 @@ class TaskInfo(models.Model):
     task_start_date = models.DateTimeField(auto_now_add=True, verbose_name="任务创建时间")
     # start end date
     task_end_date = models.DateTimeField(verbose_name="任务结束时间", null=True)
-    # task operation 类型，1：拉取镜像 2：创建/启动 容器 3：停止容器 4：删除容器
+    # task operation 类型，1：拉取镜像 2：创建/启动 容器 3：停止容器 4：删除容器 5：分享镜像
     operation_type = models.CharField(max_length=255, verbose_name="执行操作名称")
     # task operation args
     operation_args = models.TextField(verbose_name="执行操作参数", default="")

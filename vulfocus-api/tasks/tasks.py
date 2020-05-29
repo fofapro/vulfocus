@@ -9,10 +9,12 @@ from celery import shared_task, chain
 import uuid
 import time
 import socket
-from vulfocus.settings import client, DOCKER_CONTAINER_TIME, VUL_IP
+import re
+import traceback
 import json
 import django.utils.timezone as timezone
 import random
+from vulfocus.settings import client, api_docker_client, DOCKER_CONTAINER_TIME, VUL_IP
 from dockerapi.common import DEFAULT_CONFIG
 from dockerapi.views import get_setting_config
 from dockerapi.models import ContainerVul, ImageInfo
@@ -21,10 +23,8 @@ from docker.models.images import Image
 from docker.errors import NotFound, ImageNotFound
 from .models import TaskInfo
 from dockerapi.common import R, HTTP_ERR
-import datetime
-
 from dockerapi.models import SysLog
-import traceback
+import datetime
 from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer
 
 
@@ -103,6 +103,43 @@ def create_image_task(image_info, user_info, request_ip, image_file=None):
         sys_log.save()
     else:
         task_info = TaskInfo.objects.filter(task_id=task_id).first()
+        task_info.task_msg = json.dumps(R.build(msg="权限不足"))
+        task_info.task_status = 3
+        task_info.update_date = timezone.now()
+        task_info.save()
+    return task_id
+
+
+def share_image_task(image_info, user_info, request_ip):
+    """
+    共享镜像
+    :param image_info: 镜像信息
+    :param user_info: 用户信息
+    :param request_ip: 请求 IP
+    :return:
+    """
+    user_id = user_info.id
+    task_id = create_share_image_task(image_info=image_info, user_info=user_info)
+    task_info = TaskInfo.objects.filter(task_id=task_id).first()
+    if user_info.is_superuser:
+        setting_config = get_setting_config()
+        share_username = setting_config["share_username"]
+        share_username = share_username.strip()
+        if not share_username:
+            task_info.task_msg = json.dumps(R.build(msg="分享用户名不能为空"))
+            task_info.task_status = 3
+            task_info.update_date = timezone.now()
+            task_info.save()
+        else:
+            share_username_reg = "[\da-zA-z\-]+"
+            if not re.match(share_username_reg, share_username):
+                task_info.task_msg = json.dumps(R.build(msg="分享用户名不符合要求"))
+                task_info.task_status = 3
+                task_info.update_date = timezone.now()
+                task_info.save()
+            else:
+                share_image.delay(task_id)
+    else:
         task_info.task_msg = json.dumps(R.build(msg="权限不足"))
         task_info.task_status = 3
         task_info.update_date = timezone.now()
@@ -502,13 +539,58 @@ def create_image(task_id):
     task_info.save()
 
 
+@shared_task(name="tasks.share_image")
 def share_image(task_id):
     """
     贡献镜像
     :param task_id: 任务 id
     :return:
     """
-    pass
+    task_info = TaskInfo.objects.filter(task_id=task_id, task_status=1).first()
+    operation_args = task_info.operation_args
+    args = json.loads(operation_args)
+    share_username = args["share_username"].strip()
+    image_name = args["image_name"].strip()
+    username = args["username"].strip()
+    password = args["pwd"].strip()
+    msg = R.ok()
+    try:
+        client.login(username, password)
+        new_image_name = image_name.split(":")[0]+":"+share_username
+        tag_flag = api_docker_client.tag(image_name, new_image_name)
+        if tag_flag:
+            client.images.push(new_image_name, auth_config={"username": username, "password": password})
+        else:
+            task_info.task_msg = R.build(msg="原%s构建新镜像%s失败" % (image_name, new_image_name,))
+            task_info.task_status = 4
+    except Exception as e:
+        msg = R.build(msg="Dockerhub 用户名或 Dockerhub Token 错误")
+        task_info.task_status = 4
+    task_info.task_msg = json.dumps(msg)
+    task_info.save()
+
+
+def create_share_image_task(image_info, user_info):
+    """
+    创建共享镜像任务
+    :param image_info: 镜像信息
+    :param user_info: 用户信息
+    :return:
+    """
+    image_name = image_info.image_name
+    user_id = user_info.id
+    setting_config = get_setting_config()
+    args = {
+        "share_username": setting_config["share_username"],
+        "image_name": image_name,
+        "username": setting_config["username"],
+        "pwd": setting_config["pwd"]
+    }
+    task_info = TaskInfo(task_name="共享镜像："+image_name, user_id=user_id, task_status=1, task_msg=json.dumps({}),
+                         task_start_date=timezone.now(), operation_type=5, operation_args=json.dumps(args),
+                         create_date=timezone.now(), update_date=timezone.now())
+    task_info.save()
+    return str(task_info.task_id)
 
 
 def create_create_image_task(image_info, user_info):
