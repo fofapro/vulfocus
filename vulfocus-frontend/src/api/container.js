@@ -1,8 +1,11 @@
 import request from '@/utils/request'
 
-export function containerList(flag) {
+export function containerList(flag,page) {
+  if(page === undefined || page === null){
+    page = 1
+  }
   return request({
-    url: '/container/?flag='+flag,
+    url: '/container/?flag='+flag+"&page="+page,
     method: 'get'
   })
 }

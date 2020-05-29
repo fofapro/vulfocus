@@ -1,39 +1,42 @@
 <template>
 
   <div class="dashboard-container">
-    <el-row :gutter="20" >
-      <el-dialog :visible.sync="centerDialogVisible" title="镜像信息" >
-        <div class="text item" v-loading="startCon" element-loading-text="环境启动中">
-          <div class="text item" >
-            访问地址: {{vul_host}}
-          </div>
-          <div class="text item">
-            映射端口：{{vul_port}}
-          </div>
-          <div class="text item">
-            名称: {{images_name}}
-          </div>
-          <div class="text item">
-            描述: {{images_desc}}
-          </div>
-          <el-form>
-            <el-form-item label="Flag">
-              <el-input v-model="input" placeholder="请输入Flag：格式flag-{xxxxxxxx}"></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="subflag(container_id,input.trim())" :disabled="cStatus">提 交</el-button>
-              <!--</div>-->
-            </el-form-item>
-          </el-form>
+    <el-dialog :visible.sync="centerDialogVisible" title="镜像信息" >
+      <div class="text item" v-loading="startCon" element-loading-text="环境启动中">
+        <div class="text item" >
+          访问地址: {{vul_host}}
         </div>
-      </el-dialog>
+        <div class="text item">
+          映射端口：
+          <el-tag v-for="(value, key) in vul_port" :key="key" style="margin-right: 5px;">
+            {{key}}:{{value}}
+          </el-tag>
+        </div>
+        <div class="text item">
+          名称: {{images_name}}
+        </div>
+        <div class="text item">
+          描述: {{images_desc}}
+        </div>
+        <el-form>
+          <el-form-item label="Flag">
+            <el-input v-model="input" placeholder="请输入Flag：格式flag-{xxxxxxxx}"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="subflag(container_id,input.trim())" :disabled="cStatus">提 交</el-button>
+            <!--</div>-->
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-dialog>
+    <el-row :gutter="24" >
       <el-col>
         <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
-        <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery">
+        <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
           查询
         </el-button>
       </el-col>
-      <el-col :span="8" v-for="(item,index) in listdata" :key="index"  style="padding-bottom: 18px;">
+      <el-col :span="6" v-for="(item,index) in listdata" :key="index"  style="padding-bottom: 18px;">
         <el-card :body-style="{ padding: '8px' }" shadow="hover"
                  @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
           <div class="clearfix" >
@@ -84,6 +87,14 @@
         </el-card>
       </el-col>
     </el-row>
+    <div style="margin-top: 20px">
+      <el-pagination
+        :page-size="page.size"
+        @current-change="handleQuery"
+        layout="total, prev, pager, next, jumper"
+        :total="page.total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
@@ -99,6 +110,10 @@ export default {
   replace:true,
   data() {
     return {
+      page:{
+        total: 0,
+        size: 20,
+      },
       listdata: [],
       vul_host: "",
       centerDialogVisible: false,
@@ -116,12 +131,13 @@ export default {
       };
     },
   created() {
-    this.ListData()
+    this.ListData(1)
   },
   methods:{
       ListData() {
           ImgList().then(response => {
-            this.listdata = response.data
+            this.listdata = response.data.results
+            this.page.total = response.data.count
             for (let i = 0; i <this.listdata.length ; i++) {
               this.listdata[i].status.start_flag = false
               this.listdata[i].status.stop_flag = false
@@ -153,7 +169,7 @@ export default {
           this.centerDialogVisible = false
         }else if(raw_data.status.status === "running"){
           this.vul_host = raw_data.status.host
-          this.vul_port = raw_data.status.port
+          this.vul_port = JSON.parse(raw_data.status.port)
           this.container_id = raw_data.status.container_id
           this.startCon = false
           this.cStatus = false
@@ -308,37 +324,12 @@ export default {
               })
             },1)
           },2000)
-
-
-          // if(response.status === 201){
-          //   // 清空状态码
-          //   raw.status.status = ''
-          //   // 清空 image_id
-          //   this.images_id = ''
-          //   // 清空 image_name
-          //   this.images_name = ''
-          //   // 清空 image_desc
-          //   this.images_desc = ''
-          //   // 清空 container_id
-          //   this.container_id = ''
-          //   // 清空 item_raw_data
-          //   this.item_raw_data = ''
-          //   raw.status.container_id = ''
-          //   this.$message({
-          //     message: response.data.msg,
-          //     type: 'success',
-          //   })
-          // }else{
-          //   this.$message({
-          //     message: '容器删除失败',
-          //     type: 'error',
-          //   })
-          // }
         })
       },
-      handleQuery(){
-        ImgList(this.search).then(response => {
-          this.listdata = response.data
+      handleQuery(page){
+        ImgList(this.search,false,page).then(response => {
+          this.listdata = response.data.results
+          this.page.total = response.data.count
         })
       }
   },

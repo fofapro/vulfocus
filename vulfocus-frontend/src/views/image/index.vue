@@ -84,7 +84,7 @@
     </el-dialog>
     <div class="filter-container">
       <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
-      <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery">
+      <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
         查询
       </el-button>
       <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-edit" @click="openCreate">
@@ -101,7 +101,7 @@
       <el-table-column fixed="right" label="操作" width="220">
         <template slot-scope="{row}">
           <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
-                  @click="openProgress(row)" effect="dark" v-if="row.is_ok === false">
+                  @click="openProgress(row,1)" effect="dark" v-if="row.is_ok === false && row.status.task_id !== ''">
             <div style="display: inline-block;float: left"><span>下载中</span></div>
             <div style="display: inline-block;float: left">
               <el-progress style="margin-left: 3px;margin-top:3px;" type="circle" :stroke-width="3"
@@ -109,20 +109,28 @@
                            :width="20"></el-progress>
             </div>
           </el-tag>
-          <el-button style="display: inline-block;float: left"
-            v-if="(row.is_ok === true)"
+          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
+                 type="danger" effect="dark" v-else-if="row.is_ok === false && row.status.task_id === ''">
+            <div style="display: inline-block;float: left"><span>下载失败</span></div>
+          </el-tag>
+          <el-button style="display: inline-block;float: left;margin-left: 5px;"
+            v-if="(row.is_ok === true) || (row.is_ok === false && row.status.task_id === '')"
             size="mini"
             type="danger"
             icon="el-icon-delete"
             @click="handleDelete(row)">删除</el-button>
-          <el-button style="display: inline-block;float: left"
-                     v-if="(row.is_ok === true && row.status.status !== 'share')"
+          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
+                  type="success" effect="dark" v-if="row.is_ok === true && row.is_share === true">
+            <div style="display: inline-block;float: left"><span>已分享</span></div>
+          </el-tag>
+          <el-button style="display: inline-block;float: left;margin-left: 5px;"
+                     v-if="(row.is_ok === true && row.is_share === false && row.status.progress_status !== 'share')"
                      size="mini"
                      type="primary"
                      icon="el-icon-share"
                      @click="shareImg(row)">分享</el-button>
           <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
-                  @click="openProgress(row,1)" effect="dark" v-if="row.is_ok === true && row.status.status === 'share'">
+                  @click="openProgress(row,2)" effect="dark" v-if="row.is_ok === true && row.status.progress_status === 'share'">
             <div style="display: inline-block;float: left"><span>分享中</span></div>
             <div style="display: inline-block;float: left">
               <el-progress style="margin-left: 3px;margin-top:3px;" type="circle" :stroke-width="3"
@@ -133,13 +141,21 @@
         </template>
       </el-table-column>
     </el-table>
+    <div style="margin-top: 20px">
+      <el-pagination
+        :page-size="page.size"
+        @current-change="handleQuery"
+        layout="total, prev, pager, next, jumper"
+        :total="page.total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
 <script>
   import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
-  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd } from "@/api/image"
+  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare } from "@/api/image"
   import { getTask,batchTask,progressTask } from '@/api/tasks'
 
   export default {
@@ -176,6 +192,12 @@
           "count":0,
           "progress":0.0,
           "progressInterval": null,
+        },
+        taskList: [],
+        taskDict: {},
+        page:{
+          total: 0,
+          size: 20,
         }
       }
     },
@@ -222,8 +244,9 @@
       },
       initTableData(){
         clearInterval(this.taskCheckInterval)
-        ImgList(undefined, true).then(response => {
-          this.tableData = response.data
+        ImgList(undefined, true, 1).then(response => {
+          this.tableData = response.data.results
+          this.page.total = response.data.count
           this.tableData.forEach((item, index, arr) => {
             let image_name = item.image_name
             if(this.tmpImageNameList.indexOf(image_name) > -1){
@@ -234,16 +257,12 @@
               });
             }
           })
-          let tmpTableData = response.data
+          let tmpTableData = response.data.results
           this.taskCheckInterval = window.setInterval(() => {
             setTimeout(()=>{
-              let taskList = []
-              taskList = this.checkTask(tmpTableData)
-              if (taskList == null || taskList.length === 0){
-                clearInterval(this.taskCheckInterval)
-              }
+              this.checkTask(tmpTableData)
             },0)
-          },5000)
+          },2000)
         })
       },
       openCreate(){
@@ -254,6 +273,14 @@
         this.vulInfo.desc = ""
       },
       openProgress(row,flag){
+        this.progress = {
+          "title":"",
+          "layer":[],
+          "total":0,
+          "count":0,
+          "progress":0.0,
+          "progressInterval": null,
+        }
         this.progressShow = true
         this.progressLoading = true
         let taskId = row.status.task_id
@@ -347,7 +374,19 @@
       },
       shareImg(row){
         row.status.status = 'share'
-        console.log(row)
+        ImageShare(row.image_id).then(response => {
+          let rsp = response.data
+          let status = rsp.status
+          if(status === 200){
+            // this.
+          }else{
+            this.$message({
+              message:  rsp.msg,
+              type: "error",
+            })
+          }
+          this.initTableData()
+        })
       },
       handleDelete(row){
         this.$confirm('确认删除?', '提示', {
@@ -375,9 +414,10 @@
         }).catch(() => {
         });
       },
-      handleQuery(){
-        ImgList(this.search, true).then(response => {
-          this.tableData = response.data
+      handleQuery(val){
+        ImgList(this.search, true, val).then(response => {
+          this.tableData = response.data.results
+          this.page.total = response.data.count
         })
       },
       handleSelect(item){
@@ -386,17 +426,18 @@
         this.vulInfo.desc = item.value.replace("vulfocus/", "")
       },
       checkTask(tableData){
-        let taskList = []
-        let taskDict = {}
         tableData.forEach((item, index, arr) => {
           let isOk = item["is_ok"]
           let taskId = item["status"]["task_id"]
-          if ((isOk === false && taskId != null && taskId !== "")){
-            taskList.push(taskId)
-            taskDict[taskId] = item
+          let status = item["status"]["progress_status"]
+          if ((isOk === false && taskId != null && taskId !== "") || (isOk === true && taskId != null && taskId !== "" && status === "share")){
+            if(this.taskList.indexOf(taskId) === -1){
+              this.taskList.push(taskId)
+              this.taskDict[taskId] = item
+            }
           }
         })
-        let taskIdStr = taskList.join(",")
+        let taskIdStr = this.taskList.join(",")
         if(taskIdStr != null && taskIdStr !== ""){
           let formData = new FormData()
           formData.set("task_ids", taskIdStr)
@@ -406,32 +447,54 @@
               let taskMsg = data[key]
               let status = taskMsg["status"]
               if(status !== 1){
-                this.removeArray(taskList, key)
-                taskDict[key].is_ok = true
+                this.removeArray(this.taskList, key)
+                this.taskDict[key].is_ok = true
                 if(taskMsg["data"]["status"] === 200){
                   let taskMsgData = taskMsg["data"]["data"]
-                  let imagePort = taskMsgData.replace("{\"image_port\":","").replace("}", "").replace(":", "").replace("\"", "").replace('"','')
-                  taskDict[key].image_port = imagePort
+                  try {
+                    let imagePort = taskMsgData.replace("{\"image_port\":","").replace("}", "").replace(":", "").replace("\"", "").replace('"','')
+                    this.taskDict[key].image_port = imagePort
+                  }catch (e) {
+                    //
+                  }
+                  try{
+                    if(taskMsg["data"]["msg"].indexOf("分享") > -1){
+                      this.taskDict[key].is_share = true
+                      this.taskDict[key].status.progress_status = ""
+                    }
+                  }catch (e) {
+
+                  }
                   this.$notify({
-                    title: '成功',
                     message: taskMsg["data"]["msg"],
                     type: 'success'
                   });
                 }else{
+                  try{
+                    if(taskMsg["data"]["msg"].indexOf("分享") > -1){
+                      this.taskDict[key].is_share = false
+                      this.taskDict[key].status.progress_status = ""
+                    }
+                  }catch (e) {
+
+                  }
                   this.$notify({
-                    title: '失败',
                     message: taskMsg["data"]["msg"],
                     type: 'error'
                   });
                 }
               }else{
-                taskDict[key].status.progress = taskMsg["progress"]
-                console.log(taskDict[key])
+                this.taskDict[key].status.progress = taskMsg["progress"]
               }
+            }
+            if (this.taskList == null || this.taskList.length === 0){
+              this.taskList = []
+              this.taskDict = {}
+              clearInterval(this.taskCheckInterval)
             }
           })
         }
-        return taskList
+        // return taskList
       },
       removeArray(taskList,val){
         for(let i = 0; i < taskList.length; i++) {

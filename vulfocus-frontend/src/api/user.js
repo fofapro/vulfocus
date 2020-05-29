@@ -8,9 +8,9 @@ export function login(data) {
   })
 }
 
-export function userList() {
+export function userList(page) {
   return request({
-    url: '/user/',
+    url: '/user/?page='+page,
     method: 'get'
   })
 }
