@@ -8,6 +8,7 @@
 from vulfocus.settings import client
 from .models import SysConfig
 
+
 HTTP_OK = 200
 HTTP_OK_RUNNING = 1001
 HTTP_ERR = 500

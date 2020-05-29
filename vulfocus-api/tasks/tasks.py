@@ -9,12 +9,12 @@ from celery import shared_task, chain
 import uuid
 import time
 import socket
-import re
+import docker
 import traceback
 import json
 import django.utils.timezone as timezone
 import random
-from vulfocus.settings import client, api_docker_client, DOCKER_CONTAINER_TIME, VUL_IP
+from vulfocus.settings import client, api_docker_client, DOCKER_CONTAINER_TIME, VUL_IP, REDIS_POOL
 from dockerapi.common import DEFAULT_CONFIG
 from dockerapi.views import get_setting_config
 from dockerapi.models import ContainerVul, ImageInfo
@@ -26,6 +26,8 @@ from dockerapi.common import R, HTTP_ERR
 from dockerapi.models import SysLog
 import datetime
 from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer
+import redis
+r = redis.Redis(connection_pool=REDIS_POOL)
 
 
 def create_image_task(image_info, user_info, request_ip, image_file=None):
@@ -118,32 +120,12 @@ def share_image_task(image_info, user_info, request_ip):
     :param request_ip: 请求 IP
     :return:
     """
-    user_id = user_info.id
     task_id = create_share_image_task(image_info=image_info, user_info=user_info)
-    task_info = TaskInfo.objects.filter(task_id=task_id).first()
-    if user_info.is_superuser:
-        setting_config = get_setting_config()
-        share_username = setting_config["share_username"]
-        share_username = share_username.strip()
-        if not share_username:
-            task_info.task_msg = json.dumps(R.build(msg="分享用户名不能为空"))
-            task_info.task_status = 3
-            task_info.update_date = timezone.now()
-            task_info.save()
-        else:
-            share_username_reg = "[\da-zA-z\-]+"
-            if not re.match(share_username_reg, share_username):
-                task_info.task_msg = json.dumps(R.build(msg="分享用户名不符合要求"))
-                task_info.task_status = 3
-                task_info.update_date = timezone.now()
-                task_info.save()
-            else:
-                share_image.delay(task_id)
-    else:
-        task_info.task_msg = json.dumps(R.build(msg="权限不足"))
-        task_info.task_status = 3
-        task_info.update_date = timezone.now()
-        task_info.save()
+    operation_args = ImageInfoSerializer(image_info).data
+    sys_log = SysLog(user_id=user_info.id, operation_type="镜像", operation_name="分享", ip=request_ip,
+                     operation_value=operation_args["image_vul_name"], operation_args=json.dumps(operation_args))
+    sys_log.save()
+    share_image.delay(task_id)
     return task_id
 
 
@@ -507,12 +489,50 @@ def create_image(task_id):
         image_info.is_ok = False
         image_info.save()
         try:
-            images = client.images.pull(image_name)
-            if Image == type(images):
-                image = images
+            last_info = {}
+            progress_info = {
+                "total": 0,
+                "progress_count": 0,
+                "progress": round(0.0, 2),
+            }
+            black_list = ["total", "progress_count", "progress"]
+            for line in api_docker_client.pull(image_name, stream=True, decode=True):
+                if "status" in line and "progressDetail" in line and "id" in line:
+                    id = line["id"]
+                    status = line["status"]
+                    if len(line["progressDetail"]) > 0:
+                        try:
+                            current = line["progressDetail"]["current"]
+                            total = line["progressDetail"]["total"]
+                            line["progress"] = round((current / total) * 100, 2)
+                            if (current / total) > 1:
+                                line["progress"] = round(0.99 * 100, 2)
+                        except:
+                            line["progress"] = round(1 * 100, 2)
+                    else:
+                        if (("Download" in status or "Pull" in status) and ("complete" in status)) or ("Verifying" in status) or \
+                                ("Layer" in status and "already" in status and "exists" in status):
+                            line["progress"] = round(100.00, 2)
+                        else:
+                            line["progress"] = round(0.00, 2)
+                    progress_info[id] = line
+                    progress_info["total"] = len(progress_info) - len(black_list)
+                    progress_count = 0
+                    for key in progress_info:
+                        if key in black_list:
+                            continue
+                        if 100.00 != progress_info[key]["progress"]:
+                            continue
+                        progress_count += 1
+                    progress_info["progress_count"] = progress_count
+                    progress_info["progress"] = round((progress_count/progress_info["total"])*100, 2)
+                    r.set(str(task_id), json.dumps(progress_info,ensure_ascii=False))
+                    print(json.dumps(progress_info, ensure_ascii=False))
+                last_info = line
+            if "status" in last_info and ("Downloaded newer image for" in last_info["status"] or "Image is up to date for" in last_info["status"]):
+                image = client.images.get(image_name)
             else:
-                if len(images) > 0:
-                    image = images[0]
+                raise Exception
         except ImageNotFound:
             msg = R.build(msg="%s 不存在")
         except Exception:
@@ -553,19 +573,86 @@ def share_image(task_id):
     image_name = args["image_name"].strip()
     username = args["username"].strip()
     password = args["pwd"].strip()
-    msg = R.ok()
+    msg = R.ok(msg="分享成功")
     try:
         client.login(username, password)
         new_image_name = image_name.split(":")[0]+":"+share_username
+        if new_image_name.rfind("/") > -1:
+            r_image_info = new_image_name[:new_image_name.rfind("/")]
+            if r_image_info.rfind("/") > -1:
+                repo_tmp = r_image_info[:r_image_info.rfind("/")]
+                repo_name = "/".join([repo_tmp, username, new_image_name[new_image_name.rfind("/")+1:]])
+            else:
+                repo_name = "/".join([username, new_image_name[new_image_name.rfind("/")+1:]])
+        else:
+            repo_name = "/".join([username, new_image_name])
+        new_image_name = repo_name
         tag_flag = api_docker_client.tag(image_name, new_image_name)
         if tag_flag:
-            client.images.push(new_image_name, auth_config={"username": username, "password": password})
+            last_info = {}
+            progress_info = {
+                "total": 0,
+                "progress_count": 0,
+                "progress": round(0.0, 2),
+            }
+            black_list = ["total", "progress_count", "progress"]
+            for line in api_docker_client.push(new_image_name, stream=True, decode=True, auth_config={"username": username, "password": password}):
+                if "status" in line and "progressDetail" in line and "id" in line:
+                    id = line["id"]
+                    status = line["status"]
+                    if len(line["progressDetail"]) > 0:
+                        try:
+                            current = line["progressDetail"]["current"]
+                            total = line["progressDetail"]["total"]
+                            line["progress"] = round((current / total) * 100, 2)
+                            if (current / total) > 1:
+                                line["progress"] = round(0.99 * 100, 2)
+                        except:
+                            line["progress"] = round(1 * 100, 2)
+                    else:
+                        if ("Pushed" in status) or ("Verifying" in status) or \
+                                ("Layer" in status and "already" in status and "exists" in status) or ("Mounted" in status and "from" in status):
+                            line["progress"] = round(100.00, 2)
+                        else:
+                            line["progress"] = round(0.00, 2)
+                    progress_info[id] = line
+                    progress_info["total"] = len(progress_info) - len(black_list)
+                    progress_count = 0
+                    for key in progress_info:
+                        if key in black_list:
+                            continue
+                        if 100.00 != progress_info[key]["progress"]:
+                            continue
+                        progress_count += 1
+                    progress_info["progress_count"] = progress_count
+                    progress_info["progress"] = round((progress_count/progress_info["total"])*100, 2)
+                    r.set(str(task_id), json.dumps(progress_info,ensure_ascii=False))
+                    print(json.dumps(progress_info, ensure_ascii=False))
+                last_info = line
+            print("last_info")
+            print("==========================")
+            print(json.dumps(last_info,ensure_ascii=False))
+            if "error" in last_info and last_info["error"]:
+                task_info.task_msg = R.build(msg="原%s构建新镜像%s失败，错误信息：%s" % (image_name, new_image_name, str(last_info["error"]),))
+                task_info.task_status = 4
+            elif "progressDetail" in last_info and "aux" in last_info and share_username in last_info["aux"]["Tag"]:
+                image_info = ImageInfo.objects.filter(image_name=image_name).first()
+                if image_info:
+                    image_info.is_share = True
+                    image_info.save()
+                msg = R.ok(msg="%s 分享成功" % (image_name,))
+            else:
+                msg = R.build(msg="%s 分享失败" % (image_name,))
         else:
             task_info.task_msg = R.build(msg="原%s构建新镜像%s失败" % (image_name, new_image_name,))
             task_info.task_status = 4
-    except Exception as e:
+    except docker.errors.APIError as api_error:
         msg = R.build(msg="Dockerhub 用户名或 Dockerhub Token 错误")
         task_info.task_status = 4
+    except Exception as e:
+        msg = R.build(msg="%s 分享失败，错误信息：%s" % (image_name, str(e),))
+        task_info.task_status = 4
+    task_info.task_status = 3
     task_info.task_msg = json.dumps(msg)
     task_info.save()
 

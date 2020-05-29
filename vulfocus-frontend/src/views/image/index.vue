@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-      <el-dialog :visible.sync="centerDialogVisible" title="添加" width="60%">
+    <el-dialog :visible.sync="centerDialogVisible" title="添加" width="60%">
         <el-tabs value="add" @tab-click="handleClick">
           <el-tab-pane name="add" label="添加">
             <el-form label-width="80px"
@@ -69,12 +69,22 @@
               </el-table-column>
             </el-table>
           </el-tab-pane>
-<!--          <el-tab-pane name="batch" label="批量下载">批量下载</el-tab-pane>-->
         </el-tabs>
+    </el-dialog>
+    <el-dialog :visible.sync="progressShow" :title=progress.title width="60%" :before-close="closeProgress">
+      <div v-loading="progressLoading">
+        <el-row v-for="(item,index) in progress.layer" style="margin-bottom: 10px; height: 24px;" >
+          <el-tag style="float: left; width: 15%;height: 24px; line-height: 24px;" align="center">{{item.id}}</el-tag>
+          <div style="float: left;width: 80%;margin-left: 10px;">
+            <el-progress :percentage="item.progress" :text-inside="true" :stroke-width="24" status="success" v-if="item.progress === 100.0"></el-progress>
+            <el-progress :percentage="item.progress" :text-inside="true" :stroke-width="24" v-else></el-progress>
+          </div>
+        </el-row>
+      </div>
     </el-dialog>
     <div class="filter-container">
       <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
-      <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery">
+      <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
         查询
       </el-button>
       <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-edit" @click="openCreate">
@@ -90,24 +100,63 @@
       <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
       <el-table-column fixed="right" label="操作" width="220">
         <template slot-scope="{row}">
-          <el-tag effect="dark" v-if="row.is_ok === false"><i class="el-icon-loading"></i>下载中</el-tag>
-          <el-button
-            v-if="(row.is_ok === true)"
+          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
+                  @click="openProgress(row,1)" effect="dark" v-if="row.is_ok === false && row.status.task_id !== ''">
+            <div style="display: inline-block;float: left"><span>下载中</span></div>
+            <div style="display: inline-block;float: left">
+              <el-progress style="margin-left: 3px;margin-top:3px;" type="circle" :stroke-width="3"
+                           :show-text="false" :text-inside="false" :percentage="row.status.progress"
+                           :width="20"></el-progress>
+            </div>
+          </el-tag>
+          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
+                 type="danger" effect="dark" v-else-if="row.is_ok === false && row.status.task_id === ''">
+            <div style="display: inline-block;float: left"><span>下载失败</span></div>
+          </el-tag>
+          <el-button style="display: inline-block;float: left;margin-left: 5px;"
+            v-if="(row.is_ok === true) || (row.is_ok === false && row.status.task_id === '')"
             size="mini"
             type="danger"
             icon="el-icon-delete"
             @click="handleDelete(row)">删除</el-button>
+          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
+                  type="success" effect="dark" v-if="row.is_ok === true && row.is_share === true">
+            <div style="display: inline-block;float: left"><span>已分享</span></div>
+          </el-tag>
+          <el-button style="display: inline-block;float: left;margin-left: 5px;"
+                     v-if="(row.is_ok === true && row.is_share === false && row.status.progress_status !== 'share')"
+                     size="mini"
+                     type="primary"
+                     icon="el-icon-share"
+                     @click="shareImg(row)">分享</el-button>
+          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
+                  @click="openProgress(row,2)" effect="dark" v-if="row.is_ok === true && row.status.progress_status === 'share'">
+            <div style="display: inline-block;float: left"><span>分享中</span></div>
+            <div style="display: inline-block;float: left">
+              <el-progress style="margin-left: 3px;margin-top:3px;" type="circle" :stroke-width="3"
+                           :show-text="false" :text-inside="false" :percentage="row.status.progress"
+                           :width="20"></el-progress>
+            </div>
+          </el-tag>
         </template>
       </el-table-column>
     </el-table>
+    <div style="margin-top: 20px">
+      <el-pagination
+        :page-size="page.size"
+        @current-change="handleQuery"
+        layout="total, prev, pager, next, jumper"
+        :total="page.total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
 <script>
   import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
-  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd } from "@/api/image"
-  import { getTask,batchTask } from '@/api/tasks'
+  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare } from "@/api/image"
+  import { getTask,batchTask,progressTask } from '@/api/tasks'
 
   export default {
     name: 'index',
@@ -133,7 +182,23 @@
         localImageList:[],
         tmpLocalImageList:[],
         localLoading: true,
-        selectLocalImages: []
+        selectLocalImages: [],
+        progressShow: false,
+        progressLoading: false,
+        progress:{
+          "title":"",
+          "layer":[],
+          "total":0,
+          "count":0,
+          "progress":0.0,
+          "progressInterval": null,
+        },
+        taskList: [],
+        taskDict: {},
+        page:{
+          total: 0,
+          size: 20,
+        }
       }
     },
     created() {
@@ -179,15 +244,12 @@
       },
       initTableData(){
         clearInterval(this.taskCheckInterval)
-        ImgList(undefined, true).then(response => {
-          this.tableData = response.data
+        ImgList(undefined, true, 1).then(response => {
+          this.tableData = response.data.results
+          this.page.total = response.data.count
           this.tableData.forEach((item, index, arr) => {
             let image_name = item.image_name
             if(this.tmpImageNameList.indexOf(image_name) > -1){
-              // this.$message({
-              //   message: image_name+" 添加成功",
-              //   type: "success",
-              // })
               this.$notify({
                 title: '成功',
                 message: image_name+" 添加成功",
@@ -195,16 +257,12 @@
               });
             }
           })
-          let tmpTableData = response.data
+          let tmpTableData = response.data.results
           this.taskCheckInterval = window.setInterval(() => {
             setTimeout(()=>{
-              let taskList = []
-              taskList = this.checkTask(tmpTableData)
-              if (taskList == null || taskList.length === 0){
-                clearInterval(this.taskCheckInterval)
-              }
+              this.checkTask(tmpTableData)
             },0)
-          },5000)
+          },2000)
         })
       },
       openCreate(){
@@ -213,6 +271,50 @@
         this.vulInfo.name = ""
         this.vulInfo.vul_name = ""
         this.vulInfo.desc = ""
+      },
+      openProgress(row,flag){
+        this.progress = {
+          "title":"",
+          "layer":[],
+          "total":0,
+          "count":0,
+          "progress":0.0,
+          "progressInterval": null,
+        }
+        this.progressShow = true
+        this.progressLoading = true
+        let taskId = row.status.task_id
+        if(flag === 1){
+          this.progress.title = "下载镜像："+row.image_name
+        }else{
+          this.progress.title = "分享镜像："+row.image_name
+        }
+        this.progress.progressInterval = window.setInterval(() => {
+          setTimeout(()=>{
+            this.progressLoading = false
+            progressTask(taskId).then(response => {
+              if(response.data.data != null  && response.data.status === 200){
+                this.progress.count = response.data.data.progress_count
+                this.progress.progress = response.data.data.progress
+                this.progress.total = response.data.data.total
+                this.progress.layer = response.data.data.layer
+                if(this.progress.progress === 100.0 || (this.progress.count !== 0 && this.progress.total !== 0 && this.progress.count === this.progress.total)){
+                  clearInterval(this.progress.progressInterval)
+                  this.progressShow = false
+                }
+              }
+            })
+          },1.5)
+        },2000)
+      },
+      closeProgress(){
+        this.progressShow = false
+        this.progressLoading = false
+        try {
+          clearInterval(this.progress.progressInterval)
+        }catch (e) {
+
+        }
       },
       changeType(){
         if(this.imgType === 'file'){
@@ -244,10 +346,6 @@
             let tmpMsg = msg.replace("拉取镜像", "").replace("任务下发成功", "").replace(" ", "")
             this.tmpImageNameList.push(tmpMsg)
             if(msg.indexOf("成功") > -1 ){
-              // this.$message({
-              //   message: msg,
-              //   type: "success",
-              // })
               this.$notify({
                 title: '成功',
                 message: msg,
@@ -256,11 +354,6 @@
               this.centerDialogVisible = false
               this.initTableData()
             }else{
-              // this.$message({
-              //   message: msg,
-              //   type: "error",
-              //   duration: 3 * 1000
-              // })
               this.$notify({
                 title: msg,
                 message: msg,
@@ -269,11 +362,6 @@
               this.centerDialogVisible = false
             }
           }else{
-            // this.$message({
-            //   message: data["msg"],
-            //   type: "success",
-            //   duration: 3 * 1000
-            // })
             this.$notify({
               title: '成功',
               message: data["msg"],
@@ -282,6 +370,22 @@
             this.centerDialogVisible = false
             this.initTableData()
           }
+        })
+      },
+      shareImg(row){
+        row.status.status = 'share'
+        ImageShare(row.image_id).then(response => {
+          let rsp = response.data
+          let status = rsp.status
+          if(status === 200){
+            // this.
+          }else{
+            this.$message({
+              message:  rsp.msg,
+              type: "error",
+            })
+          }
+          this.initTableData()
         })
       },
       handleDelete(row){
@@ -293,10 +397,6 @@
           ImageDelete(row.image_id).then(response => {
             let data = response.data
             if(data.status === 200){
-              // this.$message({
-              //   type: 'success',
-              //   message: '删除成功!'
-              // })
               this.$notify({
                 title: '成功',
                 message: '删除成功!',
@@ -304,10 +404,6 @@
               });
               this.initTableData()
             }else{
-              // this.$message({
-              //   type: 'error',
-              //   message: data.msg
-              // });
               this.$notify({
                 title: '失败',
                 message: data.msg,
@@ -318,9 +414,10 @@
         }).catch(() => {
         });
       },
-      handleQuery(){
-        ImgList(this.search, true).then(response => {
-          this.tableData = response.data
+      handleQuery(val){
+        ImgList(this.search, true, val).then(response => {
+          this.tableData = response.data.results
+          this.page.total = response.data.count
         })
       },
       handleSelect(item){
@@ -329,17 +426,18 @@
         this.vulInfo.desc = item.value.replace("vulfocus/", "")
       },
       checkTask(tableData){
-        let taskList = []
-        let taskDict = {}
         tableData.forEach((item, index, arr) => {
           let isOk = item["is_ok"]
           let taskId = item["status"]["task_id"]
-          if ((isOk === false && taskId != null && taskId !== "")){
-            taskList.push(taskId)
-            taskDict[taskId] = item
+          let status = item["status"]["progress_status"]
+          if ((isOk === false && taskId != null && taskId !== "") || (isOk === true && taskId != null && taskId !== "" && status === "share")){
+            if(this.taskList.indexOf(taskId) === -1){
+              this.taskList.push(taskId)
+              this.taskDict[taskId] = item
+            }
           }
         })
-        let taskIdStr = taskList.join(",")
+        let taskIdStr = this.taskList.join(",")
         if(taskIdStr != null && taskIdStr !== ""){
           let formData = new FormData()
           formData.set("task_ids", taskIdStr)
@@ -349,35 +447,54 @@
               let taskMsg = data[key]
               let status = taskMsg["status"]
               if(status !== 1){
-                this.removeArray(taskList, key)
-                taskDict[key].is_ok = true
+                this.removeArray(this.taskList, key)
+                this.taskDict[key].is_ok = true
                 if(taskMsg["data"]["status"] === 200){
-                  // this.$message({
-                  //   message: taskMsg["data"]["msg"],
-                  //   type: "success",
-                  // })
+                  let taskMsgData = taskMsg["data"]["data"]
+                  try {
+                    let imagePort = taskMsgData.replace("{\"image_port\":","").replace("}", "").replace(":", "").replace("\"", "").replace('"','')
+                    this.taskDict[key].image_port = imagePort
+                  }catch (e) {
+                    //
+                  }
+                  try{
+                    if(taskMsg["data"]["msg"].indexOf("分享") > -1){
+                      this.taskDict[key].is_share = true
+                      this.taskDict[key].status.progress_status = ""
+                    }
+                  }catch (e) {
 
+                  }
                   this.$notify({
-                    title: '成功',
                     message: taskMsg["data"]["msg"],
                     type: 'success'
                   });
                 }else{
-                  // this.$message({
-                  //   message: taskMsg["data"]["msg"],
-                  //   type: "error",
-                  // })
+                  try{
+                    if(taskMsg["data"]["msg"].indexOf("分享") > -1){
+                      this.taskDict[key].is_share = false
+                      this.taskDict[key].status.progress_status = ""
+                    }
+                  }catch (e) {
+
+                  }
                   this.$notify({
-                    title: '失败',
                     message: taskMsg["data"]["msg"],
                     type: 'error'
                   });
                 }
+              }else{
+                this.taskDict[key].status.progress = taskMsg["progress"]
               }
+            }
+            if (this.taskList == null || this.taskList.length === 0){
+              this.taskList = []
+              this.taskDict = {}
+              clearInterval(this.taskCheckInterval)
             }
           })
         }
-        return taskList
+        // return taskList
       },
       removeArray(taskList,val){
         for(let i = 0; i < taskList.length; i++) {

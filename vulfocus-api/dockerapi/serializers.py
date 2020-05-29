@@ -4,9 +4,11 @@ from dockerapi.models import ImageInfo, ContainerVul, SysLog
 from user.models import UserProfile
 from tasks.models import TaskInfo
 import django.utils.timezone as timezone
-from .common import R
-from django.db.models import Q
 import json
+from vulfocus.settings import REDIS_POOL
+from dockerapi.common import get_setting_config
+import redis
+r = redis.Redis(connection_pool=REDIS_POOL)
 
 
 class ImageInfoSerializer(serializers.ModelSerializer):
@@ -32,6 +34,8 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         status["end_date"] = ""
         status["host"] = ""
         status["port"] = ""
+        status["progress"] = 0.0
+        status["progress_status"] = ""
         if data:
             status["start_date"] = ""
             status["end_date"] = ""
@@ -59,11 +63,36 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             "rank": obj.rank,
             "image_desc": obj.image_desc,
         }
-        task_info = TaskInfo.objects.filter(task_status=1, operation_type=1, operation_args=json.dumps(operation_args)).order_by("-create_date").first()
+        task_info = TaskInfo.objects.filter(task_status=1, operation_type=1, operation_args=json.dumps(operation_args))\
+            .order_by("-create_date").first()
         if task_info:
             status["task_id"] = str(task_info.task_id)
+            try:
+                task_log = r.get(str(task_info.task_id))
+                task_log_json = json.loads(task_log)
+                status["progress"] = task_log_json["progress"]
+            except:
+                pass
         else:
             status["task_id"] = ""
+        setting_config = get_setting_config()
+        operation_args = {
+            "share_username": setting_config["share_username"],
+            "image_name": obj.image_name,
+            "username": setting_config["username"],
+            "pwd": setting_config["pwd"]
+        }
+        task_info = TaskInfo.objects.filter(task_status=1, operation_type=5, operation_args=json.dumps(operation_args))\
+            .order_by("-create_date").first()
+        if task_info:
+            status["task_id"] = str(task_info.task_id)
+            status["progress_status"] = "share"
+            try:
+                task_log = r.get(str(task_info.task_id))
+                task_log_json = json.loads(task_log)
+                status["progress"] = task_log_json["progress"]
+            except:
+                pass
         status["now"] = int(timezone.now().timestamp())
         return status
 

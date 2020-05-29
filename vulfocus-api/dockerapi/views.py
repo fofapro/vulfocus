@@ -14,6 +14,7 @@ import json
 from tasks import tasks
 from vulfocus.settings import client, VUL_IP
 from tasks.models import TaskInfo
+import re
 from rest_framework.decorators import api_view
 
 
@@ -101,6 +102,25 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         else:
             pass
         return JsonResponse(R.ok(task_id, msg="拉取镜像%s任务下发成功" % (image_name, )))
+
+    @action(methods=["get"], detail=True, url_path="share")
+    def share_image(self, request, pk=None):
+        user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build(msg="权限不足"))
+        img_info = ImageInfo.objects.filter(image_id=pk).first()
+        if not img_info:
+            return JsonResponse(R.build(msg="镜像不存在"))
+        setting_config = get_setting_config()
+        share_username = setting_config["share_username"]
+        share_username = share_username.strip()
+        if not share_username:
+            return JsonResponse(R.build(msg="分享用户名不能为空，请在系统管理中的系统配置模块进行配置分享用户名。"))
+        share_username_reg = "[\da-zA-z\-]+"
+        if not re.match(share_username_reg, share_username):
+            return JsonResponse(R.build(msg="分享用户名不符合要求"))
+        task_id = tasks.share_image_task(image_info=img_info, user_info=user, request_ip=get_request_ip(request))
+        return JsonResponse(R.ok(task_id))
 
     @action(methods=["get"], detail=True, url_path="local")
     def local(self, request, pk=None):
@@ -312,14 +332,31 @@ def update_setting(request):
     username = request.POST.get("username", DEFAULT_CONFIG["username"])
     pwd = request.POST.get("pwd", DEFAULT_CONFIG["pwd"])
     time = request.POST.get("time", DEFAULT_CONFIG["time"])
-    msg = "修改成功"
+    share_username = request.POST.get("share_username", DEFAULT_CONFIG["share_username"])
+    msg_list = []
+    build_msg = []
     try:
         time = int(time)
         if time != 0 and time < 60:
             time = int(DEFAULT_CONFIG["time"])
-            msg = "过期时间修改为默认值 30 分钟成功"
+            # msg = "过期时间修改为默认值 30 分钟成功"
+            # msg_list.append("过期时间修改为默认值 30 分钟成功")
     except:
         time = int(DEFAULT_CONFIG["time"])
+    share_username_config = SysConfig.objects.filter(config_key="share_username").first()
+    if not share_username_config:
+        username_config = SysConfig(config_key="username", config_value=DEFAULT_CONFIG["username"])
+        username_config.save()
+    else:
+        share_username_reg = "[\da-zA-z\-]+"
+        if not share_username:
+            build_msg.append("分享用户名不能为空")
+        elif not re.match(share_username_reg, share_username):
+            build_msg.append("分享用户名不符合要求")
+        elif share_username_config.config_value != share_username:
+            share_username_config.config_value = share_username
+            share_username_config.save()
+            msg_list.append("分享用户名修改成功")
     username_config = SysConfig.objects.filter(config_key="username").first()
     if not username_config:
         username_config = SysConfig(config_key="username", config_value=DEFAULT_CONFIG["username"])
@@ -328,7 +365,7 @@ def update_setting(request):
         if username_config.config_value != username:
             username_config.config_value = username
             username_config.save()
-
+            msg_list.append("Dockerhub 用户名修改成功")
     pwd_config = SysConfig.objects.filter(config_key="pwd").first()
     if not pwd_config:
         pwd_config = SysConfig(config_key="pwd", config_value=DEFAULT_CONFIG["pwd"])
@@ -337,17 +374,24 @@ def update_setting(request):
         if pwd_config.config_value != pwd:
             pwd_config.config_value = pwd
             pwd_config.save()
+            msg_list.append("Dockerhub Token 修改成功")
 
     time_config = SysConfig.objects.filter(config_key="time").first()
     if not time_config:
         time_config = SysConfig(config_key="time", config_value=DEFAULT_CONFIG["time"])
         time_config.save()
     else:
-        if time_config.config_value != time:
-            time_config.config_value = time
+        if time_config.config_value != str(time):
+            time_config.config_value = str(time)
             time_config.save()
+            msg_list.append("镜像过期时间修改成功")
+
     rsp_data = get_setting_config()
-    return JsonResponse(R.ok(msg=msg, data=rsp_data))
+    if len(build_msg) == 0 and len(msg_list) > 0:
+        return JsonResponse(R.ok(msg=msg_list, data=rsp_data))
+    else:
+        build_msg.extend(msg_list)
+        return JsonResponse(R.build(msg=build_msg, data=rsp_data))
 
 
 def get_local_ip():
@@ -365,3 +409,4 @@ def get_local_ip():
     finally:
         s.close()
     return local_ip
+

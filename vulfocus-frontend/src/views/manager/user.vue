@@ -1,45 +1,26 @@
 <template>
   <div class="app-container">
-  <el-table
-    :data="tableData"
-    border
-    stripe
-    style="width: 100%">
-    <el-table-column
-      type="index"
-      width="50">
-    </el-table-column>
-    <el-table-column
-      prop="name"
-      label="用户名">
-    </el-table-column>
-    <el-table-column
-      prop="email"
-      label="邮箱">
-    </el-table-column>
-    <el-table-column
-      prop="roles"
-      label="权限">
-    </el-table-column>
-    <el-table-column
-      prop="rank"
-      label="Rank">
-    </el-table-column>
-    <el-table-column
-      prop="combination_desc"
-      label="操作"
-      :show-overflow-tooltip=true
-      width="200">
-      <template slot-scope="{row}">
-        <el-button
-          size="mini"
-          type="primary"
-          icon="el-icon-edit"
-          @click="changePwd(row)"
-        >修改密码</el-button>
-      </template>
-    </el-table-column>
-  </el-table>
+    <el-table :data="tableData" border stripe style="width: 100%">
+      <el-table-column type="index" width="50"></el-table-column>
+      <el-table-column prop="name" label="用户名"></el-table-column>
+      <el-table-column prop="email" label="邮箱"></el-table-column>
+      <el-table-column prop="roles" label="权限"></el-table-column>
+      <el-table-column prop="rank" label="Rank"></el-table-column>
+      <el-table-column prop="rank_count" label="通过数量"></el-table-column>
+      <el-table-column prop="combination_desc" label="操作" :show-overflow-tooltip=true width="200">
+        <template slot-scope="{row}">
+          <el-button size="mini" type="primary" icon="el-icon-edit" @click="changePwd(row)" >修改密码</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div style="margin-top: 20px">
+      <el-pagination
+        :page-size="page.size"
+        @current-change="initUserList"
+        layout="total, prev, pager, next, jumper"
+        :total="page.total">
+      </el-pagination>
+    </div>
   </div>
 
 </template>
@@ -51,17 +32,22 @@
     name: 'user',
     data(){
       return {
+        page:{
+          total: 0,
+          size: 20,
+        },
         tableData: []
       }
     },
     created(){
-      this.initUserList()
+      this.initUserList(1)
     },
     methods:{
-      initUserList(){
-        userList().then(response => {
-          let data = response.data
+      initUserList(page){
+        userList(page).then(response => {
+          let data = response.data.results
           this.tableData = data
+          this.page.total = response.data.count
         })
       },
       changePwd(row){

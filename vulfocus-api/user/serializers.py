@@ -27,12 +27,13 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField('get_user_name')
     rank = serializers.SerializerMethodField('rankAD')
+    rank_count = serializers.SerializerMethodField('rankCount')
     status_moudel = serializers.SerializerMethodField('set_status_moudel')
     roles = serializers.SerializerMethodField("set_role")
 
     class Meta:
         model = User
-        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel")
+        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count")
 
     def get_user_name(self, obj):
         return obj.username
@@ -48,6 +49,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
         for i in successful:
             rank += i.image_id.rank
         return rank
+
+    def rankCount(self, obj):
+        user_id = obj.id
+        time_model_id = ''
+        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id=time_model_id)
+        return successful.count()
+
 
     def set_role(self, obj):
         if obj.is_superuser:

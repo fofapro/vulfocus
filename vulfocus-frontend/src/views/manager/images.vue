@@ -9,7 +9,6 @@
       <el-table-column label="状态" width="85">
         <template slot-scope="{row}">
           <el-tag>{{row.container_status}}</el-tag>
-<!--          <el-tag v-if="row.container_status !== 'running'">{{row.container_status}}</el-tag>-->
         </template>
       </el-table-column>
       <el-table-column prop="vul_desc" :show-overflow-tooltip=true width="300" label="漏洞描述"></el-table-column>
@@ -24,6 +23,14 @@
         </template>
       </el-table-column>
     </el-table>
+    <div style="margin-top: 20px">
+      <el-pagination
+        :page-size="page.size"
+        @current-change="initTable"
+        layout="total, prev, pager, next, jumper"
+        :total="page.total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
@@ -35,6 +42,10 @@
     name: 'image',
     data(){
       return {
+        page:{
+          total: 0,
+          size: 20,
+        },
         tableData: []
       }
     },
@@ -42,12 +53,13 @@
       CountDown
     },
     created(){
-      this.initTable()
+      this.initTable(1)
     },
     methods:{
-      initTable(){
-        containerList('list').then(response => {
-          this.tableData = response.data
+      initTable(page){
+        containerList('list', page).then(response => {
+          this.tableData = response.data.results
+          this.page.total = response.data.count
         })
       },
       stopContainer(row){

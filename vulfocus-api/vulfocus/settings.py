@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 import docker
 import datetime
+import redis
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,14 +46,24 @@ INSTALLED_APPS = [
     'dockerapi',
     'tasks',
 ]
-# Celery settings
-
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+# redis host
+REDIS_HOST = "127.0.0.1"
+# redis port
+REDIS_PORT = 6379
+# redis pass
+REDIS_PASS = ""
+if REDIS_PASS:
+    # 'redis://:discoverer_spider@134.209.100.83/0'
+    CELERY_BROKER_URL = "redis://:%s@%s:%s/0" % (REDIS_PASS, str(REDIS_HOST), str(REDIS_PORT))
+    REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), password=REDIS_PASS, decode_responses=True, db=1)
+else:
+    CELERY_BROKER_URL = 'redis://%s:%s/0' % (REDIS_HOST, str(REDIS_PORT))
+    REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), decode_responses=True,db=1)
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
 CELERY_ACCEPT_CONTENT = ['json']
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TASK_SERIALIZER = 'json'
 
 MIDDLEWARE = [
@@ -81,7 +92,9 @@ REST_FRAMEWORK = {
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20
 }
 
 JWT_AUTH = {

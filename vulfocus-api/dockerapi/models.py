@@ -15,6 +15,7 @@ class ImageInfo(models.Model):
     image_desc = models.TextField(verbose_name='镜像描述', null=True)
     rank = models.FloatField(verbose_name='Rank', null=False)
     is_ok = models.BooleanField(verbose_name="镜像是否可用", default=True)
+    is_share = models.BooleanField(verbose_name="镜像是否贡献", default=False)
     create_date = models.DateTimeField(auto_now_add=True, verbose_name='Docker创建时间，默认为当前时间')
     update_date = models.DateTimeField(auto_now=True, verbose_name='Docker更新时间，默认为当前时间')
 
