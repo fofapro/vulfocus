@@ -54,6 +54,7 @@
 ![](./images/图片6.png)
 
 ![](./images/图片7.png)
+
 得到参数file。
 
 利用文件包含漏洞加phpinfo，找到网上写好的利用脚本exp.py。
@@ -63,9 +64,11 @@
 成功包含临时文件后，会执行file_put_contents函数，写入一个新的文件/tmp/g，这个文件就会永久留在目标机器上。
 
 我们可以把/tmp/g改成从错误信息中得到路径 /var/www/html/。
+
 ![](./images/图片8.png)
 
 用python2执行：python exp.py 10.10.11.20 39172
+
 ![](./images/图片9.png)
 
 执行命令whoami
