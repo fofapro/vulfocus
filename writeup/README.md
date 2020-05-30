@@ -40,4 +40,4 @@
 
 [Struts2-devMode](./Struts2-devMode/Struts2-devMode.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
-[PHP文件包含之利用phpinfo](./PHP文件包含之利用phpinfoPHP文件包含漏洞之利用phpinfo.md)  by [fengyehack](https://github.com/fengyehack)
+[PHP文件包含之利用phpinfo](./PHP文件包含之利用phpinfo/PHP文件包含漏洞之利用phpinfo.md)  by [fengyehack](https://github.com/fengyehack)
