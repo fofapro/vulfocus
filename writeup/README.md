@@ -36,3 +36,6 @@
 
 [seacms-v6.45 任意代码执行漏洞.md](./seacms-v6.45%20任意代码执行漏洞/seacms-v6.45%20任意代码执行漏洞.md) by [Aa1141415869](https://github.com/Aa1141415869)
 
+[CVE-2012-0392](./CVE-2012-0392/Struts2-008(CVE-2012-0392).md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+
+
