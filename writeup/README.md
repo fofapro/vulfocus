@@ -41,3 +41,8 @@
 [Struts2-devMode](./Struts2-devMode/Struts2-devMode.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
 [PHP文件包含之利用phpinfo](./PHP文件包含之利用phpinfo/PHP文件包含漏洞之利用phpinfo.md)  by [fengyehack](https://github.com/fengyehack)
+
+[CVE-2020-2555](./CVE-2020-2555/CVE-2020-2555.md)  by [xiajibaxie](https://github.com/xiajibaxie)
+
+[Shiro RememberMe 1.2.4 反序列化](./Shiro RememberMe 1.2.4 反序列化/Shiro RememberMe 1.2.4 反序列化.md)  by [xiajibaxie](https://github.com/xiajibaxie)
+
