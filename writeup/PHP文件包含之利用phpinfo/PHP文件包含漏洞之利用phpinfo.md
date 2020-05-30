@@ -60,7 +60,7 @@
 
 用exp.py脚本来不断的上传数据，利用条件竞争实现包含文件。
 
-成功包含临时文件后，会执行<?php file_put_contents('/tmp/g', '<?=eval($_REQUEST[1])?>')?>，写入一个新的文件/tmp/g，这个文件就会永久留在目标机器上。
+成功包含临时文件后，会执行file_put_contents函数，写入一个新的文件/tmp/g，这个文件就会永久留在目标机器上。
 
 我们可以把/tmp/g改成从错误信息中得到路径 /var/www/html/。
 ![](./images/图片8.png)
