@@ -40,3 +40,5 @@
 
 [Struts2-devMode](./Struts2-devMode/Struts2-devMode.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
+[CVE-2017-11610](./CVE-2017-11610/CVE-2017-11610.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+
