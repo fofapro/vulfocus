@@ -1,6 +1,12 @@
 ## 更新日志
 
-### v0.0.2
+### v0.2.2.1
+
+更新时间：2020-06-13
+
+- 修复 [@UUUUnotfound](https://github.com/UUUUnotfound) 提出的 `SECRET_KEY` 泄漏安全漏洞
+
+### v0.2.2
 
 更新时间：2020-05-29
 

@@ -2,6 +2,14 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CNVD-2016_04656|`docker pull vulfocus/struts2-cnvd_2016_04656`|CNVD-2016_04656|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-12611|`docker pull vulfocus/struts2-cve_2017_12611`|CVE-2017-12611|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-9805|`docker pull vulfocus/struts2-cve_2017_9805`|CVE-2017-9805|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CNVD-2017-02880|`docker pull vulfocus/struts2-cnvd_2017_02880`|CNVD-2017-02880|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2016-4438|`docker pull vulfocus/struts2-cve_2016_4438`|CVE-2016-4438|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2016-3087|`docker pull vulfocus/struts2-cve_2016_3087`|CVE-2016-3087|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2016-0785|`docker pull vulfocus/struts2-cve_2016_0785`|CVE-2016-0785|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2013-4316|`docker pull vulfocus/struts2-cve_2013_4316`|CVE-2013-4316|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |aria2-rce|`docker pull vulfocus/aria2-rce`|aria2-rce|[Whippet0](https://github.com/Whippet0)|
 |CVE-2020-9484|`docker pull vulfocus/tomcat-cve_2020_9484`|CVE-2020-9484|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-8943|`docker pull vulfocus/wordpress-cve_2019_8943`|CVE-2019-8943|[Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -70,6 +78,17 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 | CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 
 ## 镜像新增日志
+
+2020-05-31
+
+- vulfocus/struts2-cnvd_2016_04656
+- vulfocus/struts2-cve_2017_12611
+- vulfocus/struts2-cve_2017_9805
+- vulfocus/struts2-cnvd_2017_02880
+- vulfocus/struts2-cve_2016_4438
+- vulfocus/struts2-cve_2016_3087
+- vulfocus/struts2-cve_2016_0785
+- vulfocus/struts2-cve_2013_4316
 
 2020-05-227
 
