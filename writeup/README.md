@@ -48,3 +48,8 @@
 
 [CVE-2020-1956](./CVE-2020-1956/CVE-2020-1956.md)  by [xiajibaxie](https://github.com/xiajibaxie)
 
+[SpringBoot_SpEL表达式注入漏洞](./SpringBoot_SpEL表达式注入漏洞/SpringBoot_SpEL表达式注入漏洞.md)  by [fengyehack](https://github.com/fengyehack)
+
+[CVE-2018-1273](./CVE-2018-1273/CVE-2018-1273.md)  by [fengyehack](https://github.com/fengyehack)
+
+[CVE-2017-8046](./CVE-2017-8046/CVE-2017-8046.md)  by [fengyehack](https://github.com/fengyehack)
