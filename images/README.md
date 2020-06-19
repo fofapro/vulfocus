@@ -95,7 +95,7 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 - vulfocus/struts2-cve_2016_0785
 - vulfocus/struts2-cve_2013_4316
 
-2020-05-227
+2020-05-27
 
 - vulfocus/aria2-rce
 
