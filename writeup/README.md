@@ -42,3 +42,16 @@
 
 [CVE-2017-11610](./CVE-2017-11610/CVE-2017-11610.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
+[PHP文件包含之利用phpinfo](./PHP文件包含之利用phpinfo/PHP文件包含漏洞之利用phpinfo.md)  by [fengyehack](https://github.com/fengyehack)
+
+[CVE-2020-2555](./CVE-2020-2555/CVE-2020-2555.md)  by [xiajibaxie](https://github.com/xiajibaxie)
+
+[Shiro_RememberMe1.2.4反序列化](./Shiro_RememberMe_1.2.4_反序列化/Shiro_RememberMe1.2.4反序列化.md)  by [xiajibaxie](https://github.com/xiajibaxie)
+
+[CVE-2020-1956](./CVE-2020-1956/CVE-2020-1956.md)  by [xiajibaxie](https://github.com/xiajibaxie)
+
+[SpringBoot_SpEL表达式注入漏洞](./SpringBoot_SpEL表达式注入漏洞/SpringBoot_SpEL表达式注入漏洞.md)  by [fengyehack](https://github.com/fengyehack)
+
+[CVE-2018-1273](./CVE-2018-1273/CVE-2018-1273.md)  by [fengyehack](https://github.com/fengyehack)
+
+[CVE-2017-8046](./CVE-2017-8046/CVE-2017-8046.md)  by [fengyehack](https://github.com/fengyehack)
