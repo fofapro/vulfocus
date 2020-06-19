@@ -2,7 +2,7 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
-|CVE-2020-5410|`docker pull vulfocus/spring-cve_2020_5410`|CNVD-2016_04656|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-5410|`docker pull vulfocus/spring-cve_2020_5410`|CVE-2020-5410|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CNVD-2016_04656|`docker pull vulfocus/struts2-cnvd_2016_04656`|CNVD-2016_04656|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2017-12611|`docker pull vulfocus/struts2-cve_2017_12611`|CVE-2017-12611|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2017-9805|`docker pull vulfocus/struts2-cve_2017_9805`|CVE-2017-9805|[Vulfocus](https://github.com/fofapro/vulfocus)|
