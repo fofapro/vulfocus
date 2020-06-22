@@ -56,6 +56,8 @@
 
 [CVE-2017-8046](./CVE-2017-8046/CVE-2017-8046.md)  by [fengyehack](https://github.com/fengyehack)
 
+[CVE-2018-1000861](./CVE-2012-0392/Struts2-008(CVE-2012-0392).md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+
 [CVE-2018-1000861](./CVE-2018-1000861/CVE-2018-1000861（Jekins 远程命令执行）.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
 [CVE-2018-1000861](./CVE-2018-1000861/CVE-2018-1000861（Jekins 远程命令执行）.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
