@@ -58,6 +58,3 @@
 
 [CVE-2018-1000861](./CVE-2018-1000861/CVE-2018-1000861（Jekins(远程命令执行).md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
-[CVE-2018-1000861](./CVE-2018-1000861/CVE-2018-1000861（Jekins 远程命令执行）.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
-
-[CVE-2018-1000861](./CVE-2018-1000861/CVE-2018-1000861（Jekins 远程命令执行）.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
