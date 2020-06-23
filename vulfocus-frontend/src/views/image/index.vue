@@ -71,6 +71,30 @@
           </el-tab-pane>
         </el-tabs>
     </el-dialog>
+    <el-dialog :visible.sync="editDialogVisible" title="修改" width="60%">
+      <el-form label-width="80px"
+               v-loading="loading"
+               element-loading-text="添加中">
+        <el-form-item label="漏洞名称">
+          <el-input v-model="editRow.image_vul_name" size="medium"></el-input>
+        </el-form-item>
+        <el-form-item label="镜像">
+          <el-input v-model="editRow.image_name" size="medium" :disabled="true"></el-input>
+        </el-form-item>
+        <el-form-item label="Rank">
+          <el-input-number v-model="editRow.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
+          <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
+            <i class="el-icon-question"></i>
+          </el-tooltip>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input type="textarea" v-model="editRow.image_desc" size="medium"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary"  @click="handleUpdate" size="medium">修 改</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
     <el-dialog :visible.sync="progressShow" :title=progress.title width="60%" :before-close="closeProgress">
       <div v-loading="progressLoading">
         <el-row v-for="(item,index) in progress.layer" style="margin-bottom: 10px; height: 24px;" >
@@ -95,10 +119,10 @@
       <el-table-column type="index" width="50"> </el-table-column>
       <el-table-column prop="image_name" label="镜像名称" :show-overflow-tooltip=true ></el-table-column>
       <el-table-column prop="image_vul_name" label="漏洞名称" :show-overflow-tooltip=true></el-table-column>
-      <el-table-column prop="image_port" label="端口" width="150"></el-table-column>
+      <el-table-column prop="image_port" label="端口" width="100"></el-table-column>
       <el-table-column prop="rank" label="分数" width="50"></el-table-column>
       <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
-      <el-table-column fixed="right" label="操作" width="220">
+      <el-table-column fixed="right" label="操作" width="260">
         <template slot-scope="{row}">
           <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
                   @click="openProgress(row,1)" effect="dark" v-if="row.is_ok === false && row.status.task_id !== ''">
@@ -138,6 +162,12 @@
                            :width="20"></el-progress>
             </div>
           </el-tag>
+          <el-button style="display: inline-block;float: left;margin-left: 5px;"
+                     v-if="(row.is_ok === true && row.is_share === false && row.status.progress_status !== 'share')"
+                     size="mini"
+                     type="primary"
+                     icon="el-icon-share"
+                     @click="openEdit(row)">修改</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -155,7 +185,7 @@
 <script>
   import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
-  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare } from "@/api/image"
+  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageUpdate } from "@/api/image"
   import { getTask,batchTask,progressTask } from '@/api/tasks'
 
   export default {
@@ -166,6 +196,13 @@
         search: "",
         localSearch: "",
         centerDialogVisible: false,
+        editDialogVisible: false,
+        editRow: {
+          rank: "",
+          image_name: "",
+          image_vul_name: "",
+          image_desc: "",
+      },
         startCon: false,
         vulInfo: {
           rank: "",
@@ -522,8 +559,42 @@
         if(name === "local"){
           this.loadLocalImages()
         }else{
-
         }
+      },
+      openEdit(row){
+        this.editRow = null
+        this.editDialogVisible = true
+        this.editRow = row
+        console.log(this.editRow)
+      },
+      handleUpdate(){
+        let data = {
+          image_id: this.editRow.image_id,
+          image_name: this.editRow.image_name,
+          image_vul_name: this.editRow.image_vul_name,
+          image_desc: this.editRow.image_desc,
+          rank: this.editRow.rank
+        }
+        ImageUpdate(data.image_id, data).then(response => {
+          if(response.data.status === 200){
+            this.$message({
+              message: "修改成功",
+              type: "success",
+            })
+          }else if(response.data.status === 201){
+            this.$message({
+              message: response.data.msg,
+              type: "info",
+            })
+          }else{
+            this.$message({
+              message: response.data.msg,
+              type: "error"
+            })
+          }
+          this.editDialogVisible = false
+          this.initTableData()
+        })
       },
       handleLocalRemove(name){
         for(let i = 0; i < this.localImageList.length; i++) {

@@ -103,6 +103,35 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
             pass
         return JsonResponse(R.ok(task_id, msg="拉取镜像%s任务下发成功" % (image_name, )))
 
+    def update(self, request, *args, **kwargs):
+        """
+        更新镜像信息
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        image_info = self.get_object()
+        user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build("权限不足"))
+        if "image_vul_name" in request.data:
+            image_info.image_vul_name = str(request.data["image_vul_name"]).strip()
+        else:
+            return JsonResponse(R.build("漏洞名称不能为空"))
+        if "image_desc" in request.data:
+            image_info.image_desc = str(request.data["image_desc"]).strip()
+        if "rank" in request.data:
+            try:
+                image_rank = request.data["rank"]
+                image_rank = float(image_rank)
+                image_info.rank = image_rank
+            except:
+                pass
+        image_info.update_date = django.utils.timezone.now()
+        image_info.save()
+        return JsonResponse(R.ok())
+
     @action(methods=["get"], detail=True, url_path="share")
     def share_image(self, request, pk=None):
         user = request.user
