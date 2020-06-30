@@ -62,3 +62,7 @@
 
 [GlassFish任意文件读取漏洞](./GlassFish任意文件读取漏洞/GlassFish任意文件读取漏洞.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
+[CVE-2017-7504](./CVE-2017-7504/CVE-2017-7504.md)  by [Vdeem](https://github.com/Vdeem)
+
+[CVE-2017-1000353](./CVE-2017-1000353/CVE-2017-1000353.md)  by [Vdeem](https://github.com/Vdeem)
+
