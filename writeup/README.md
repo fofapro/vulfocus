@@ -58,6 +58,10 @@
 
 [CVE-2018-1000861](./CVE-2018-1000861/CVE-2018-1000861.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
+[PHP-CGI远程代码执行](./PHP-CGI远程代码执行/PHP-CGI远程代码执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+
+[GlassFish任意文件读取漏洞](./GlassFish任意文件读取漏洞/GlassFish任意文件读取漏洞.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+
 [CVE-2017-7504](./CVE-2017-7504/CVE-2017-7504.md)  by [Vdeem](https://github.com/Vdeem)
 
 [CVE-2017-1000353](./CVE-2017-1000353/CVE-2017-1000353.md)  by [Vdeem](https://github.com/Vdeem)
