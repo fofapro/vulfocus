@@ -82,6 +82,27 @@
         </el-row>
       </div>
     </el-dialog>
+    <el-dialog :visible.sync="deleteShow" title="删除" width="80%">
+      <el-table
+        :data="deleteContainerList" border stripe style="width: 100%">
+        <el-table-column type="index" width="50"></el-table-column>
+        <el-table-column prop="vul_name" width="150" :show-overflow-tooltip=true label="漏洞名称"></el-table-column>
+        <el-table-column :show-overflow-tooltip=true prop="user_name" width="100" label="用户名"></el-table-column>
+        <el-table-column prop="vul_host" width="200" :show-overflow-tooltip=true label="访问地址"></el-table-column>
+        <el-table-column label="状态" width="85">
+          <template slot-scope="{row}">
+            <el-tag>{{row.container_status}}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="vul_desc" :show-overflow-tooltip=true width="300" label="漏洞描述"></el-table-column>
+        <el-table-column prop="combination_desc" label="操作" :show-overflow-tooltip=true>
+          <template slot-scope="{row}">
+            <el-button size="mini" type="danger" icon="el-icon-delete" v-if="row.container_status === 'running' || row.container_status === 'stop'"
+                       @click="delContainer(row)" >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
     <div class="filter-container">
       <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
       <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
@@ -156,6 +177,7 @@
   import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
   import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare } from "@/api/image"
+  import { containerDel } from '@/api/container'
   import { getTask,batchTask,progressTask } from '@/api/tasks'
 
   export default {
@@ -185,6 +207,8 @@
         selectLocalImages: [],
         progressShow: false,
         progressLoading: false,
+        deleteShow: false,
+        deleteContainerList: [],
         progress:{
           "title":"",
           "layer":[],
@@ -397,14 +421,16 @@
           ImageDelete(row.image_id).then(response => {
             let data = response.data
             if(data.status === 200){
-              this.$notify({
+              this.$message({
                 title: '成功',
                 message: '删除成功!',
                 type: 'success'
               });
               this.initTableData()
             }else{
-              this.$notify({
+              this.deleteShow = true
+              this.deleteContainerList = data.data
+              this.$message({
                 title: '失败',
                 message: data.msg,
                 type: 'error'
@@ -561,32 +587,64 @@
                 message: msg,
                 type: 'success'
               });
-              // this.$message({message: msg,type: "success",duration: 1.5 * 1000})
             }
             this.centerDialogVisible = false
             this.initTableData()
           }else if(status === 201){
-            // this.$message({
-            //   message: rsp["msg"],
-            //   type: "info",
-            // })
             this.$notify({
               title: '失败',
               message: rsp["msg"],
               type: 'info'
             });
           }else{
-            // this.$message({
-            //   message: rsp["msg"],
-            //   type: "error",
-            //   duration: 3 * 1000
-            // })
             this.$notify({
               title: '失败',
               message: rsp["msg"],
               type: 'error'
             });
           }
+        })
+      },
+      delContainer(row){
+        containerDel(row.container_id).then(response => {
+          let taskId = response.data["data"]
+          let tmpDeleteContainerInterval = window.setInterval(() => {
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(tmpDeleteContainerInterval)
+                  if (responseStatus === 200) {
+                    this.$message({
+                      type: 'success',
+                      message: '删除成功'
+                    });
+                    ImageDelete(row.image_id).then(response => {
+                      let data = response.data
+                      if(data.status !== 200){
+                        this.deleteContainerList = data.data
+                      }else{
+                        this.$message({
+                          type: 'success',
+                          message: '删除成功'
+                        });
+                        this.deleteShow = false
+                        this.initTableData()
+                      }
+                    })
+                  }else{
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "error",
+                    })
+                  }
+                }
+              })
+            },1)
+          },1000)
         })
       }
     }

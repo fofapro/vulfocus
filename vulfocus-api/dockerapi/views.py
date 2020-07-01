@@ -181,11 +181,13 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         sys_log.save()
         image_id = img_info.image_id
         container_vul = ContainerVul.objects.filter(image_id=image_id)
+        data_json = ContainerVulSerializer(container_vul, many=True)
+        print(data_json.data)
         if container_vul.count() == 0:
             img_info.delete()
             return JsonResponse(R.ok())
         else:
-            return JsonResponse(R.build(msg="镜像正在使用，无法删除！"))
+            return JsonResponse(R.build(msg="镜像正在使用，无法删除！", data=data_json.data))
 
     @action(methods=["post", "get"], detail=True, url_path="start")
     def start_container(self, request, pk=None):
