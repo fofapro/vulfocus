@@ -66,3 +66,5 @@
 
 [CVE-2017-1000353](./CVE-2017-1000353/CVE-2017-1000353.md)  by [Vdeem](https://github.com/Vdeem)
 
+[jboss-CVE-2017-12149](./jboss-CVE-2017-12149/CVE-2017-12149.md)  by [wuli888](https://github.com/wuli888)
+
