@@ -63,6 +63,12 @@ export function ImageLocalAdd(data) {
   })
 }
 
+export function ImageDownload(id) {
+  return request({
+    url: '/images/'+id+'/download/'
+  })
+}
+
 /**
  * 分享镜像
  * @param id 镜像 ID

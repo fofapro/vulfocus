@@ -19,7 +19,6 @@ from dockerapi.common import DEFAULT_CONFIG
 from dockerapi.views import get_setting_config
 from dockerapi.models import ContainerVul, ImageInfo
 from user.models import UserProfile
-from docker.models.images import Image
 from docker.errors import NotFound, ImageNotFound
 from .models import TaskInfo
 from dockerapi.common import R, HTTP_ERR

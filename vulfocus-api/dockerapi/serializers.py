@@ -104,6 +104,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
 class ContainerVulSerializer(serializers.ModelSerializer):
     rank = serializers.SerializerMethodField('ranktocon')
     name = serializers.SerializerMethodField('conname')
+    image_id = serializers.SerializerMethodField("get_image_id")
     user_name = serializers.SerializerMethodField('get_user_name')
     vul_name = serializers.SerializerMethodField('get_vul_name')
     vul_desc = serializers.SerializerMethodField('get_vul_desc')
@@ -112,7 +113,7 @@ class ContainerVulSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContainerVul
         fields = ['name', 'container_id', 'container_status', 'vul_host', 'create_date', 'is_check', 'is_check_date',
-                  'rank', 'user_name', 'vul_name', 'vul_desc']
+                  'rank', 'user_name', 'vul_name', 'vul_desc', "image_id"]
 
     def get_vul_name(self,obj):
         return obj.image_id.image_vul_name
@@ -139,6 +140,9 @@ class ContainerVulSerializer(serializers.ModelSerializer):
         user_id = obj.user_id
         user_info = UserProfile.objects.get(id=user_id)
         return user_info.username
+
+    def get_image_id(self, obj):
+        return str(obj.image_id.image_id)
 
 
 class SysLogSerializer(serializers.ModelSerializer):
