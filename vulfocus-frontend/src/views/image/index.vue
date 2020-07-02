@@ -103,6 +103,29 @@
         </el-table-column>
       </el-table>
     </el-dialog>
+    <el-dialog :visible.sync="editShow" title="修改">
+      <el-form label-width="80px" v-loading="editLoding" element-loading-text="修改中">
+        <el-form-item label="漏洞名称">
+          <el-input v-model="editVulInfo.image_vul_name" size="medium"></el-input>
+        </el-form-item>
+        <el-form-item label="镜像">
+          <el-input v-model="editVulInfo.image_name" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="Rank">
+          <el-input-number v-model="editVulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
+          &nbsp;&nbsp;&nbsp;
+          <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
+            <i class="el-icon-question"></i>
+          </el-tooltip>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input type="textarea" v-model="editVulInfo.image_desc" size="medium"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary"  @click="handleEditImage" size="medium">提 交</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
     <div class="filter-container">
       <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
       <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
@@ -119,7 +142,7 @@
       <el-table-column prop="image_port" label="端口" width="150"></el-table-column>
       <el-table-column prop="rank" label="分数" width="50"></el-table-column>
       <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
-      <el-table-column fixed="right" label="操作" width="220">
+      <el-table-column fixed="right" label="操作" width="260">
         <template slot-scope="{row}">
           <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
                   @click="openProgress(row,1)" effect="dark" v-if="row.is_ok === false && row.status.task_id !== ''">
@@ -130,10 +153,6 @@
                            :width="20"></el-progress>
             </div>
           </el-tag>
-<!--          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"-->
-<!--                 type="danger" effect="dark" v-else-if="row.is_ok === false && row.status.task_id === ''">-->
-<!--            <div style="display: inline-block;float: left"><span>下载</span></div>-->
-<!--          </el-tag>-->
           <el-button style="display: inline-block;float: left;margin-left: 5px;"
                      v-else-if="row.is_ok === false && row.status.task_id === ''"
                      size="mini"
@@ -141,9 +160,12 @@
                      icon="el-icon-download"
                      @click="downloadImg(row)">下载</el-button>
           <el-button style="display: inline-block;float: left;margin-left: 5px;"
-            v-if="(row.is_ok === true) || (row.is_ok === false && row.status.task_id === '')"
-            size="mini"
-            type="danger"
+                     v-if="(row.is_ok === true) || (row.is_ok === false && row.status.task_id === '')" size="mini"
+                     icon="el-icon-edit"
+                     type="primary"
+                     @click="openEdit(row)">修改</el-button>
+          <el-button style="display: inline-block;float: left;margin-left: 5px;"
+            v-if="(row.is_ok === true) || (row.is_ok === false && row.status.task_id === '')" size="mini" type="danger"
             icon="el-icon-delete"
             @click="handleDelete(row)">删除</el-button>
           <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
@@ -179,7 +201,7 @@
 <script>
   import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
-  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageDownload } from "@/api/image"
+  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageDownload,ImageEdit } from "@/api/image"
   import { containerDel } from '@/api/container'
   import { getTask,batchTask,progressTask } from '@/api/tasks'
 
@@ -197,6 +219,15 @@
           name: "",
           vul_name: "",
           desc: "",
+        },
+        editShow: false,
+        editLoding: false,
+        editVulInfo:{
+          rank: "",
+          image_name: "",
+          image_id: "",
+          image_vul_name: "",
+          image_desc: "",
         },
         imgType: "text",
         imgTypeText: "切换为文件",
@@ -333,6 +364,31 @@
             })
           },1.5)
         },2000)
+      },
+      openEdit(row){
+        this.editShow = true
+        this.editVulInfo = row
+      },
+      handleEditImage(){
+        this.editLoding = true
+        ImageEdit(this.editVulInfo.image_id,this.editVulInfo).then(response => {
+          this.editLoding = false
+          let rsp = response.data
+          let msg = rsp.msg
+          if(rsp.status === 200){
+            this.$message({
+              message: '修改成功!',
+              type: 'success'
+            });
+            this.editShow = false
+            this.initTableData()
+          }else{
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+          }
+        })
       },
       closeProgress(){
         this.progressShow = false
