@@ -99,12 +99,33 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
             task_info = TaskInfo.objects.filter(task_id=task_id).first()
             task_msg = task_info.task_msg
             return JsonResponse(json.loads(task_msg))
-        else:
-            pass
         return JsonResponse(R.ok(task_id, msg="拉取镜像%s任务下发成功" % (image_name, )))
+
+    @action(methods=["get"], detail=True, url_path="download")
+    def download_image(self, request, pk=None):
+        """
+        下载镜像
+        :param request:
+        :param pk:
+        :return:
+        """
+        user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build(msg="权限不足"))
+        image_info = ImageInfo.objects.filter(image_id=pk).first()
+        if not image_info:
+            return JsonResponse(R.build(msg="镜像不存在"))
+        task_id = tasks.create_image_task(image_info=image_info, user_info=user, request_ip=get_request_ip(request))
+        return JsonResponse(R.ok(task_id, msg="拉取镜像%s任务下发成功" % (image_info.image_name, )))
 
     @action(methods=["get"], detail=True, url_path="share")
     def share_image(self, request, pk=None):
+        """
+        分享镜像
+        :param request:
+        :param pk:
+        :return:
+        """
         user = request.user
         if not user.is_superuser:
             return JsonResponse(R.build(msg="权限不足"))
@@ -124,6 +145,12 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
 
     @action(methods=["get"], detail=True, url_path="local")
     def local(self, request, pk=None):
+        """
+        加载本地镜像
+        :param request:
+        :param pk:
+        :return:
+        """
         user = request.user
         if not user.is_superuser:
             return JsonResponse(R.build(msg="权限不足"))
@@ -143,6 +170,12 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
 
     @action(methods=["post"], detail=True, url_path="local_add")
     def batch_local_add(self, request, pk=None):
+        """
+        批量添加本地镜像
+        :param request:
+        :param pk:
+        :return:
+        """
         user = request.user
         if not user.is_superuser:
             return JsonResponse(R.build(msg="权限不足"))
@@ -168,6 +201,12 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
 
     @action(methods=["get"], detail=True, url_path="delete")
     def delete_image(self, request, pk=None):
+        """
+        删除镜像
+        :param request:
+        :param pk:
+        :return:
+        """
         user = request.user
         if not user.is_superuser:
             return JsonResponse(R.build(msg="权限不足"))
@@ -192,7 +231,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
     @action(methods=["post", "get"], detail=True, url_path="start")
     def start_container(self, request, pk=None):
         """
-        启动靶场
+        启动镜像
         :param request:
         :param pk:
         :return:
@@ -224,8 +263,12 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         request = self.request
         user = request.user
         flag = request.GET.get("flag", "")
+        image_id = request.GET.get("image_id", "")
         if flag == 'list' and user.is_superuser:
-            container_vul_list = ContainerVul.objects.all().order_by('-create_date')
+            if image_id:
+                container_vul_list = ContainerVul.objects.filter(image_id=image_id).order_by('-create_date')
+            else:
+                container_vul_list = ContainerVul.objects.all().order_by('-create_date')
         else:
             container_vul_list = ContainerVul.objects.all().filter(user_id=self.request.user.id, time_model_id="")
         return container_vul_list
@@ -258,27 +301,32 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
                                             request_ip=get_request_ip(request))
         return JsonResponse(R.ok(task_id))
 
-    '''
-    删除容器
-    '''
     @action(methods=["delete"], detail=True, url_path="delete")
     def delete_container(self, request, pk=None):
+        """
+        删除容器
+        :param request:
+        :param pk:
+        :return:
+        """
         user_info = request.user
         container_vul = self.get_object()
         task_id = tasks.delete_container_task(container_vul=container_vul, user_info=user_info,
                                               request_ip=get_request_ip(request))
         return JsonResponse(R.ok(task_id))
 
-    '''
-    验证Flag是否正确
-    '''
     @action(methods=["post", "get"], detail=True, url_path="flag")
     def check_flag(self, request, pk=None):
+        """
+        验证Flag是否正确
+        :param request:
+        :param pk:
+        :return:
+        """
         flag = request.GET.get('flag', None)
         container_vul = self.get_object()
         user_info = request.user
         user_id = user_info.id
-
         operation_args = ContainerVulSerializer(container_vul).data
         request_ip = get_request_ip(request)
         sys_log = SysLog(user_id=user_id, operation_type="容器", operation_name="提交Flag",
@@ -319,6 +367,11 @@ class SysLogSet(viewsets.ModelViewSet):
 
 @api_view(http_method_names=["GET"])
 def get_setting(request):
+    """
+    获取
+    :param request:
+    :return:
+    """
     user = request.user
     if not user.is_superuser:
         return JsonResponse(R.build(msg="权限不足"))
@@ -328,6 +381,11 @@ def get_setting(request):
 
 @api_view(http_method_names=["POST"])
 def update_setting(request):
+    """
+    更新配置
+    :param request:
+    :return:
+    """
     user = request.user
     if not user.is_superuser:
         return JsonResponse(R.build(msg="权限不足"))
@@ -401,7 +459,7 @@ def get_local_ip():
     获取本机IP
     :return:
     """
-    local_ip = ''
+    local_ip = ""
     if VUL_IP:
         return VUL_IP
     try:

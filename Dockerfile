@@ -1,5 +1,5 @@
 FROM python:3
-LABEL maintainer="r4v3zn <woo0nise@gmail.com>" version="0.2.2" description="Vulfocus for Docker"
+LABEL maintainer="r4v3zn <woo0nise@gmail.com>" version="0.2.3" description="Vulfocus for Docker"
 EXPOSE 80
 RUN mkdir /vulfocus-api/
 WORKDIR /vulfocus-api/
@@ -16,7 +16,7 @@ RUN mv /etc/apt/sources.list /etc/apt/sources.list.back && \
     cp /vulfocus-api/nginx.conf /etc/nginx/nginx.conf && \
     cp /vulfocus-api/default /etc/nginx/sites-available/default && \
     cp /vulfocus-api/default /etc/nginx/sites-enabled/default && \
-    python3 -m pip install --upgrade pip && \
+    python3 -m pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple && \
     pip install -i https://pypi.tuna.tsinghua.edu.cn/simple some-package -r requirements.txt && \
     chmod u+x /vulfocus-api/run.sh
 ADD dist/ /var/www/html/

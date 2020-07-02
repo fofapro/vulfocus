@@ -130,10 +130,16 @@
                            :width="20"></el-progress>
             </div>
           </el-tag>
-          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
-                 type="danger" effect="dark" v-else-if="row.is_ok === false && row.status.task_id === ''">
-            <div style="display: inline-block;float: left"><span>下载失败</span></div>
-          </el-tag>
+<!--          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"-->
+<!--                 type="danger" effect="dark" v-else-if="row.is_ok === false && row.status.task_id === ''">-->
+<!--            <div style="display: inline-block;float: left"><span>下载</span></div>-->
+<!--          </el-tag>-->
+          <el-button style="display: inline-block;float: left;margin-left: 5px;"
+                     v-else-if="row.is_ok === false && row.status.task_id === ''"
+                     size="mini"
+                     type="primary"
+                     icon="el-icon-download"
+                     @click="downloadImg(row)">下载</el-button>
           <el-button style="display: inline-block;float: left;margin-left: 5px;"
             v-if="(row.is_ok === true) || (row.is_ok === false && row.status.task_id === '')"
             size="mini"
@@ -163,10 +169,7 @@
       </el-table-column>
     </el-table>
     <div style="margin-top: 20px">
-      <el-pagination
-        :page-size="page.size"
-        @current-change="handleQuery"
-        layout="total, prev, pager, next, jumper"
+      <el-pagination :page-size="page.size" @current-change="handleQuery" layout="total, prev, pager, next, jumper"
         :total="page.total">
       </el-pagination>
     </div>
@@ -176,7 +179,7 @@
 <script>
   import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
-  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare } from "@/api/image"
+  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageDownload } from "@/api/image"
   import { containerDel } from '@/api/container'
   import { getTask,batchTask,progressTask } from '@/api/tasks'
 
@@ -393,6 +396,43 @@
             });
             this.centerDialogVisible = false
             this.initTableData()
+          }
+        })
+      },
+      downloadImg(row){
+        let imageId = row.image_id
+        ImageDownload(imageId).then(response => {
+          let rsp = response.data
+          let msg = rsp["msg"]
+          if(rsp.status === 200){
+            if(msg != null && (msg.indexOf("成功") > -1 || msg.indexOf("失败") > -1 )){
+              let tmpMsg = msg.replace("拉取镜像", "").replace("任务下发成功", "").replace(" ", "")
+              this.tmpImageNameList.push(tmpMsg)
+              if(msg.indexOf("成功") > -1 ){
+                this.$notify({
+                  title: '成功',
+                  message: msg,
+                  type: 'success'
+                });
+                this.initTableData()
+              }else{
+                this.$notify({
+                  message: msg,
+                  type: 'error'
+                });
+              }
+            }else{
+              this.$notify({
+                message: msg,
+                type: 'error'
+              });
+            }
+          }else{
+            this.$notify({
+              message: msg,
+              type: 'error'
+            });
+            this.centerDialogVisible = false
           }
         })
       },
