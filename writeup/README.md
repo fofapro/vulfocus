@@ -68,3 +68,4 @@
 
 [jboss-CVE-2017-12149](./jboss-CVE-2017-12149/CVE-2017-12149.md)  by [wuli888](https://github.com/wuli888)
 
+[CVE-2018-2894](./CVE-2018-2894/CVE-2018-2894.md)  by [wuli888](https://github.com/wuli888)
