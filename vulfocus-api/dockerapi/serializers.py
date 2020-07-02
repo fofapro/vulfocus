@@ -58,10 +58,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             status["container_id"] = data.container_id
         # 查询正在拉取镜像的任务
         operation_args = {
-            "image_name": obj.image_name,
-            "image_vul_name": obj.image_vul_name,
-            "rank": obj.rank,
-            "image_desc": obj.image_desc,
+            "image_name": obj.image_name
         }
         task_info = TaskInfo.objects.filter(task_status=1, operation_type=1, operation_args=json.dumps(operation_args))\
             .order_by("-create_date").first()

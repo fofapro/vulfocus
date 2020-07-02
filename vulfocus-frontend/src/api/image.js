@@ -17,6 +17,20 @@ export function ImageAdd(data) {
 }
 
 /**
+ * 更新镜像信息
+ * @param id
+ * @param data
+ * @constructor
+ */
+export function ImageEdit(id,data) {
+  return request({
+    url: "/images/"+id+"/edit/",
+    method: 'post',
+    data
+  })
+}
+
+/**
  * 删除镜像
  * @param id 镜像id
  * @constructor
@@ -50,6 +64,11 @@ export function ImageLocalAdd(data) {
   })
 }
 
+/**
+ * 下载镜像
+ * @param id
+ * @constructor
+ */
 export function ImageDownload(id) {
   return request({
     url: '/images/'+id+'/download/'

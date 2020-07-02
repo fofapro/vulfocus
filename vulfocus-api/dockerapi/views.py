@@ -65,6 +65,42 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return JsonResponse(R.ok())
 
+    @action(methods=["post"], detail=True, url_path="edit")
+    def edit_image(self, request, pk=None):
+        """
+        修改镜像
+        :param request:
+        :param pk:
+        :return:
+        """
+        user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build(msg="权限不足"))
+        data = request.data
+        image_info = ImageInfo.objects.filter(image_id=pk).first()
+        if not image_info:
+            return JsonResponse(R.build(msg="镜像不存在"))
+        if "rank" in data:
+            try:
+                rank = float(data["rank"])
+            except:
+                rank = 2.5
+            image_info.rank = rank
+        if "image_vul_name" in data:
+            image_vul_name = data["image_vul_name"]
+            image_vul_name = image_vul_name.strip()
+            image_info.image_vul_name = image_vul_name
+        if "image_desc" in data:
+            image_desc = data["image_desc"]
+            image_desc = image_desc.strip()
+            image_info.image_desc = image_desc
+        image_info.update_date = django.utils.timezone.now()
+        image_info.save()
+        return JsonResponse(R.ok())
+
+    def update(self, request, *args, **kwargs):
+        return JsonResponse(R.ok())
+
     def create(self, request, *args, **kwargs):
         """
         创建镜像
