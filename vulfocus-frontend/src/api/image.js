@@ -17,19 +17,6 @@ export function ImageAdd(data) {
 }
 
 /**
- * 添加镜像
- * @param data 镜像信息
- * @constructor
- */
-export function ImageUpdate(id,data) {
-  return request({
-    url: '/images/'+id+'/',
-    method: 'put',
-    data
-  })
-}
-
-/**
  * 删除镜像
  * @param id 镜像id
  * @constructor
