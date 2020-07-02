@@ -66,3 +66,6 @@
 
 [CVE-2017-1000353](./CVE-2017-1000353/CVE-2017-1000353.md)  by [Vdeem](https://github.com/Vdeem)
 
+[CVE-2017-10271](./CVE-2017-10271/CVE-2017-10271.md)  by [xiajibaxie](https://github.com/xiajibaxie)
+
+[CVE-2017-12149](./CVE-2017-12149/CVE-2017-12149.md)  by [xiajibaxie](https://github.com/xiajibaxie)
