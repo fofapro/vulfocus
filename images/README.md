@@ -97,7 +97,7 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 2020-06-24
 
 - vulfocus/apache_spark-cve_2020_9480
-- vulfocus/vulfocus/shiro-cve_2020_11989
+- vulfocus/shiro-cve_2020_11989
 - vulfocus/shiro-cve_2020_1957
 
 2020-06-23
