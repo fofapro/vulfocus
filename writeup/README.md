@@ -1,8 +1,10 @@
+# Writeup
+
 主要收录关于 Vulfocus 相关的文章。
 
 
 
-[ElasticSearch 命令执行漏洞(CVE-2014-3120)](./CVE-2014-3120/CVE-2014-3120.md) by [Vdeem](https://github.com/Vdeem)
+[ElasticSearch 命令执行漏洞(CVE-2014-3120)](writeup/CVE-2014-3120/CVE-2014-3120.md) by [Vdeem](https://github.com/Vdeem)
 
 [Drupal 远程代码执行漏洞(CVE-2018-7600) ](./CVE-2018-7600/CVE-2018-7600.md) by [anonymity3712](https://github.com/anonymity3712)
 

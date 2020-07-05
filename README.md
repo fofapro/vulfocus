@@ -32,14 +32,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 3. 带有计分功能也可适用于相关安全人员能力的考核。
 4. 兼容 [Vulhub](https://vulhub.org/)、[Vulapps](http://vulapps.evalbug.com/) 中所有漏洞镜像。
 
-
-##  ⬇️ 下载及安装
-
-🏠 请参考 [INSTALL.md](./INSTALL.md) 进行安装。
-
-⬇️ 发行版下载 [https://github.com/fofapro/vulfocus/releases](https://github.com/fofapro/vulfocus/releases)。
-
-### ✨ 使用
+## 使用
 
 ![](./imgs/register.gif)
 
@@ -62,19 +55,12 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
    - 镜像又分为文件和文本
   - 文本：是从 [https://hub.docker.com/u/vulfocus](https://hub.docker.com/u/vulfocus) 官网拉取镜像。内容为如： `vulfocus/webmin-cve_2019_15107` 。
      - 文件：本地漏洞镜像打成tar包的形式进行上传。
-   
+
 4. 下载完成后点击启动即可。
 
 ![](./imgs/flag.gif)
 
 5. 镜像启动后，会在环境里写入一个 flag （默认 flag 会写入 **/tmp/** 下），读取到 flag 后填入 flag 窗口，镜像会自动关闭，如需重新启动，需强刷一下，然后再次点击启动即可。
-
-
-## 🛠贡献漏洞镜像
-
-初期 Vulfocus 的漏洞镜像会较少，可能无法满足你的需求，所以非常期望大家来一起维护 Vulfocus，当你发现你的一些漏洞环境在 Vulfocus 中找不到时，可以提交供大家使用。一个有问题的环境可能会影响到使用者的情绪。因此我们对社区提交的漏洞环境会进行审核。贡献者在提交漏洞环境的时候，可提供相应的复现工具或流程，加速环境的审核。
-
-[镜像贡献](./images/CONTRIBUTION.md)
 
 ## FAQ
 
@@ -96,7 +82,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 [centos7 docker版本应用无法添加镜像](https://github.com/fofapro/vulfocus/issues/6)
 
-## Contributors ✨
+## Contributors
 
 Thanks goes to these wonderful people :
 
@@ -137,7 +123,7 @@ Thanks goes to these wonderful people :
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-## 📝 讨论区
+## 讨论区
 
 如有问题可以在 GitHub 提 issue, 也可在下方的讨论组里
 
@@ -146,11 +132,6 @@ GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fo
 微信群: 通过扫描以下二维码加入并且备注 `申请 Vulfocus` 加入 Vulfocus 官方微信群。
 
 <img src="./imgs/wechat.jpeg" widht="500px" height="500px"  />
-
-
-## 更新日志
-
-[更新日志](./CHANGELOG.md)
 
 ## 致谢
 
