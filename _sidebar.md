@@ -35,6 +35,14 @@
    * [Spring Data Commons 代码执行漏洞（CVE-2018-1273）](writeup/CVE-2018-1273/CVE-2018-1273.md)
    * [Spring Data REST PATCH 请求代码执行漏洞（CVE-2017-8046）](writeup/CVE-2017-8046/CVE-2017-8046.md)
    * [CVE-2018-1000861（Jekins 远程命令执行）](writeup/CVE-2018-1000861/CVE-2018-1000861.md)
+   * [PHP-CGI远程代码执行](writeup/PHP-CGI远程代码执行/PHP-CGI远程代码执行.md)
+   * [GlassFish任意文件读取漏洞](writeup/GlassFish任意文件读取漏洞/GlassFish任意文件读取漏洞.md)
+   * [JBoss 命令执行漏洞（CVE-2017-7504）](writeup/CVE-2017-7504/CVE-2017-7504.md)
+   * [Jenkins 命令执行漏洞（CVE-2017-1000353）](writeup/CVE-2017-1000353/CVE-2017-1000353.md)
+   * [Jboss命令执行漏洞（CVE-2017-12149）](writeup/jboss-CVE-2017-12149/CVE-2017-12149.md)
+   * [WebLogic任意文件上传漏洞（CVE-2018-2894）](writeup/CVE-2018-2894/CVE-2018-2894.md)
+   * [Weblogic wls-wsat XMLDecoder 反序列化漏洞（CVE-2017-10271）](writeup/CVE-2017-10271/CVE-2017-10271.md)
+   * [JBOSS 命令执行（CVE-2017-12149) ](writeup/CVE-2017-12149/CVE-2017-12149.md)
 
 * 镜像
 
