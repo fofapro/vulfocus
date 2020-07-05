@@ -1,14 +1,10 @@
-jboss-JMXInvokerServlet 反序列化
+# jboss-JMXInvokerServlet 反序列化 by [xiajibaxie](https://github.com/xiajibaxie)
 
-# 一、漏洞描述
+## 一、漏洞描述
 
 反序列化是指特定语言中将传递的对象序列化数据重新恢复为实例对象的过程，而在这个过程中会执行一系列的字节流解析和对象实例化操作用于恢复之前序列化时的对象。在原博文所提到的那些 Java 应用里都有特定的接口用于传递序列化对象数据，而在反序列化时并没有限制实例化对象的类型，导致可以任意构造应用中已经包含的对象利用反序列化操作进行实例化。
 
-
-
-# 二、影响版本
-
-
+## 二、影响版本
 
 ```
 JBoss Enterprise Application Platform 6.4.4,5.2.0,4.3.0_CP10
@@ -24,19 +20,13 @@ JBoss Fuse Service Works (FSW) 6.0.0
 JBoss Enterprise Web Server (EWS) 2.1,3.0
 ```
 
-
-
-# 三、利用流程
-
-
+## 三、利用流程
 
 访问地址: `10.10.11.20:48171`
 
 名称: JMXInvokerServlet 反序列化
 
 描述: jboss-JMXInvokerServlet 反序列化
-
-
 
 使用jar包上传一句话木马
 
@@ -48,19 +38,13 @@ JBoss Enterprise Web Server (EWS) 2.1,3.0
 
 ![shell](./shell.jpg)
 
-
-
 使用冰蝎链接执行命令获得flag
 
 ![get_shell](./get_shell.png)
 
 通关
 
-
-
-# 四、修复方案
-
-
+## 四、修复方案
 
 **1. 类白名单校验**
 

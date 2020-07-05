@@ -1,6 +1,6 @@
-# ThinkPHP 2.X 任意代码执行
+# ThinkPHP 2.X 任意代码执行 by [Frivolous-scholar](https://github.com/Frivolous-scholar)
 
-# 漏洞概述
+## 漏洞概述
 
 在 ThinkPHP ThinkPHP 2.x 版本中，使用 preg_replace 的 /e 模式匹配路由：`$res = preg_replace('@(\w+)'.$depr.'([^'.$depr.'\/]+)@e', '$var[\'\\1\']="\\2";', implode($depr,$paths));`
 

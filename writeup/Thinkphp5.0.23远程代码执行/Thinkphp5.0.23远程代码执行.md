@@ -1,16 +1,12 @@
+# Thinkphp5.0.23 远程代码执行 by [Frivolous-scholar](https://github.com/Frivolous-scholar)
 
-
-# Thinkphp5.0.23 远程代码执行
-
-# 漏洞概述
+## 漏洞概述
 
 低于5.0.23版本都存在远程代码执行
 
 ## write up
 
 首先打开靶场
-
-
 
 ![1](./1.png)
 
@@ -36,8 +32,6 @@
 `
 
 ![4](./4.png)
-
-
 
 成功访问,说明上传成功。![5](./5.png)用菜刀去连接。
 

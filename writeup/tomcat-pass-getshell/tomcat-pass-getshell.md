@@ -1,8 +1,11 @@
-### 漏洞描述
+# tomcat pass getshell by [anonymity3712](https://github.com/anonymity3712)
+
+## 漏洞描述
+
 tomcat 作为中间件的一员，漏洞方面也是要了解的。
 弱口令进入后台直接上传 war 包 getshell 是一个经典的漏洞。
 
-### writeup
+## writeup
 
 访问靶机地址
 
