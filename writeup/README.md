@@ -70,15 +70,15 @@
 
 [GlassFish任意文件读取漏洞](./GlassFish任意文件读取漏洞/GlassFish任意文件读取漏洞.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
-[CVE-2017-7504](./CVE-2017-7504/CVE-2017-7504.md)  by [Vdeem](https://github.com/Vdeem)
+[JBoss 命令执行漏洞（CVE-2017-7504）](./CVE-2017-7504/CVE-2017-7504.md)  by [Vdeem](https://github.com/Vdeem)
 
-[CVE-2017-1000353](./CVE-2017-1000353/CVE-2017-1000353.md)  by [Vdeem](https://github.com/Vdeem)
+[Jenkins 命令执行漏洞（CVE-2017-1000353）](./CVE-2017-1000353/CVE-2017-1000353.md)  by [Vdeem](https://github.com/Vdeem)
 
-[jboss-CVE-2017-12149](./jboss-CVE-2017-12149/CVE-2017-12149.md)  by [wuli888](https://github.com/wuli888)
+[Jboss命令执行漏洞（CVE-2017-12149）](./jboss-CVE-2017-12149/CVE-2017-12149.md)  by [wuli888](https://github.com/wuli888)
 
-[CVE-2018-2894](./CVE-2018-2894/CVE-2018-2894.md)  by [wuli888](https://github.com/wuli888)
+[WebLogic任意文件上传漏洞（CVE-2018-2894）](./CVE-2018-2894/CVE-2018-2894.md)  by [wuli888](https://github.com/wuli888)
 
-[CVE-2017-10271](./CVE-2017-10271/CVE-2017-10271.md)  by [xiajibaxie](https://github.com/xiajibaxie)
+[Weblogic wls-wsat XMLDecoder 反序列化漏洞（CVE-2017-10271）](./CVE-2017-10271/CVE-2017-10271.md)  by [xiajibaxie](https://github.com/xiajibaxie)
 
-[CVE-2017-12149](./CVE-2017-12149/CVE-2017-12149.md)  by [xiajibaxie](https://github.com/xiajibaxie)
+[JBOSS 命令执行（CVE-2017-12149) ](./CVE-2017-12149/CVE-2017-12149.md)  by [xiajibaxie](https://github.com/xiajibaxie)
 
