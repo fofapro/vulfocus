@@ -26,21 +26,21 @@
 
 [jboss-JMXInvokerServlet反序列化](./jboss-JMXInvokerServlet反序列化/jboss-JMXInvokerServlet反序列化.md)  by [xiajibaxie](https://github.com/xiajibaxie)
 
-[Struts2-016远程代码执行漏洞（CVE-2013-2251）](./CVE-2013-2251/struts2-016远程命令执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[Struts2-016远程代码执行漏洞（CVE-2013-2251）](./CVE-2013-2251/struts2-016远程命令执行.md)  by [scholar](https://github.com/Frivolous-scholar)
 
-[ThinkPHP_2.X任意代码执行](./ThinkPHP_2.X任意代码执行/ThinkPHP2.X任意代码执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[ThinkPHP_2.X任意代码执行](./ThinkPHP_2.X任意代码执行/ThinkPHP2.X任意代码执行.md)  by [scholar](https://github.com/Frivolous-scholar)
 
-[Thinkphp5.0.23远程代码执行](./Thinkphp5.0.23远程代码执行/Thinkphp5.0.23远程代码执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[Thinkphp5.0.23远程代码执行](./Thinkphp5.0.23远程代码执行/Thinkphp5.0.23远程代码执行.md)  by [scholar](https://github.com/Frivolous-scholar)
 
 [seacms-v6.53 命令执行漏洞](./seacms-v6.53%20命令执行漏洞/seacms-v6.53%20命令执行漏洞.md) by [Aa1141415869](https://github.com/Aa1141415869)
 
 [seacms-v6.45 任意代码执行漏洞.md](./seacms-v6.45%20任意代码执行漏洞/seacms-v6.45%20任意代码执行漏洞.md) by [Aa1141415869](https://github.com/Aa1141415869)
 
-[Struts2-008(CVE-2012-0392)](./CVE-2012-0392/Struts2-008(CVE-2012-0392).md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[Struts2-008(CVE-2012-0392)](./CVE-2012-0392/Struts2-008(CVE-2012-0392).md)  by [scholar](https://github.com/Frivolous-scholar)
 
-[Struts2-devMode](./Struts2-devMode/Struts2-devMode.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[Struts2-devMode](./Struts2-devMode/Struts2-devMode.md)  by [scholar](https://github.com/Frivolous-scholar)
 
-[CVE-2017-11610](./CVE-2017-11610/CVE-2017-11610.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[CVE-2017-11610](./CVE-2017-11610/CVE-2017-11610.md)  by [scholar](https://github.com/Frivolous-scholar)
 
 [PHP文件包含之利用phpinfo](./PHP文件包含之利用phpinfo/PHP文件包含漏洞之利用phpinfo.md)  by [fengyehack](https://github.com/fengyehack)
 
@@ -56,11 +56,11 @@
 
 [CVE-2017-8046](./CVE-2017-8046/CVE-2017-8046.md)  by [fengyehack](https://github.com/fengyehack)
 
-[CVE-2018-1000861](./CVE-2018-1000861/CVE-2018-1000861.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[CVE-2018-1000861](./CVE-2018-1000861/CVE-2018-1000861.md)  by [scholar](https://github.com/Frivolous-scholar)
 
-[PHP-CGI远程代码执行](./PHP-CGI远程代码执行/PHP-CGI远程代码执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[PHP-CGI远程代码执行](./PHP-CGI远程代码执行/PHP-CGI远程代码执行.md)  by [scholar](https://github.com/Frivolous-scholar)
 
-[GlassFish任意文件读取漏洞](./GlassFish任意文件读取漏洞/GlassFish任意文件读取漏洞.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[GlassFish任意文件读取漏洞](./GlassFish任意文件读取漏洞/GlassFish任意文件读取漏洞.md)  by [scholar](https://github.com/Frivolous-scholar)
 
 [CVE-2017-7504](./CVE-2017-7504/CVE-2017-7504.md)  by [Vdeem](https://github.com/Vdeem)
 
