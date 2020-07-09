@@ -66,3 +66,7 @@
 
 [CVE-2017-1000353](./CVE-2017-1000353/CVE-2017-1000353.md)  by [Vdeem](https://github.com/Vdeem)
 
+[CVE-2017-4971](./CVE-2017-4971/CVE-2017-4971.md)  by [scholar](https://github.com/Frivolous-scholar)
+
+[CVE-2019-15107](./CVE-2019-15107/CVE-2019-15107.md)  by [scholar](https://github.com/Frivolous-scholar)
+
