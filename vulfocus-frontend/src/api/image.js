@@ -17,14 +17,15 @@ export function ImageAdd(data) {
 }
 
 /**
- * 添加镜像
- * @param data 镜像信息
+ * 更新镜像信息
+ * @param id
+ * @param data
  * @constructor
  */
-export function ImageUpdate(id,data) {
+export function ImageEdit(id,data) {
   return request({
-    url: '/images/'+id+'/',
-    method: 'put',
+    url: "/images/"+id+"/edit/",
+    method: 'post',
     data
   })
 }
@@ -60,6 +61,17 @@ export function ImageLocalAdd(data) {
     url: '/images/local/local_add/',
     method: 'post',
     data
+  })
+}
+
+/**
+ * 下载镜像
+ * @param id
+ * @constructor
+ */
+export function ImageDownload(id) {
+  return request({
+    url: '/images/'+id+'/download/'
   })
 }
 

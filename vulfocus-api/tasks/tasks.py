@@ -19,7 +19,6 @@ from dockerapi.common import DEFAULT_CONFIG
 from dockerapi.views import get_setting_config
 from dockerapi.models import ContainerVul, ImageInfo
 from user.models import UserProfile
-from docker.models.images import Image
 from docker.errors import NotFound, ImageNotFound
 from .models import TaskInfo
 from dockerapi.common import R, HTTP_ERR
@@ -475,11 +474,11 @@ def create_image(task_id):
     operation_args = task_info.operation_args
     args = json.loads(operation_args)
     image_name = args["image_name"].strip()
-    image_desc = args["image_desc"].strip()
-    image_rank = args["rank"]
-    image_vul_name = args["image_vul_name"].strip()
     image_info = ImageInfo.objects.filter(image_name=image_name).first()
     if not image_info:
+        image_desc = image_name
+        image_rank = 2.5
+        image_vul_name = image_desc
         image_info = ImageInfo(image_name=image_name, image_desc=image_desc, rank=image_rank, image_vul_name=image_vul_name)
     image = None
     msg = {}
@@ -689,15 +688,9 @@ def create_create_image_task(image_info, user_info):
     image_name = image_info.image_name
     if image_name and ":" not in image_name:
         image_name += ":latest"
-    image_vul_name = image_name.replace("vulfocus/", "") if not image_info.image_vul_name else image_info.image_vul_name
-    image_rank = 2.5 if image_info.rank > 5 or image_info.rank < 0.5 else image_info.rank
-    image_desc = image_name.replace("vulfocus/", "") if not image_info.image_desc else image_info.image_desc
     user_id = user_info.id
     args = {
         "image_name": image_name,
-        "image_vul_name": image_vul_name,
-        "rank": image_rank,
-        "image_desc": image_desc,
     }
     task_info = TaskInfo(task_name="拉取镜像：" + image_name, user_id=user_id, task_status=1, task_msg=json.dumps({}),
                          task_start_date=timezone.now(), operation_type=1,

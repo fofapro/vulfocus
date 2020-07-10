@@ -1,22 +1,14 @@
-thinkphp_5 命令执行
+# thinkphp_5 命令执行 by [xiajibaxie](https://github.com/xiajibaxie)
 
-# 一、漏洞描述
-
-
+## 一、漏洞描述
 
 Thinkphp5.x 版本（5.0.20）中没有对路由中的控制器进行严格过滤，在存在 admin，index 模块、没有开启强制路由的条件下（默认不开启），导致可以注入恶意代码利用反射类调用命名空间其他任意内置类，完成远程代码执行。
 
-
-
-# 二、影响版本
-
-
+## 二、影响版本
 
 ThinkPHP 5.x  < ThinkPHP 5.1.31<=  ThinkPHP 5.0.23
 
-
-
-# 三、利用流程
+## 三、利用流程
 
 靶场基本信息
 
@@ -76,16 +68,8 @@ if __name__ == '__main__':
 
 复制结果提交，通关
 
-
-
-# 四、修复方案
-
-
+## 四、修复方案
 
 1、官网已发布安全更新，用户可以通过网址[http://www.thinkphp.cn/topic/60400.html ](http://www.thinkphp.cn/topic/60400.html)获得.
 
 2、建议使用以上 ThinkPHP5  开发的内容管理系统的用户及时检查是否存在该漏洞。
-
-
-
-

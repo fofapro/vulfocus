@@ -1,5 +1,12 @@
 <template>
   <div class="app-container">
+    <div class="filter-container">
+      <el-autocomplete style="width: 30%"  v-model="searchImageName" size="medium" placeholder="镜像名称"
+                       :fetch-suggestions="querySearchImageAsync" @select="handleImageSelect"></el-autocomplete>
+      <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleContainer(1)">
+        查询
+      </el-button>
+    </div>
     <el-table
       :data="tableData" border stripe style="width: 100%">
       <el-table-column type="index" width="50"></el-table-column>
@@ -35,6 +42,7 @@
 </template>
 
 <script>
+  import { ImgList } from "@/api/docker"
   import { containerList,containerStop,containerStart,containerDel } from '@/api/container'
   import { getTask } from '@/api/tasks'
   import CountDown from 'vue2-countdown'
@@ -46,6 +54,9 @@
           total: 0,
           size: 20,
         },
+        searchImageId: null,
+        searchImageName: null,
+        imageList: [],
         tableData: []
       }
     },
@@ -57,10 +68,7 @@
     },
     methods:{
       initTable(page){
-        containerList('list', page).then(response => {
-          this.tableData = response.data.results
-          this.page.total = response.data.count
-        })
+        this.search("", page)
       },
       stopContainer(row){
         containerStop(row.container_id).then(response => {
@@ -151,7 +159,39 @@
             },1)
           },1000)
         })
-      }
+      },
+      querySearchImageAsync(queryString, cb) {
+        this.imageList = []
+        this.searchImageName = null
+        this.searchImageId = null
+        if(queryString !== "" && queryString !== null && queryString.length !== 0){
+          ImgList(queryString, true, 1).then(response => {
+            let results = response.data.results
+            if(results !== null){
+              results.forEach((item, index, arr) => {
+                this.imageList.push({"value": item["image_name"], "id": item["image_id"]})
+              });
+            }
+            if(this.imageList.length > 0){
+              cb(this.imageList);
+            }
+          })
+        }
+      },
+      handleImageSelect(item){
+        this.searchImageId = item.id
+        this.searchImageName = item.value
+      },
+      handleContainer(page){
+        let id = this.searchImageId
+        this.search(id, page)
+      },
+      search(id,page){
+        containerList('list', page, id).then(response => {
+          this.tableData = response.data.results
+          this.page.total = response.data.count
+        })
+      },
     }
   }
 </script>

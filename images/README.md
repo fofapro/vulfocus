@@ -1,3 +1,5 @@
+# 镜像
+
 Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile 信息，提交者需在此文件夹中创建漏洞对应的环境目录，然后在此目录中编译 Dockerfile 文件，最后将漏洞镜像信息提交至该文件中。
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
@@ -97,7 +99,7 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 2020-06-24
 
 - vulfocus/apache_spark-cve_2020_9480
-- vulfocus/vulfocus/shiro-cve_2020_11989
+- vulfocus/shiro-cve_2020_11989
 - vulfocus/shiro-cve_2020_1957
 
 2020-06-23

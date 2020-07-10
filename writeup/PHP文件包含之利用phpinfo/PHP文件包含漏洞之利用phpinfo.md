@@ -1,4 +1,4 @@
-# PHP文件包含漏洞之利用phpinfo
+# PHP文件包含漏洞之利用phpinfo by [fengyehack](https://github.com/fengyehack)
 
 ## 一、漏洞描述
 

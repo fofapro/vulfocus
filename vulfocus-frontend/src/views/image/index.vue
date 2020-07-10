@@ -71,30 +71,6 @@
           </el-tab-pane>
         </el-tabs>
     </el-dialog>
-    <el-dialog :visible.sync="editDialogVisible" title="修改" width="60%">
-      <el-form label-width="80px"
-               v-loading="loading"
-               element-loading-text="添加中">
-        <el-form-item label="漏洞名称">
-          <el-input v-model="editRow.image_vul_name" size="medium"></el-input>
-        </el-form-item>
-        <el-form-item label="镜像">
-          <el-input v-model="editRow.image_name" size="medium" :disabled="true"></el-input>
-        </el-form-item>
-        <el-form-item label="Rank">
-          <el-input-number v-model="editRow.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
-          <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
-            <i class="el-icon-question"></i>
-          </el-tooltip>
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input type="textarea" v-model="editRow.image_desc" size="medium"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary"  @click="handleUpdate" size="medium">修 改</el-button>
-        </el-form-item>
-      </el-form>
-    </el-dialog>
     <el-dialog :visible.sync="progressShow" :title=progress.title width="60%" :before-close="closeProgress">
       <div v-loading="progressLoading">
         <el-row v-for="(item,index) in progress.layer" style="margin-bottom: 10px; height: 24px;" >
@@ -105,6 +81,50 @@
           </div>
         </el-row>
       </div>
+    </el-dialog>
+    <el-dialog :visible.sync="deleteShow" title="删除" width="80%">
+      <el-table
+        :data="deleteContainerList" border stripe style="width: 100%">
+        <el-table-column type="index" width="50"></el-table-column>
+        <el-table-column prop="vul_name" width="150" :show-overflow-tooltip=true label="漏洞名称"></el-table-column>
+        <el-table-column :show-overflow-tooltip=true prop="user_name" width="100" label="用户名"></el-table-column>
+        <el-table-column prop="vul_host" width="200" :show-overflow-tooltip=true label="访问地址"></el-table-column>
+        <el-table-column label="状态" width="85">
+          <template slot-scope="{row}">
+            <el-tag>{{row.container_status}}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="vul_desc" :show-overflow-tooltip=true width="300" label="漏洞描述"></el-table-column>
+        <el-table-column prop="combination_desc" label="操作" :show-overflow-tooltip=true>
+          <template slot-scope="{row}">
+            <el-button size="mini" type="danger" icon="el-icon-delete" v-if="row.container_status === 'running' || row.container_status === 'stop'"
+                       @click="delContainer(row)" >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+    <el-dialog :visible.sync="editShow" title="修改">
+      <el-form label-width="80px" v-loading="editLoding" element-loading-text="修改中">
+        <el-form-item label="漏洞名称">
+          <el-input v-model="editVulInfo.image_vul_name" size="medium"></el-input>
+        </el-form-item>
+        <el-form-item label="镜像">
+          <el-input v-model="editVulInfo.image_name" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="Rank">
+          <el-input-number v-model="editVulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
+          &nbsp;&nbsp;&nbsp;
+          <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
+            <i class="el-icon-question"></i>
+          </el-tooltip>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input type="textarea" v-model="editVulInfo.image_desc" size="medium"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary"  @click="handleEditImage" size="medium">提 交</el-button>
+        </el-form-item>
+      </el-form>
     </el-dialog>
     <div class="filter-container">
       <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
@@ -119,7 +139,7 @@
       <el-table-column type="index" width="50"> </el-table-column>
       <el-table-column prop="image_name" label="镜像名称" :show-overflow-tooltip=true ></el-table-column>
       <el-table-column prop="image_vul_name" label="漏洞名称" :show-overflow-tooltip=true></el-table-column>
-      <el-table-column prop="image_port" label="端口" width="100"></el-table-column>
+      <el-table-column prop="image_port" label="端口" width="150"></el-table-column>
       <el-table-column prop="rank" label="分数" width="50"></el-table-column>
       <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
       <el-table-column fixed="right" label="操作" width="260">
@@ -133,14 +153,19 @@
                            :width="20"></el-progress>
             </div>
           </el-tag>
-          <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
-                 type="danger" effect="dark" v-else-if="row.is_ok === false && row.status.task_id === ''">
-            <div style="display: inline-block;float: left"><span>下载失败</span></div>
-          </el-tag>
           <el-button style="display: inline-block;float: left;margin-left: 5px;"
-            v-if="(row.is_ok === true) || (row.is_ok === false && row.status.task_id === '')"
-            size="mini"
-            type="danger"
+                     v-else-if="row.is_ok === false && row.status.task_id === ''"
+                     size="mini"
+                     type="primary"
+                     icon="el-icon-download"
+                     @click="downloadImg(row)">下载</el-button>
+          <el-button style="display: inline-block;float: left;margin-left: 5px;"
+                     v-if="(row.is_ok === true) || (row.is_ok === false && row.status.task_id === '')" size="mini"
+                     icon="el-icon-edit"
+                     type="primary"
+                     @click="openEdit(row)">修改</el-button>
+          <el-button style="display: inline-block;float: left;margin-left: 5px;"
+            v-if="(row.is_ok === true) || (row.is_ok === false && row.status.task_id === '')" size="mini" type="danger"
             icon="el-icon-delete"
             @click="handleDelete(row)">删除</el-button>
           <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
@@ -162,20 +187,11 @@
                            :width="20"></el-progress>
             </div>
           </el-tag>
-          <el-button style="display: inline-block;float: left;margin-left: 5px;"
-                     v-if="(row.is_ok === true && row.is_share === false && row.status.progress_status !== 'share')"
-                     size="mini"
-                     type="primary"
-                     icon="el-icon-share"
-                     @click="openEdit(row)">修改</el-button>
         </template>
       </el-table-column>
     </el-table>
     <div style="margin-top: 20px">
-      <el-pagination
-        :page-size="page.size"
-        @current-change="handleQuery"
-        layout="total, prev, pager, next, jumper"
+      <el-pagination :page-size="page.size" @current-change="handleQuery" layout="total, prev, pager, next, jumper"
         :total="page.total">
       </el-pagination>
     </div>
@@ -185,7 +201,8 @@
 <script>
   import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
-  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageUpdate } from "@/api/image"
+  import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageDownload,ImageEdit } from "@/api/image"
+  import { containerDel } from '@/api/container'
   import { getTask,batchTask,progressTask } from '@/api/tasks'
 
   export default {
@@ -196,19 +213,21 @@
         search: "",
         localSearch: "",
         centerDialogVisible: false,
-        editDialogVisible: false,
-        editRow: {
-          rank: "",
-          image_name: "",
-          image_vul_name: "",
-          image_desc: "",
-      },
         startCon: false,
         vulInfo: {
           rank: "",
           name: "",
           vul_name: "",
           desc: "",
+        },
+        editShow: false,
+        editLoding: false,
+        editVulInfo:{
+          rank: "",
+          image_name: "",
+          image_id: "",
+          image_vul_name: "",
+          image_desc: "",
         },
         imgType: "text",
         imgTypeText: "切换为文件",
@@ -222,6 +241,8 @@
         selectLocalImages: [],
         progressShow: false,
         progressLoading: false,
+        deleteShow: false,
+        deleteContainerList: [],
         progress:{
           "title":"",
           "layer":[],
@@ -344,6 +365,31 @@
           },1.5)
         },2000)
       },
+      openEdit(row){
+        this.editShow = true
+        this.editVulInfo = row
+      },
+      handleEditImage(){
+        this.editLoding = true
+        ImageEdit(this.editVulInfo.image_id,this.editVulInfo).then(response => {
+          this.editLoding = false
+          let rsp = response.data
+          let msg = rsp.msg
+          if(rsp.status === 200){
+            this.$message({
+              message: '修改成功!',
+              type: 'success'
+            });
+            this.editShow = false
+            this.initTableData()
+          }else{
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+          }
+        })
+      },
       closeProgress(){
         this.progressShow = false
         this.progressLoading = false
@@ -409,6 +455,43 @@
           }
         })
       },
+      downloadImg(row){
+        let imageId = row.image_id
+        ImageDownload(imageId).then(response => {
+          let rsp = response.data
+          let msg = rsp["msg"]
+          if(rsp.status === 200){
+            if(msg != null && (msg.indexOf("成功") > -1 || msg.indexOf("失败") > -1 )){
+              let tmpMsg = msg.replace("拉取镜像", "").replace("任务下发成功", "").replace(" ", "")
+              this.tmpImageNameList.push(tmpMsg)
+              if(msg.indexOf("成功") > -1 ){
+                this.$notify({
+                  title: '成功',
+                  message: msg,
+                  type: 'success'
+                });
+                this.initTableData()
+              }else{
+                this.$notify({
+                  message: msg,
+                  type: 'error'
+                });
+              }
+            }else{
+              this.$notify({
+                message: msg,
+                type: 'error'
+              });
+            }
+          }else{
+            this.$notify({
+              message: msg,
+              type: 'error'
+            });
+            this.centerDialogVisible = false
+          }
+        })
+      },
       shareImg(row){
         row.status.status = 'share'
         ImageShare(row.image_id).then(response => {
@@ -434,14 +517,16 @@
           ImageDelete(row.image_id).then(response => {
             let data = response.data
             if(data.status === 200){
-              this.$notify({
+              this.$message({
                 title: '成功',
                 message: '删除成功!',
                 type: 'success'
               });
               this.initTableData()
             }else{
-              this.$notify({
+              this.deleteShow = true
+              this.deleteContainerList = data.data
+              this.$message({
                 title: '失败',
                 message: data.msg,
                 type: 'error'
@@ -559,42 +644,8 @@
         if(name === "local"){
           this.loadLocalImages()
         }else{
+
         }
-      },
-      openEdit(row){
-        this.editRow = null
-        this.editDialogVisible = true
-        this.editRow = row
-        console.log(this.editRow)
-      },
-      handleUpdate(){
-        let data = {
-          image_id: this.editRow.image_id,
-          image_name: this.editRow.image_name,
-          image_vul_name: this.editRow.image_vul_name,
-          image_desc: this.editRow.image_desc,
-          rank: this.editRow.rank
-        }
-        ImageUpdate(data.image_id, data).then(response => {
-          if(response.data.status === 200){
-            this.$message({
-              message: "修改成功",
-              type: "success",
-            })
-          }else if(response.data.status === 201){
-            this.$message({
-              message: response.data.msg,
-              type: "info",
-            })
-          }else{
-            this.$message({
-              message: response.data.msg,
-              type: "error"
-            })
-          }
-          this.editDialogVisible = false
-          this.initTableData()
-        })
       },
       handleLocalRemove(name){
         for(let i = 0; i < this.localImageList.length; i++) {
@@ -632,32 +683,64 @@
                 message: msg,
                 type: 'success'
               });
-              // this.$message({message: msg,type: "success",duration: 1.5 * 1000})
             }
             this.centerDialogVisible = false
             this.initTableData()
           }else if(status === 201){
-            // this.$message({
-            //   message: rsp["msg"],
-            //   type: "info",
-            // })
             this.$notify({
               title: '失败',
               message: rsp["msg"],
               type: 'info'
             });
           }else{
-            // this.$message({
-            //   message: rsp["msg"],
-            //   type: "error",
-            //   duration: 3 * 1000
-            // })
             this.$notify({
               title: '失败',
               message: rsp["msg"],
               type: 'error'
             });
           }
+        })
+      },
+      delContainer(row){
+        containerDel(row.container_id).then(response => {
+          let taskId = response.data["data"]
+          let tmpDeleteContainerInterval = window.setInterval(() => {
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(tmpDeleteContainerInterval)
+                  if (responseStatus === 200) {
+                    this.$message({
+                      type: 'success',
+                      message: '删除成功'
+                    });
+                    ImageDelete(row.image_id).then(response => {
+                      let data = response.data
+                      if(data.status !== 200){
+                        this.deleteContainerList = data.data
+                      }else{
+                        this.$message({
+                          type: 'success',
+                          message: '删除成功'
+                        });
+                        this.deleteShow = false
+                        this.initTableData()
+                      }
+                    })
+                  }else{
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "error",
+                    })
+                  }
+                }
+              })
+            },1)
+          },1000)
         })
       }
     }

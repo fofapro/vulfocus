@@ -58,10 +58,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             status["container_id"] = data.container_id
         # 查询正在拉取镜像的任务
         operation_args = {
-            "image_name": obj.image_name,
-            "image_vul_name": obj.image_vul_name,
-            "rank": obj.rank,
-            "image_desc": obj.image_desc,
+            "image_name": obj.image_name
         }
         task_info = TaskInfo.objects.filter(task_status=1, operation_type=1, operation_args=json.dumps(operation_args))\
             .order_by("-create_date").first()
@@ -104,6 +101,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
 class ContainerVulSerializer(serializers.ModelSerializer):
     rank = serializers.SerializerMethodField('ranktocon')
     name = serializers.SerializerMethodField('conname')
+    image_id = serializers.SerializerMethodField("get_image_id")
     user_name = serializers.SerializerMethodField('get_user_name')
     vul_name = serializers.SerializerMethodField('get_vul_name')
     vul_desc = serializers.SerializerMethodField('get_vul_desc')
@@ -112,7 +110,7 @@ class ContainerVulSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContainerVul
         fields = ['name', 'container_id', 'container_status', 'vul_host', 'create_date', 'is_check', 'is_check_date',
-                  'rank', 'user_name', 'vul_name', 'vul_desc']
+                  'rank', 'user_name', 'vul_name', 'vul_desc', "image_id"]
 
     def get_vul_name(self,obj):
         return obj.image_id.image_vul_name
@@ -139,6 +137,9 @@ class ContainerVulSerializer(serializers.ModelSerializer):
         user_id = obj.user_id
         user_info = UserProfile.objects.get(id=user_id)
         return user_info.username
+
+    def get_image_id(self, obj):
+        return str(obj.image_id.image_id)
 
 
 class SysLogSerializer(serializers.ModelSerializer):
