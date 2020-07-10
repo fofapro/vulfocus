@@ -85,3 +85,7 @@
 [Spring WebFlow 远程代码执行漏洞（CVE-2017-4971）](./Spring_WebFlow远程代码执行漏洞_xiajibaxie/CVE-2017-4971.md) by [xiajibaxie](https://github.com/xiajibaxie)
 
 [Spring Cloud Config 目录穿越漏洞（CVE-2020-5410）](./Spring_Cloud_Config目录穿越漏洞_xiajibaxie/CVE-2020-5410.md) by [xiajibaxie](https://github.com/xiajibaxie)
+
+[Webmin_远程命令执行漏洞_CVE-2019-15107](./Webmin_远程命令执行漏洞_CVE-2019-15107/CVE-2019-15107.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+
+[Spring_Web_Flow_远程代码执行_CVE-2017-4971](./Spring_Web_Flow_远程代码执行_CVE-2017-4971/CVE-2017-4971.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
