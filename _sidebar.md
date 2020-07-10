@@ -43,6 +43,8 @@
    * [WebLogic任意文件上传漏洞（CVE-2018-2894）](writeup/CVE-2018-2894/CVE-2018-2894.md)
    * [Weblogic wls-wsat XMLDecoder 反序列化漏洞（CVE-2017-10271）](writeup/CVE-2017-10271/CVE-2017-10271.md)
    * [JBOSS 命令执行（CVE-2017-12149) ](writeup/CVE-2017-12149/CVE-2017-12149.md)
+   * [Spring WebFlow 远程代码执行漏洞（CVE-2017-4971）](writeup/Spring_Web_Flow远程代码执行漏洞_xiajibaxie/CVE-2017-4971.md)
+   * [Spring Cloud Config 目录穿越漏洞（CVE-2020-5410）](writeup/Spring_Cloud_Config目录穿越漏洞_xiajibaxie/CVE-2020-5410.md) 
 
 * 镜像
 
