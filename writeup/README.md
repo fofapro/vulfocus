@@ -92,3 +92,5 @@
 
 [Fastjson_1.2.24反序列化导致任意命令执行漏洞](./Fastjson_1.2.24反序列化导致任意命令执行漏洞_fengyehack/Fastjson_1.2.24反序列化导致任意命令执行漏洞.md) by [fengyehack](https://github.com/fengyehack)
 
+[Fastjson_1.2.47反序列化导致任意命令执行漏洞](./Fastjson_1.2.47反序列化导致任意命令执行漏洞_fengyehack/Fastjson_1.2.47反序列化导致任意命令执行漏洞.md) by [fengyehack](https://github.com/fengyehack)
+
