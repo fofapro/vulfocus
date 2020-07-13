@@ -1,10 +1,10 @@
-# Fastjson-1.2.24反序列化导致任意命令执行漏洞 by [fengyehack](https://github.com/fengyehack) 
+# Fastjson_1.2.24反序列化导致任意命令执行漏洞 by [fengyehack](https://github.com/fengyehack) 
 
 ## 漏洞描述
 
-FastJson库是Java的一个Json库，其作用是将Java对象转换成json数据来表示，也可以将json数据转换成Java对象，使用非常方便，号称是执行速度最快的库。
+FastJson 库是 Java 的一个 Json 库，其作用是将 Java 对象转换成 json 数据来表示，也可以将 json 数据转换成 Java 对象，使用非常方便，号称是执行速度最快的库。
 
-在1.2.24版本的Fastjson出现了一个反序列化的漏洞，fastjson在解析json的过程中，支持使用autoType来实例化某一个具体的类，并调用该类的set/get方法来访问属性。通过查找代码中相关的方法，即可构造出一些恶意利用链。
+在 1.2.24 版本的 Fastjson 出现了一个反序列化的漏洞，fastjson 在解析 json 的过程中，支持使用 autoType 来实例化某一个具体的类，并调用该类的 set/get 方法来访问属性。通过查找代码中相关的方法，即可构造出一些恶意利用链。
 
 ## 漏洞影响版本
 
@@ -59,7 +59,7 @@ public class TouchFile {
 
 ![](./6.png)
 
-nc监听
+nc 监听
 
 ![](./7.png)
 
