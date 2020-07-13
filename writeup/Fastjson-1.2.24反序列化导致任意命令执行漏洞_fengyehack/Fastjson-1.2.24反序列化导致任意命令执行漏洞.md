@@ -1,24 +1,24 @@
 # Fastjson-1.2.24反序列化导致任意命令执行漏洞 by [fengyehack](https://github.com/fengyehack) 
 
-## 一、漏洞描述
+## 漏洞描述
 
 FastJson库是Java的一个Json库，其作用是将Java对象转换成json数据来表示，也可以将json数据转换成Java对象，使用非常方便，号称是执行速度最快的库。
 
 在1.2.24版本的Fastjson出现了一个反序列化的漏洞，fastjson在解析json的过程中，支持使用autoType来实例化某一个具体的类，并调用该类的set/get方法来访问属性。通过查找代码中相关的方法，即可构造出一些恶意利用链。
 
-## 二、漏洞影响版本
+## 漏洞影响版本
 
 fastjson <= 1.2.24
 
-## 三、漏洞复现
+## 漏洞复现
 
-启动Vulfocus靶场的fastjson1.2.24-rce
+启动 Vulfocus 靶场的 fastjson1.2.24-rce
 
 ![](./1.png)
 
 
 
-修改java恶意类代码
+修改 java 恶意类代码保存为 TouchFile.java
 
 ```java
 import java.lang.Runtime;
@@ -55,7 +55,7 @@ public class TouchFile {
 
 ![](./5.png)
 
-使用marshalsec开启ldap服务
+使用 marshalsec 开启 ldap 服务
 
 ![](./6.png)
 
@@ -63,7 +63,7 @@ nc监听
 
 ![](./7.png)
 
-访问fastjson页面，使用Burp抓包，改为POST请求，使用exp反弹shell
+访问 FastJson 页面，使用 Burp 抓包，改为 POST 请求，使用 exp 反弹 shell
 
 ![](./8.png)
 
@@ -73,7 +73,7 @@ nc监听
 
 ![](./10.png)
 
-成功拿到shell
+成功拿到 shell
 
 ![](./11.png)
 
