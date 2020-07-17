@@ -45,6 +45,10 @@
    * [JBOSS 命令执行（CVE-2017-12149) ](writeup/CVE-2017-12149/CVE-2017-12149.md)
    * [Spring WebFlow 远程代码执行漏洞（CVE-2017-4971）](writeup/Spring_WebFlow远程代码执行漏洞_xiajibaxie/CVE-2017-4971.md)
    * [Spring Cloud Config 目录穿越漏洞（CVE-2020-5410）](writeup/Spring_Cloud_Config目录穿越漏洞_xiajibaxie/CVE-2020-5410.md) 
+   * [Spring Web Flow 远程代码执行（CVE-2017-4971）](writeup/Spring_Web_Flow_远程代码执行_CVE-2017-4971/CVE-2017-4971.md) 
+   * [Webmin 远程命令执行漏洞（CVE-2019-151070）](writeup/Webmin_远程命令执行漏洞_CVE-2019-15107/CVE-2019-15107.md) 
+   * [Fastjson 1.2.24 反序列化导致任意命令执行漏洞](writeup/Fastjson_1.2.24反序列化导致任意命令执行漏洞_fengyehack/Fastjson_1.2.24反序列化导致任意命令执行漏洞.md) 
+   * [Fastjson 1.2.47 反序列化导致任意命令执行漏洞](writeup/Fastjson_1.2.47反序列化导致任意命令执行漏洞_fengyehack/Fastjson_1.2.47反序列化导致任意命令执行漏洞.md) 
 
 * 镜像
 
