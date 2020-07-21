@@ -97,3 +97,7 @@
 [struts2-052（CVE-2017-9805）by ](./struts2-052_xiajibaxie/CVE-2017-9805.md)[xiajibaxie](https://github.com/xiajibaxie)
 
 [struts2-045（CVE-2017-5638）by ](./struts2-045_xiajibaxie/struts2-045.md)[xiajibaxie](https://github.com/xiajibaxie)
+
+[struts2-055（CVE-2017-7525）by ](./struts2-055_xiajibaxie/CVE-2017-7525.md)[xiajibaxie](https://github.com/xiajibaxie)
+
+[struts2-053（CVE-2017-12611）by ](./struts2-053_xiajibaxie/CVE-2017-12611.md)[xiajibaxie](https://github.com/xiajibaxie)

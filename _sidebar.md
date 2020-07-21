@@ -51,6 +51,8 @@
    * [Fastjson 1.2.47 反序列化导致任意命令执行漏洞](writeup/Fastjson_1.2.47反序列化导致任意命令执行漏洞_fengyehack/Fastjson_1.2.47反序列化导致任意命令执行漏洞.md) 
    * [struts2-052（CVE-2017-9805）](writeup/struts2-052_xiajibaxie/CVE-2017-9805.md)
    * [struts2-045（CVE-2017-5638）](writeup/struts2-045_xiajibaxie/struts2-045.md)
+   * [struts2-055（CVE-2017-7525）](writeup/struts2-055_xiajibaxie/CVE-2017-7525.md)
+   * [struts2-053（CVE-2017-12611）](writeup/struts2-053_xiajibaxie/CVE-2017-12611.md)
 
 * 镜像
 
