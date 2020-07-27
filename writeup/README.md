@@ -66,9 +66,9 @@
 
 [CVE-2018-1000861（Jekins 远程命令执行）](./CVE-2018-1000861/CVE-2018-1000861.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
 
-[PHP-CGI远程代码执行](./PHP-CGI远程代码执行/PHP-CGI远程代码执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[PHP-CGI远程代码执行](./PHP-CGI远程代码执行/PHP-CGI远程代码执行.md)  by [Frivolous-scholar](https://github.com/Frivolous-scholar)
 
-[GlassFish任意文件读取漏洞](./GlassFish任意文件读取漏洞/GlassFish任意文件读取漏洞.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
+[GlassFish任意文件读取漏洞](./GlassFish任意文件读取漏洞/GlassFish任意文件读取漏洞.md)  by [Frivolous-scholar](https://github.com/Frivolous-scholar)
 
 [JBoss 命令执行漏洞（CVE-2017-7504）](./CVE-2017-7504/CVE-2017-7504.md)  by [Vdeem](https://github.com/Vdeem)
 
@@ -101,3 +101,7 @@
 [struts2-055（CVE-2017-7525）by ](./struts2-055_xiajibaxie/CVE-2017-7525.md)[xiajibaxie](https://github.com/xiajibaxie)
 
 [struts2-053（CVE-2017-12611）by ](./struts2-053_xiajibaxie/CVE-2017-12611.md)[xiajibaxie](https://github.com/xiajibaxie)
+
+[海洋cms_V6.45版本代码执行](./海洋cms_V6.45版本代码执行_Frivolous-scholar/海洋cms_V6.45版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+
+[海洋cms_V6.53版本代码执行](./海洋cms_V6.53版本代码执行_Frivolous-scholar/海洋cms_V6.53版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
