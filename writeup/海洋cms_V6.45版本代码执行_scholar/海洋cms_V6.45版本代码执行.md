@@ -1,4 +1,4 @@
-# 海洋 cms V6.45版本代码执行 by [scholar](https://github.com/Frivolous-scholar) 
+# 海洋 cms V6.45版本代码执行 by [Frivolous-scholar](https://github.com/Frivolous-scholar) 
 
 ## 概述
 
