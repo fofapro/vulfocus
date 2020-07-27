@@ -101,3 +101,7 @@
 [struts2-055（CVE-2017-7525）by ](./struts2-055_xiajibaxie/CVE-2017-7525.md)[xiajibaxie](https://github.com/xiajibaxie)
 
 [struts2-053（CVE-2017-12611）by ](./struts2-053_xiajibaxie/CVE-2017-12611.md)[xiajibaxie](https://github.com/xiajibaxie)
+
+[海洋cms_V6.53版本代码执行](./海洋cms_V6.53版本代码执行/海洋cms_V6.53版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+
+[海洋cms_V6.45版本代码执行](./海洋cms_V6.45版本代码执行/海洋cms_V6.45版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
