@@ -53,6 +53,8 @@
    * [struts2-045（CVE-2017-5638）](writeup/struts2-045_xiajibaxie/struts2-045.md)
    * [struts2-055（CVE-2017-7525）](writeup/struts2-055_xiajibaxie/CVE-2017-7525.md)
    * [struts2-053（CVE-2017-12611）](writeup/struts2-053_xiajibaxie/CVE-2017-12611.md)
+   * [海洋cms_V6.53版本代码执行](writeup/海洋cms_V6.53版本代码执行_Frivolous-scholar/海洋cms_V6.53版本代码执行.md)
+   * [海洋cms_V6.45版本代码执行](writeup/海洋cms_V6.45版本代码执行_Frivolous-scholar/海洋cms_V6.45版本代码执行.md)
 
 * 镜像
 
