@@ -18,7 +18,7 @@
 
 [tomcat-pass-getshell](./tomcat-pass-getshell/tomcat-pass-getshell.md) by [anonymity3712](https://github.com/anonymity3712)
 
-[Tomcat 弱口令 Getshell](./Tomcat弱口令/Tomcat弱口令.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[Tomcat 弱口令 Getshell](./Tomcat弱口令/Tomcat弱口令.md) by [scholar](https://github.com/Frivolous-scholar)
 
 [st2-048远程命令执行（CVE-2017-9791）](./CVE-2017-9791/CVE-2017-9791.md) by [anonymity3712](https://github.com/anonymity3712)
 
@@ -34,21 +34,21 @@
 
 [jboss-JMXInvokerServlet反序列化](./jboss-JMXInvokerServlet反序列化/jboss-JMXInvokerServlet反序列化.md) by [xiajibaxie](https://github.com/xiajibaxie)
 
-[Struts2-016远程代码执行漏洞（CVE-2013-2251）](./CVE-2013-2251/struts2-016远程命令执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[Struts2-016远程代码执行漏洞（CVE-2013-2251）](./CVE-2013-2251/struts2-016远程命令执行.md) by [scholar](https://github.com/Frivolous-scholar)
 
-[ThinkPHP_2.X任意代码执行](./ThinkPHP_2.X任意代码执行/ThinkPHP2.X任意代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[ThinkPHP_2.X任意代码执行](./ThinkPHP_2.X任意代码执行/ThinkPHP2.X任意代码执行.md) by [scholar](https://github.com/Frivolous-scholar)
 
-[Thinkphp5.0.23远程代码执行](./Thinkphp5.0.23远程代码执行/Thinkphp5.0.23远程代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[Thinkphp5.0.23远程代码执行](./Thinkphp5.0.23远程代码执行/Thinkphp5.0.23远程代码执行.md) by [scholar](https://github.com/Frivolous-scholar)
 
 [seacms-v6.53 命令执行漏洞](./seacms-v6.53%20命令执行漏洞/seacms-v6.53%20命令执行漏洞.md) by [Aa1141415869](https://github.com/Aa1141415869)
 
 [seacms-v6.45 任意代码执行漏洞.md](./seacms-v6.45%20任意代码执行漏洞/seacms-v6.45%20任意代码执行漏洞.md)  by [Aa1141415869](https://github.com/Aa1141415869)
 
-[Struts2-008命令执行（CVE-2012-0392）](./CVE-2012-0392/Struts2-008(CVE-2012-0392).md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[Struts2-008命令执行（CVE-2012-0392）](./CVE-2012-0392/Struts2-008(CVE-2012-0392).md) by [scholar](https://github.com/Frivolous-scholar)
 
-[Struts2-devMode命令执行（CVE-2016-4438）](./Struts2-devMode/Struts2-devMode.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[Struts2-devMode命令执行（CVE-2016-4438）](./Struts2-devMode/Struts2-devMode.md) by [scholar](https://github.com/Frivolous-scholar)
 
-[Supervisord 远程命令执行漏洞（CVE-2017-11610）](./CVE-2017-11610/CVE-2017-11610.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[Supervisord 远程命令执行漏洞（CVE-2017-11610）](./CVE-2017-11610/CVE-2017-11610.md) by [scholar](https://github.com/Frivolous-scholar)
 
 [PHP文件包含之利用phpinfo](./PHP文件包含之利用phpinfo/PHP文件包含漏洞之利用phpinfo.md) by [fengyehack](https://github.com/fengyehack)
 
@@ -64,7 +64,7 @@
 
 [Spring Data REST PATCH 请求代码执行漏洞（CVE-2017-8046）](./CVE-2017-8046/CVE-2017-8046.md) by [fengyehack](https://github.com/fengyehack)
 
-[CVE-2018-1000861（Jekins 远程命令执行）](./CVE-2018-1000861/CVE-2018-1000861.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[CVE-2018-1000861（Jekins 远程命令执行）](./CVE-2018-1000861/CVE-2018-1000861.md) by [scholar](https://github.com/Frivolous-scholar)
 
 [PHP-CGI远程代码执行](./PHP-CGI远程代码执行/PHP-CGI远程代码执行.md)  by [anonymity3712](https://github.com/Frivolous-scholar)
 
@@ -86,9 +86,9 @@
 
 [Spring Cloud Config 目录穿越漏洞（CVE-2020-5410）](./Spring_Cloud_Config目录穿越漏洞_xiajibaxie/CVE-2020-5410.md) by [xiajibaxie](https://github.com/xiajibaxie)
 
-[Webmin 远程命令执行漏洞（CVE-2019-151070）](./Webmin_远程命令执行漏洞_CVE-2019-15107/CVE-2019-15107.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[Webmin 远程命令执行漏洞（CVE-2019-151070）](./Webmin_远程命令执行漏洞_CVE-2019-15107/CVE-2019-15107.md) by [scholar](https://github.com/Frivolous-scholar)
 
-[Spring Web Flow 远程代码执行（CVE-2017-4971）](./Spring_Web_Flow_远程代码执行_CVE-2017-4971/CVE-2017-4971.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[Spring Web Flow 远程代码执行（CVE-2017-4971）](./Spring_Web_Flow_远程代码执行_CVE-2017-4971/CVE-2017-4971.md) by [scholar](https://github.com/Frivolous-scholar)
 
 [Fastjson 1.2.24 反序列化导致任意命令执行漏洞](./Fastjson_1.2.24反序列化导致任意命令执行漏洞_fengyehack/Fastjson_1.2.24反序列化导致任意命令执行漏洞.md) by [fengyehack](https://github.com/fengyehack)
 
@@ -102,6 +102,6 @@
 
 [struts2-053（CVE-2017-12611）by ](./struts2-053_xiajibaxie/CVE-2017-12611.md)[xiajibaxie](https://github.com/xiajibaxie)
 
-[海洋cms_V6.53版本代码执行](./海洋cms_V6.53版本代码执行/海洋cms_V6.53版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[海洋cms_V6.53版本代码执行](./海洋cms_V6.53版本代码执行/海洋cms_V6.53版本代码执行.md) by [scholar](https://github.com/Frivolous-scholar)
 
-[海洋cms_V6.45版本代码执行](./海洋cms_V6.45版本代码执行/海洋cms_V6.45版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+[海洋cms_V6.45版本代码执行](./海洋cms_V6.45版本代码执行/海洋cms_V6.45版本代码执行.md) by [scholar](https://github.com/Frivolous-scholar)
