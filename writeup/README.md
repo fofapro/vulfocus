@@ -105,3 +105,7 @@
 [海洋cms_V6.45版本代码执行](./海洋cms_V6.45版本代码执行_Frivolous-scholar/海洋cms_V6.45版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
 
 [海洋cms_V6.53版本代码执行](./海洋cms_V6.53版本代码执行_Frivolous-scholar/海洋cms_V6.53版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+
+[weblogic命令执行 CVE-2020-2551 by ](./weblogic命令执行_CVE-2020-2551_xiajibaxie/CVE-2020-2551.md)[xiajibaxie](https://github.com/xiajibaxie)
+
+[Jupyter_Notebook_未授权访问漏洞 by ](./Jupyter_Notebook_未授权访问漏洞_xiajibax/JupyterNotebook未授权访问漏洞.md)[xiajibaxie](https://github.com/xiajibaxie)
