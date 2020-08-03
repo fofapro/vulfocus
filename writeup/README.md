@@ -105,3 +105,5 @@
 [海洋cms_V6.45版本代码执行](./海洋cms_V6.45版本代码执行_Frivolous-scholar/海洋cms_V6.45版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
 
 [海洋cms_V6.53版本代码执行](./海洋cms_V6.53版本代码执行_Frivolous-scholar/海洋cms_V6.53版本代码执行.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
+
+[Spring_Cloud_Config_Server_目录遍历漏洞](./Spring_Cloud_Config_Server_目录遍历漏洞_Frivolous-scholar/Spring_Cloud_Config_Server_目录遍历漏洞.md) by [Frivolous-scholar](https://github.com/Frivolous-scholar)
