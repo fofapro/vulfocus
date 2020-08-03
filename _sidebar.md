@@ -55,6 +55,7 @@
    * [struts2-053（CVE-2017-12611）](writeup/struts2-053_xiajibaxie/CVE-2017-12611.md)
    * [海洋cms_V6.53版本代码执行](writeup/海洋cms_V6.53版本代码执行_Frivolous-scholar/海洋cms_V6.53版本代码执行.md)
    * [海洋cms_V6.45版本代码执行](writeup/海洋cms_V6.45版本代码执行_Frivolous-scholar/海洋cms_V6.45版本代码执行.md)
+   * [Spring_Cloud_Config_Server_目录遍历漏洞_Frivolous-scholar](writeup/Spring_Cloud_Config_Server_目录遍历漏洞_Frivolous-scholar/Spring_Cloud_Config_Server_目录遍历漏洞.md)
 
 * 镜像
 
