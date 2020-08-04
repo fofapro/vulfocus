@@ -56,6 +56,9 @@
    * [海洋cms_V6.53版本代码执行](writeup/海洋cms_V6.53版本代码执行_Frivolous-scholar/海洋cms_V6.53版本代码执行.md)
    * [海洋cms_V6.45版本代码执行](writeup/海洋cms_V6.45版本代码执行_Frivolous-scholar/海洋cms_V6.45版本代码执行.md)
    * [Spring_Cloud_Config_Server_目录遍历漏洞_Frivolous-scholar](writeup/Spring_Cloud_Config_Server_目录遍历漏洞_Frivolous-scholar/Spring_Cloud_Config_Server_目录遍历漏洞.md)
+   * [weblogic命令执行 CVE-2020-2551](writeup/weblogic命令执行_CVE-2020-2551_xiajibaxie/CVE-2020-2551.md)
+   * [Jupyter_Notebook_未授权访问漏洞](writeup/Jupyter_Notebook_未授权访问漏洞_xiajibax/JupyterNotebook未授权访问漏洞.md)
+
 
 * 镜像
 
