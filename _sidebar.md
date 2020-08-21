@@ -58,7 +58,7 @@
    * [Spring_Cloud_Config_Server_目录遍历漏洞_Frivolous-scholar](writeup/Spring_Cloud_Config_Server_目录遍历漏洞_Frivolous-scholar/Spring_Cloud_Config_Server_目录遍历漏洞.md)
    * [weblogic命令执行 CVE-2020-2551](writeup/weblogic命令执行_CVE-2020-2551_xiajibaxie/CVE-2020-2551.md)
    * [Jupyter_Notebook_未授权访问漏洞](writeup/Jupyter_Notebook_未授权访问漏洞_xiajibax/JupyterNotebook未授权访问漏洞.md)
-   * [PHPHCMS 远程代码执行（CVE-2020-2222）](writeup/PHPCMS_远程代码执行_CVE-2020-2222_xxx/README.md)
+
 
 * 镜像
 
