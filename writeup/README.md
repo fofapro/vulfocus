@@ -112,3 +112,4 @@
 
 [Jupyter_Notebook_未授权访问漏洞 by ](./Jupyter_Notebook_未授权访问漏洞_xiajibax/JupyterNotebook未授权访问漏洞.md)[xiajibaxie](https://github.com/xiajibaxie)
 
+[PHPHCMS 远程代码执行（CVE-2020-2222）](./PHPCMS_远程代码执行_CVE-2020-2222_xxx/README.md)  by  [0nise](https://github.com/0nise)
