@@ -1,5 +1,5 @@
 
-#  thinkphp_5.0.21 命令执行 by [hu4wufu](https://github.com/hu4wufu)
+#  thinkphp_5.0.21命令执行 by [hu4wufu](https://github.com/hu4wufu)
 
 ## 漏洞描述
 

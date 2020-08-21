@@ -1,4 +1,4 @@
-# ThinkPHP5 远程代码执行漏洞（CNVD-2018-24942）by [hu4wufu](https://github.com/hu4wufu)
+# ThinkPHP5远程代码执行漏洞（CNVD-2018-24942）by [hu4wufu](https://github.com/hu4wufu)
 
 ## 概述
 
