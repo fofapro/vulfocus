@@ -112,3 +112,18 @@
 
 [Jupyter_Notebook_未授权访问漏洞 by ](./Jupyter_Notebook_未授权访问漏洞_xiajibax/JupyterNotebook未授权访问漏洞.md)[xiajibaxie](https://github.com/xiajibaxie)
 
+<<<<<<< HEAD
+=======
+[webmin远程命令执行漏洞（CVE-2019-15107）](./webmin远程命令执行漏洞_CVE-2019-15107_hu4wufu/README.md) by [hu4wufu](https://github.com/hu4wufu)
+
+[thinkphp_5.0.21命令执行](./thinkphp_5.0.21命令执行_hu4wufu/thinkphp_5.0.21命令执行.md) by [hu4wufu](https://github.com/hu4wufu)
+
+[ThinkPHP5远程代码执行漏洞（CNVD-2018-24942）](./ThinkPHP5远程代码执行漏洞_CNVD-2018-24942_hu4wufu/README.md) by [hu4wufu](https://github.com/hu4wufu)
+
+[struts2-045（CVE-2017-5638）](./struts2-045_CVE-2017-5638_hu4wufu/README.md) by [hu4wufu](https://github.com/hu4wufu)
+
+[struts2-052（CVE-2017-9805）](./struts2-052_CVE-2017-9805_hu4wufu/README.md) by [hu4wufu](https://github.com/hu4wufu)
+
+
+
+>>>>>>> dea51cfa168a298eb8bf91572b93d783bb22c95f
