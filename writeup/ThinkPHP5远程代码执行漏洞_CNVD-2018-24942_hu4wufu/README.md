@@ -23,7 +23,4 @@ ThinkPHP5 存在远程代码执行漏洞。该漏洞由于框架对控制器名�
 
 ![2](./2.png)
 
-## 参考链接
-
-https://github.com/fofapro/vulfocus/blob/master/writeup/CNVD-2018-24942/CNVD-2018-24942.md
 
