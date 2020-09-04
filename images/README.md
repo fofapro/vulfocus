@@ -4,7 +4,15 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
-|CVE-2020-3396|`docker pull vulfocus/confluence-cve_2020_3396`|CVE-2020-3396|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|Struts2-059 命令执行 CVE-2019-0230|`docker pull vulfocus/struts059-cve_2019_0230`|CVE-2019-0230|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-10199|`docker pull vulfocus/nexus-cve_2020_10199`|CVE-2020-10199|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-7494|`docker pull vulfocus/samba-cve_2017_7494`|CVE-2017-7494|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-4971|`docker pull vulfocus/spring-cve_2017_4971`|CVE-2017-4971|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-1273|`docker pull vulfocus/spring-cve_2018_1273`|CVE-2018-1273|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2015-8103|`docker pull vulfocus/jenkins-cve_2015_8103`|CVE-2015-8103|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-10204|`docker pull vulfocus/nexus-cve_2020_10204`|CVE-2020-10204|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|thinkphp-2x-rce|`docker pull vulfocus/thinkphp-2x-rce`|thinkphp-2x-rce|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-3396|`docker pull vulfocus/confluence-cve_2019_3396`|CVE-2019-3396|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-11996|`docker pull vulfocus/tomcat-cve_2020_11996`|CVE-2020-11996|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-1948|`docker pull vulfocus/dubbo-cve_2020_1948`|CVE-2020-1948|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-9480|`docker pull vulfocus/apache_spark-cve_2020_9480`|CVE-2020-9480|[Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -90,9 +98,20 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 ## 镜像新增日志
 
+2020-09-04
+
+- vulfocus/struts059-cve_2019_0230
+- vulfocus/nexus-cve_2020_10199
+- vulfocus/samba-cve_2017_7494
+- vulfocus/spring-cve_2017_4971
+- vulfocus/spring-cve_2018_1273
+- vulfocus/jenkins-cve_2015_8103
+- vulfocus/nexus-cve_2020_10204
+- vulfocus/thinkphp-2x-rce
+
 2020-07-01
 
-- vulfocus/confluence-cve_2020_3396
+- vulfocus/confluence-cve_2019_3396
 - vulfocus/tomcat-cve_2020_11996
 - vulfocus/dubbo-cve_2020_1948
 
