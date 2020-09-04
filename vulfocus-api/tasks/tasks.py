@@ -67,6 +67,8 @@ def create_image_task(image_info, user_info, request_ip, image_file=None):
                     image_name = repo_tags[0]
                     image_port = ",".join(ports)
                     image_info = ImageInfo.objects.filter(image_name=image_name).first()
+                    if not image_info:
+                        image_info = ImageInfo()
                     image_info.image_name = image_name
                     image_info.image_port = image_port
                     # image_vul_name
@@ -81,7 +83,7 @@ def create_image_task(image_info, user_info, request_ip, image_file=None):
                     task_info.task_status = 3
                     task_msg = R.ok(data="%s 添加成功" % (image_name, ))
             except Exception as e:
-                # traceback.print_exc()
+                traceback.print_exc()
                 task_msg = R.err()
                 try:
                     image_info.delete()
@@ -630,7 +632,7 @@ def share_image(task_id):
                 last_info = line
             print("last_info")
             print("==========================")
-            print(json.dumps(last_info,ensure_ascii=False))
+            print(json.dumps(last_info, ensure_ascii=False))
             if "error" in last_info and last_info["error"]:
                 task_info.task_msg = R.build(msg="原%s构建新镜像%s失败，错误信息：%s" % (image_name, new_image_name, str(last_info["error"]),))
                 task_info.task_status = 4
