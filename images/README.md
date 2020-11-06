@@ -4,8 +4,8 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
-|Struts2-059 命令执行 CVE-2019-0230|`docker pull vulfocus/struts059-cve_2019_0230`|CVE-2019-0230|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |XXL-JOB 命令执行|`docker pull vulfocus/xxl-job-api-rce`|XXL-JOB 命令执行|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|Struts2-059 命令执行 CVE-2019-0230|`docker pull vulfocus/struts059-cve_2019_0230`|CVE-2019-0230|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-10199|`docker pull vulfocus/nexus-cve_2020_10199`|CVE-2020-10199|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2017-7494|`docker pull vulfocus/samba-cve_2017_7494`|CVE-2017-7494|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2017-4971|`docker pull vulfocus/spring-cve_2017_4971`|CVE-2017-4971|[Vulfocus](https://github.com/fofapro/vulfocus)|
