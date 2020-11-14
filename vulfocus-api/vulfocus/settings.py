@@ -49,8 +49,10 @@ INSTALLED_APPS = [
     'user',
     'corsheaders',
     'dockerapi',
+    'network',
     'tasks',
 ]
+
 # redis host
 REDIS_HOST = "127.0.0.1"
 # redis port

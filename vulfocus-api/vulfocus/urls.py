@@ -20,6 +20,7 @@ from user.views import UserRegView, UserSet
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView
 from tasks.views import TaskSet
+from network.views import NetWorkInfoViewSet
 
 router = routers.DefaultRouter()
 router.register('images', ImageInfoViewSet, base_name='Images')
@@ -28,7 +29,7 @@ router.register('user/register', UserRegView, base_name='register')
 router.register('user', UserSet, base_name='user')
 router.register('syslog', SysLogSet, base_name="SysLog")
 router.register('tasks', TaskSet, base_name="TaskSet")
-# check_docker_status
+router.register("network", NetWorkInfoViewSet, basename="network")
 
 urlpatterns = [
     url(r'^', include(router.urls)),

@@ -89,6 +89,20 @@ export function resetRouter() {
 
 export const asyncRoutes = [
   {
+    // 网卡管理
+    path: '/network',
+    component: Layout,
+    redirect: '/network',
+    meta: {role: ['admin']},
+    children: [{
+      path: 'network',
+      affix: true,
+      name: 'network',
+      component: () => import('@/views/network/index'),
+      meta: { title: '网卡管理', icon: 'table' , role: ['admin']}
+    }]
+  },
+  {
     // 镜像管理
     path: '/image',
     component: Layout,
@@ -102,7 +116,6 @@ export const asyncRoutes = [
       meta: { title: '镜像管理', icon: 'table' , role: ['admin']}
     }]
   },
-
   {
     // 账户管理
     path: '/manager',
@@ -111,11 +124,11 @@ export const asyncRoutes = [
     meta: {role: ['admin'],title: "系统管理", icon: 'table'},
     children: [
       {
-      path: 'user',
-      affix: true,
-      name: 'user',
-      component: () => import("@/views/manager/user"),
-      meta: { title: '用户信息管理', icon: 'user' , role: ['admin']}
+        path: 'user',
+        affix: true,
+        name: 'user',
+        component: () => import("@/views/manager/user"),
+        meta: { title: '用户信息管理', icon: 'user' , role: ['admin']}
       },
       {
         path: 'images',
@@ -137,7 +150,7 @@ export const asyncRoutes = [
         name: 'setting',
         meta: { title: '系统配置', icon: 'setting', noCache: true }
       }
-   ]
+    ]
   },
   { path: '*', redirect: '/404', hidden: true }
 ]
