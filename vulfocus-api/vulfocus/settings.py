@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'dockerapi',
     'network',
     'tasks',
+    'layout_image'
 ]
 
 # redis host
