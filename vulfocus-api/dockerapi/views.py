@@ -36,6 +36,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
     serializer_class = ImageInfoSerializer
 
     def get_queryset(self):
+        # 查询关键字
         query = self.request.GET.get("query", "")
         flag = self.request.GET.get("flag", "")
         user = self.request.user
@@ -47,7 +48,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                                                        | Q(image_desc__contains=query)).order_by('-create_date')
                 else:
                     image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
-                                                       | Q(image_desc__contains=query),is_ok=True).order_by('-create_date')
+                                                       | Q(image_desc__contains=query), is_ok=True).order_by('-create_date')
             else:
                 if flag and flag == "flag":
                     image_info_list = ImageInfo.objects.filter().order_by('-create_date')
@@ -57,9 +58,13 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
             if query:
                 query = query.strip()
                 image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
-                                                       | Q(image_desc__contains=query), is_ok=True).order_by('-create_date')
+                                                       | Q(image_desc__contains=query), is_ok=True).order_by('?')
             else:
-                image_info_list = ImageInfo.objects.filter(is_ok=True).order_by('-create_date')
+                image_info_list = ImageInfo.objects.filter(is_ok=True).order_by('?')
+            for image_info in image_info_list:
+                image_info.image_name = ''
+                image_info.image_desc = ''
+                image_info.image_vul_name = ''
         return image_info_list
 
     def destroy(self, request, *args, **kwargs):
