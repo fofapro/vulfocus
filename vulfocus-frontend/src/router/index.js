@@ -99,7 +99,7 @@ export const asyncRoutes = [
       affix: true,
       name: 'network',
       component: () => import('@/views/network/index'),
-      meta: { title: '网卡管理', icon: 'table' , role: ['admin']}
+      meta: { title: '网卡管理', icon: 'tree' , role: ['admin']}
     }]
   },
   {
@@ -107,13 +107,33 @@ export const asyncRoutes = [
     path: '/image',
     component: Layout,
     redirect: '/image',
-    meta: {role: ['admin']},
+    meta: {role: ['admin'],title: "镜像管理", icon: 'docker'},
     children: [{
       path: 'image',
       affix: true,
       name: 'image',
       component: () => import('@/views/image/index'),
-      meta: { title: '镜像管理', icon: 'table' , role: ['admin']}
+      meta: { title: '镜像管理', icon: 'docker' , role: ['admin']}
+    },{
+        path: 'images',
+        affix: true,
+        name: 'images',
+        component: () => import("@/views/manager/images"),
+        meta: { title: '靶场管理', icon: 'bug' , role: ['admin']}
+      }]
+  },
+  {
+    // 环境编排管理
+    path: '/layout',
+    component: Layout,
+    redirect: '/layout',
+    meta: {role: ['admin']},
+    children: [{
+      path: 'layout',
+      affix: true,
+      name: 'layout',
+      component: () => import('@/views/layout/index'),
+      meta: { title: '环境编排管理', icon: 'barrage_fill' , role: ['admin']}
     }]
   },
   {
@@ -121,28 +141,21 @@ export const asyncRoutes = [
     path: '/manager',
     component: Layout,
     redirect: '/manager',
-    meta: {role: ['admin'],title: "系统管理", icon: 'table'},
+    meta: {role: ['admin'],title: "系统管理", icon: 'setting'},
     children: [
       {
         path: 'user',
         affix: true,
         name: 'user',
         component: () => import("@/views/manager/user"),
-        meta: { title: '用户信息管理', icon: 'user' , role: ['admin']}
-      },
-      {
-        path: 'images',
-        affix: true,
-        name: 'images',
-        component: () => import("@/views/manager/images"),
-        meta: { title: '使用靶场管理', icon: 'table' , role: ['admin']}
+        meta: { title: '用户管理', icon: 'user' , role: ['admin']}
       },
       {
         path: 'log',
         affix: true,
         name: 'log',
         component: () => import("@/views/manager/log"),
-        meta: { title: '操作日志记录', icon: 'log' , role: ['admin']}
+        meta: { title: '日志管理', icon: 'log' , role: ['admin']}
       },
       {
         path: 'setting',

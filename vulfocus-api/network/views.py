@@ -21,8 +21,10 @@ class NetWorkInfoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         request = self.request
         user = request.user
+        query = self.request.GET.get("query", "")
         if user.is_superuser:
-            return NetWorkInfo.objects.all().order_by('-create_date')
+            return NetWorkInfo.objects.filter(Q(net_work_name__contains=query) | Q(net_work_subnet__contains=query) |
+                                       Q(net_work_gateway__contains=query)).order_by('-create_date')
         else:
             return []
 

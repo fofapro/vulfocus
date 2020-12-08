@@ -66,6 +66,14 @@
         </template>
       </el-table-column>
     </el-table>
+    <div style="margin-top: 20px">
+      <el-pagination
+        :page-size="page.size"
+        @current-change="netWorkList"
+        layout="total, prev, pager, next, jumper"
+        :total="page.total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
@@ -79,6 +87,10 @@ export default {
     return {
       tableData: [],
       search: "",
+      page:{
+        total: 0,
+        size: 20,
+      },
       centerDialogVisible: false,
       networkInfo: {
         net_work_name: "",
@@ -91,12 +103,15 @@ export default {
     }
   },
   created(){
-    this.netWorkList()
+    this.netWorkList(1)
   },
   methods:{
-    netWorkList(){
-      NetWorkList().then(response => {
-        this.tableData = response.data
+    netWorkList(page){
+      let search = this.search
+      NetWorkList(search, page).then(response => {
+        let data = response.data.results
+        this.tableData = data
+        this.page.total = response.data.count
       })
     },
     openCreate(){
@@ -147,9 +162,10 @@ export default {
       });
     },
     handleQuery(){
-      NetWorkList(this.search).then(response => {
-        this.tableData = response.data
-      })
+      this.netWorkList(1)
+      // NetWorkList(this.search).then(response => {
+      //   this.tableData = response.data
+      // })
     }
   }
 }

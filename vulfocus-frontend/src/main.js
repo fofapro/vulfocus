@@ -17,7 +17,10 @@ import { GoodWizard } from 'vue-good-wizard'
 
 import '@/icons' // icon
 import '@/permission' // permission control
+import iconPicker from 'vue-fontawesome-elementui-icon-picker';
 
+Vue.use(iconPicker);
+// import 'font-awesome/scss/font-awesome.scss'
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api

@@ -1,11 +1,14 @@
 import request from '@/utils/request'
 
-export function NetWorkList(data) {
+export function NetWorkList(data, page) {
   if (data === undefined){
     data = ""
   }
+  if (page === undefined){
+    page = 1
+  }
   return request({
-    url: '/network/?query='+data,
+    url: '/network/?query='+data+"&page="+page,
     method: 'get'
   })
 }
