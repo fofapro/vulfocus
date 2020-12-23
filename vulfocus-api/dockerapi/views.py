@@ -306,7 +306,7 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
             else:
                 container_vul_list = ContainerVul.objects.all().order_by('-create_date')
         else:
-            container_vul_list = ContainerVul.objects.all().filter(user_id=self.request.user.id, time_model_id="")
+            container_vul_list = ContainerVul.objects.filter(user_id=self.request.user.id, time_model_id="")
         return container_vul_list
 
     @action(methods=["get"], detail=True, url_path='start')
@@ -345,8 +345,14 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         :param pk:
         :return:
         """
+        if not pk:
+            return JsonResponse(R.build(msg="id不能为空"))
+        container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
+                                                    container_id=pk).first()
+        if not container_vul:
+            return JsonResponse(R.build(msg="环境不存在"))
         user_info = request.user
-        container_vul = self.get_object()
+        # container_vul = self.get_object()
         task_id = tasks.delete_container_task(container_vul=container_vul, user_info=user_info,
                                               request_ip=get_request_ip(request))
         return JsonResponse(R.ok(task_id))
@@ -404,7 +410,7 @@ class SysLogSet(viewsets.ModelViewSet):
 @api_view(http_method_names=["GET"])
 def get_setting(request):
     """
-    获取
+    获取配置信息
     :param request:
     :return:
     """

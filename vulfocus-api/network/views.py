@@ -10,6 +10,7 @@ from dockerapi.common import R
 from network.models import NetWorkInfo
 from network.serializers import NetWorkInfoSerializer
 from vulfocus.settings import client
+from layout_image.models import LayoutServiceNetwork
 
 
 class NetWorkInfoViewSet(viewsets.ModelViewSet):
@@ -118,31 +119,27 @@ class NetWorkInfoViewSet(viewsets.ModelViewSet):
         :return:
         """
         user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build(msg="权限不足"))
         network = self.get_object()
-        # count = CombinationImage.objects.filter(net_work_id=network.net_work_id).count()
-        # if network.create_user == user.id or user.is_superuser:
-        #     if count == 0:
-        #         try:
-        #             """
-        #             通过ID进行删除网卡
-        #             """
-        #             docker_network = client.networks.get(network.net_work_client_id)
-        #             docker_network.remove()
-        #         except Exception as e:
-        #             try:
-        #                 network_list = client.networks.list()
-        #                 for network in network_list:
-        #                     network_configs = network.attrs['IPAM']['Config']
-        #                     if len(network_configs) > 0:
-        #                         subnet = network_configs[0]['Subnet']
-        #                         if subnet != network.net_work_subnet:
-        #                             continue
-        #                         network.remove()
-        #             except Exception as e:
-        #                 pass
-        #         network.delete()
-        #         return JsonResponse(R.ok())
-        #     else:
-        #         return JsonResponse(R.build(msg="网卡 %s 正在使用无法删除" % (network.net_work_subnet,)))
-        # else:
-        #     return JsonResponse(R.build(msg="权限不足"))
+        count = LayoutServiceNetwork.objects.filter(network_id=network).count()
+        if count == 0:
+            try:
+                docker_network = client.networks.get(network.net_work_client_id)
+                docker_network.remove()
+            except Exception as e:
+                try:
+                    network_list = client.networks.list()
+                    for network in network_list:
+                        network_configs = network.attrs['IPAM']['Config']
+                        if len(network_configs) > 0:
+                            subnet = network_configs[0]['Subnet']
+                            if subnet != network.net_work_subnet:
+                                continue
+                            network.remove()
+                except Exception as e:
+                        pass
+            network.delete()
+            return JsonResponse(R.ok())
+        else:
+            return JsonResponse(R.build(msg="网卡 %s 正在使用无法删除" % (network.net_work_subnet,)))

@@ -12,6 +12,14 @@
         </el-card>
       </el-timeline-item>
     </el-timeline>
+    <div style="margin-top: 20px">
+      <el-pagination
+        :page-size="page.size"
+        @current-change="handleQuery"
+        layout="total, prev, pager, next, jumper"
+        :total="page.total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
@@ -20,14 +28,26 @@ import { ContainerHisory } from '@/api/docker'
 export default {
   data() {
     return {
-      timeline: ""
+      timeline: [],
+      page: {
+        size: 20,
+        total: 0,
+      }
     }
 
   },
+  methods:{
+    handleQuery(page){
+      ContainerHisory(page).then(response => {
+        // 相应数据
+        this.timeline = response.data.results
+        // 总数
+        this.page.total = response.data.count
+      })
+    },
+  },
   created() {
-    ContainerHisory().then(response => {
-      this.timeline = response.data
-    })
+    this.handleQuery(1)
   },
 
 }

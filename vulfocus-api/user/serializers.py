@@ -44,18 +44,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def rankAD(self, obj):
         rank = 0
         user_id = obj.id
-        time_model_id = ''
-        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id=time_model_id)
+        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="")
         for i in successful:
             rank += i.image_id.rank
         return rank
 
     def rankCount(self, obj):
         user_id = obj.id
-        time_model_id = ''
-        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id=time_model_id)
+        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="")
         return successful.count()
-
 
     def set_role(self, obj):
         if obj.is_superuser:

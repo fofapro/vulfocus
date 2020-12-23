@@ -29,7 +29,7 @@ class ContainerVul(models.Model):
     """
     container_id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, verbose_name='漏洞容器创建ID')
     docker_container_id = models.CharField(max_length=255, verbose_name='Docker容器运行进ID')
-    image_id = models.ForeignKey(ImageInfo, on_delete=models.CASCADE, verbose_name='Docker ID')
+    image_id = models.ForeignKey(ImageInfo, on_delete=models.CASCADE, verbose_name='镜像ID')
     user_id = models.IntegerField(verbose_name='用户ID')
     vul_host = models.CharField(max_length=255, verbose_name='容器漏洞URL')
     container_status = models.CharField(max_length=255, verbose_name='容器当前状态')

@@ -2,8 +2,9 @@
   <div class="app-container">
     <div class="svgHead" v-show="editable" :inline="true">
       <div class="svgHeadItemLst svgToolBarItem">
-        <el-button size="small" style="margin: 0" icon="fa fa-mouse-pointer"></el-button>
-        <el-button size="small" style="margin: 0" icon="fa fa-object-group"></el-button>
+        <el-tooltip class="item" effect="dark" content="返回" placement="top-start">
+          <el-button size="small" style="margin: 0" icon="fa fa-backward" @click="goBack"></el-button>
+        </el-tooltip>
       </div>
       <div class="svgHeadItemLst svgToolBarItem">
         <el-button size="small" style="margin: 3px;" type="primary" icon="fa fa-save" @click="saveTopoJson"> 保存
@@ -214,15 +215,42 @@
         <v-topo-attr-panel :v-select-node-data="selectNodeData" v-show="editable"></v-topo-attr-panel>
       </div>
     </div>
-        <div v-if="shapebarMoveNode.isShow" class="moveNode nodeMoveCss" :style="{ left:shapebarMoveNode.left + 'px', top: shapebarMoveNode.top + 'px' }">
+    <div v-if="shapebarMoveNode.isShow" class="moveNode nodeMoveCss" :style="{ left:shapebarMoveNode.left + 'px', top: shapebarMoveNode.top + 'px' }">
           <div class="shapeIcon">
             <img class="shapeIconImg" :src="shapebarMoveNode.icon"/>
           </div>
           <div class="shapeName">{{shapebarMoveNode.name}}</div>
         </div>
+    <el-dialog :visible.sync="editShow" title="新增">
+      <el-form label-width="80px" v-loading="editLoading" element-loading-text="新增中">
+        <el-form-item label="环境名称">
+          <el-input v-model="layout.name" size="medium"></el-input>
+        </el-form-item>
+        <el-form-item label="环境描述">
+          <el-input type="textarea"
+                    v-model="layout.desc" size="medium"></el-input>
+        </el-form-item>
+        <el-form-item label="Banner 图">
+          <el-upload
+            class="avatar-uploader"
+            action=""
+            :http-request="upload"
+            :show-file-list="false"
+            :before-upload="beforeAvatarUpload">
+            <img v-if="layout.imageName" :src="layout.imageName" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" size="medium" @click="handleOk">确定</el-button>
+          <el-button size="medium" @click="handleCancel">取消</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 <script>
+import {layoutCreate,uploadImage} from '@/api/layout'
 import connectorRules from '@/config/connectorRules' //连线包含关系规则
 import vTopoAttrPanel from './components/vTopoAttrPanel'
 import vShapebar from './components/vShapebar'
@@ -234,6 +262,10 @@ export default {
     editable: {
       type: Boolean,
       default: true
+    },
+    layoutId: {
+      type: String,
+      default: "",
     }
   },
   data() {
@@ -310,7 +342,16 @@ export default {
         nodes:[],
         connectors: []
       },
-      isShow: true
+      isShow: true,
+      editShow: false,
+      editLoading: false,
+      layout:{
+        id: '',
+        name: '',
+        desc: '',
+        imageName: '',
+      },
+      newFile: new FormData()
     }
   },
   computed: {},
@@ -325,19 +366,19 @@ export default {
     canConnectorTo(curNodeType, connectorToNodeType, connectorType) {
       // 当需要包含和连线规则的时候 清除以下注释
       let canConnector = false
-      if (connectorType == 'Link') {
+      if (connectorType === 'Link') {
         this.connectorRules.forEach((ele, key) => {
-          if (ele.type == curNodeType) {
+          if (ele.type === curNodeType) {
             ele.canLinkToType.forEach((el, index) => {
-              if (el == connectorToNodeType) canConnector = true
+              if (el === connectorToNodeType) canConnector = true
             })
           }
         })
-      } else if (connectorType == 'Contain') {
+      } else if (connectorType === 'Contain') {
         this.connectorRules.forEach((ele, key) => {
-          if (ele.type == curNodeType) {
+          if (ele.type === curNodeType) {
             ele.canBeContainedType.forEach((el, index) => {
-              if (el == connectorToNodeType) canConnector = true
+              if (el === connectorToNodeType) canConnector = true
             })
           }
         })
@@ -416,7 +457,7 @@ export default {
           //计算是否与某个节点重叠
           for (let i = (TOPODATA.nodes.length - 1); i >= 0; i--) {
             let node = TOPODATA.nodes[i]
-            if (node.x <= nodeEndX && nodeEndX <= (node.x + node.width) && nodeEndY >= node.y && node.y + node.height >= nodeEndY && node.id != id) {
+            if (node.x <= nodeEndX && nodeEndX <= (node.x + node.width) && nodeEndY >= node.y && node.y + node.height >= nodeEndY && node.id !== id) {
               let canBeContain = this.canConnectorTo(NODE.type, node.type, 'Contain')  //判断是否能被包含在目标元素中
               if (canBeContain) {
                 let connectorId = this.GenNonDuplicateID(3)
@@ -560,7 +601,7 @@ export default {
       CURNODE.isSelect = true
       this.storeCurnodeStartPosition(CURNODE, nodeStartPosArr)  //将选择的node的子子节点初始位置保存进去
       this.topoData.nodes.forEach((node, key) => {            // 关联属性设置框
-        if (node.id == CURNODE.id) {
+        if (node.id === CURNODE.id) {
           this.selectNodeData = node
         }
       })
@@ -618,13 +659,13 @@ export default {
       let NodePoint4 = [NodeEndX, (NodeEndY + nodeH)]
       //如果点击的node有contain关系，先记录下targetNode
       TOPODATA.connectors.forEach((ele, key) => {
-        if (ele.type == 'Contain' && ele.sourceNode.id == curNodeId) {
+        if (ele.type === 'Contain' && ele.sourceNode.id === curNodeId) {
           originTargetNodeId = ele.targetNode.id
         }
       })
       if (originTargetNodeId) {
         TOPODATA.nodes.forEach((node, key) => {
-          if (node.id == originTargetNodeId) originTargetNode = node
+          if (node.id === originTargetNodeId) originTargetNode = node
         })
       }
       //情况一：移出后依然恢复原来的位置，前提：1.移除的距离在一定范围 2.点击的节点有父层包含关系
@@ -646,7 +687,7 @@ export default {
       for (let i = (TOPODATA.nodes.length - 1); i >= 0; i--) {      //forEach无法跳出循环,暂用for循环
         let targetNode = TOPODATA.nodes[i]
         isContainNode = false   //初始isContainNode为false的值
-        if (CURNODE.id != targetNode.id) {   //排除自身元素
+        if (CURNODE.id !== targetNode.id) {   //排除自身元素
           let minX = targetNode.x
           let maxX = targetNode.x + targetNode.width
           let minY = targetNode.y
@@ -681,14 +722,14 @@ export default {
         TOPODATA.connectors.push(connector)
         //如果有嵌套关系，就在父节点放入子节点id
         TOPODATA.nodes.forEach((node, key) => {
-          if (node.id == overlapTargetNode.id) node.containNodes.push(CURNODE.id)
+          if (node.id === overlapTargetNode.id) node.containNodes.push(CURNODE.id)
         })
         this.refreshRowAndOuterNode(CURNODE)  //刷新并列节点位置和父节点宽高
       }
       //移动包含着的子节点
       if (isContainNode) {
         nodeStartPosArr.forEach((node, key) => {
-          if (node.id == CURNODE.id) {
+          if (node.id === CURNODE.id) {
             let disX = CURNODE.x - node.x
             let disY = CURNODE.y - node.y
             this.moveContianNode(disX, disY, nodeStartPosArr)
@@ -696,7 +737,7 @@ export default {
         })
       }
       //如果初始targetNodeId 与现在重合的taregtNodeId不同，让originTargetNode位置重置
-      if (originTargetNodeId && originTargetNodeId != overlapTargetNode.id) {
+      if (originTargetNodeId && originTargetNodeId !== overlapTargetNode.id) {
         this.refreshRowAndOuterNode(originTargetNode)
       }
     },
@@ -711,7 +752,7 @@ export default {
       if (containNodes.length) {
         containNodes.forEach((nodeId, key) => {
           this.topoData.nodes.forEach((ele, index) => {
-            if (ele.id == nodeId) {
+            if (ele.id === nodeId) {
               this.storeCurnodeStartPosition(ele, startNodePosition)
             }
           })
@@ -723,7 +764,7 @@ export default {
       nodeStartPosArr.forEach((ele, key) => {
         let storeInfoId = ele.id
         this.topoData.nodes.forEach((node, key) => {
-          if (node.id == storeInfoId) {
+          if (node.id === storeInfoId) {
             node.x = ele.x + disX
             node.y = ele.y + disY
           }
@@ -734,10 +775,10 @@ export default {
     putInnerNodeLast(CURNODE) {
       let curNodeId = CURNODE.id
       this.topoData.connectors.forEach((ele, key) => {
-        if (ele.type == 'Contain' && ele.targetNode.id == curNodeId) {
+        if (ele.type === 'Contain' && ele.targetNode.id === curNodeId) {
           let childNodeId = ele.sourceNode.id
           this.topoData.nodes.forEach((node, index) => {
-            if (node.id == childNodeId) {
+            if (node.id === childNodeId) {
               let childNode = node
               this.topoData.nodes.splice(index, 1)
               this.topoData.nodes.push(childNode)
@@ -751,17 +792,17 @@ export default {
     deleteCurNodeContainConnector(CURNODE) {
       let curNodeId = CURNODE.id
       this.topoData.connectors.forEach((ele, key) => {
-        if (ele.type == 'Contain' && ele.sourceNode.id == curNodeId) {
+        if (ele.type === 'Contain' && ele.sourceNode.id === curNodeId) {
           let targetNodeId = ele.targetNode.id
           //1.删除cennetors关系
           this.topoData.connectors.splice(key, 1)
           //2.删除contains 里面的关系
           this.topoData.nodes.forEach((node, key) => {
-            if (node.id == targetNodeId) {
+            if (node.id === targetNodeId) {
               if (node.containNodes.length) {
                 node.containNodes.forEach((ele, key) => {
                   let targetNode = node
-                  if (ele == curNodeId) {
+                  if (ele === curNodeId) {
                     targetNode.containNodes.splice(key, 1)
                   }
                 })
@@ -774,10 +815,10 @@ export default {
     // 刷新外部node的宽度（递归） 且 刷新右侧所欲并列节点宽度
     refreshOuterNodeWidth(CURNODE) {
       this.topoData.connectors.forEach((ele, key) => {
-        if (ele.sourceNode.id == CURNODE.id && ele.type == 'Contain') {
+        if (ele.sourceNode.id === CURNODE.id && ele.type === 'Contain') {
           let targetNodeId = ele.targetNode.id
           this.topoData.nodes.forEach((node, index) => {
-            if (node.id == targetNodeId) {
+            if (node.id === targetNodeId) {
               node.width = 2 * this.containLeft + CURNODE.width
               node.height = 10 + CURNODE.height + this.containTop
               this.refreshOuterNodeWidth(node)
@@ -795,7 +836,7 @@ export default {
         TARGETNODE.containNodes.forEach((ele, key) => {
           let containNodeId = ele
           this.topoData.nodes.forEach((node, index) => {
-            if (node.id == containNodeId) {
+            if (node.id === containNodeId) {
               sumWidth += node.width
               if (node.height > maxHeight) maxHeight = node.height
 
@@ -814,10 +855,10 @@ export default {
       this.topoData.connectors.forEach((ele, key) => {
         let parentNodeId = ''
         let parentNode = {}
-        if (ele.sourceNode.id == TARGETNODE.id && ele.type == 'Contain') {
+        if (ele.sourceNode.id === TARGETNODE.id && ele.type === 'Contain') {
           parentNodeId = ele.targetNode.id
           this.topoData.nodes.forEach((node, key) => {
-            if (node.id == parentNodeId) this.refreshRowAndOuterNode(node)
+            if (node.id === parentNodeId) this.refreshRowAndOuterNode(node)
           })
         }
       })
@@ -832,7 +873,7 @@ export default {
         let containNode
         let preNode
         this.topoData.nodes.forEach((node, index) => {
-          if (node.id == containNodeId) {
+          if (node.id === containNodeId) {
             containNode = node
           }
         })
@@ -842,7 +883,7 @@ export default {
           let preNodeIndex = key - 1
           let preNodeId = TARGETNODE.containNodes[preNodeIndex]
           this.topoData.nodes.forEach((node, index) => {
-            if (node.id == preNodeId) preNode = node
+            if (node.id === preNodeId) preNode = node
           })
           this.refreshRowNodesPosition(TARGETNODE, containNode, preNode)
         }
@@ -863,13 +904,13 @@ export default {
       this.topoData.connectors.forEach((item, index) => {
         //更新connectors里的数据
         this.topoData.nodes.forEach((node, key) => {
-          if (item.sourceNode.id == node.id) {
+          if (item.sourceNode.id === node.id) {
             item.sourceNode.width = node.width
             item.sourceNode.height = node.height
             item.sourceNode.x = node.x
             item.sourceNode.y = node.y
           }
-          if (item.targetNode.id == node.id) {
+          if (item.targetNode.id === node.id) {
             item.targetNode.width = node.width
             item.targetNode.height = node.height
             item.targetNode.x = node.x
@@ -923,7 +964,7 @@ export default {
         if (CONNECTLINE.endNode) {      //正确连线：添加连线信息在connectors中
           //判断是否有已经有连线的情况
           CONNECTORS.forEach((item, index) => {
-            if (item.sourceNode.id == CURNODE.id && item.targetNode.id == CONNECTLINE.endNode && item.type == 'Line') {
+            if (item.sourceNode.id === CURNODE.id && item.targetNode.id === CONNECTLINE.endNode && item.type === 'Line') {
               hasConnected = true
             }
           })
@@ -932,7 +973,7 @@ export default {
             connectType = 'Line'
             //获取目标节点宽高
             this.topoData.nodes.forEach((item, index) => {
-              if (item.id == CONNECTLINE.endNode) {
+              if (item.id === CONNECTLINE.endNode) {
                 targetNodeW = item.width
                 targetNodeH = item.height
                 targetNodeX = item.x
@@ -950,7 +991,7 @@ export default {
               CURNODE.isRightConnectShow = false     //连线失败：起点右侧箭头暂且设置为消失
               CONNECTORS.forEach((item, key) => {     //连线判断，如果已经有连线起点为当前的node，将起点箭头设置为显示
                 this.topoData.nodes.forEach((node, key) => {
-                  if (node.id == item.sourceNode.id && item.type == 'Line') node.isRightConnectShow = true
+                  if (node.id === item.sourceNode.id && item.type === 'Line') node.isRightConnectShow = true
                 })
               })
             } else {
@@ -978,7 +1019,7 @@ export default {
               }
               CURNODE.isRightConnectShow = true
               this.topoData.nodes.forEach((item, key) => {
-                if (item.id == CONNECTLINE.endNode) item.isLeftConnectShow = true
+                if (item.id === CONNECTLINE.endNode) item.isLeftConnectShow = true
               })
               CONNECTORS.push(connector)
             }
@@ -987,7 +1028,7 @@ export default {
           CURNODE.isRightConnectShow = false     //连线失败：起点右侧箭头暂且设置为消失
           CONNECTORS.forEach((item, key) => {     //连线判断，如果已经有连线起点为当前的node，将起点箭头设置为显示
             this.topoData.nodes.forEach((node, key) => {
-              if (node.id == item.sourceNode.id && item.type == 'Line') node.isRightConnectShow = true
+              if (node.id === item.sourceNode.id && item.type === 'Line') node.isRightConnectShow = true
             })
           })
 
@@ -1065,12 +1106,12 @@ export default {
               let targetNodeId = ''
               let targetNode = null
               this.topoData.connectors.forEach((ele, key) => {
-                if (ele.sourceNode.id == node.id) targetNodeId = ele.targetNode.id
+                if (ele.sourceNode.id === node.id) targetNodeId = ele.targetNode.id
               })
               this.deleteCurNodeContainConnector(node)
               if (targetNodeId) {
                 this.topoData.nodes.forEach((node, index) => {
-                  if (node.id == targetNodeId) {
+                  if (node.id === targetNodeId) {
                     this.refreshRowAndOuterNode(node)
                   }
                 })
@@ -1109,7 +1150,7 @@ export default {
       for (let i = 0; i < connectorsLen; i++) {
         let connectorObj = connectorObjArr[i]
         //删除连线
-        if (connectorObj.type == 'Line' && (connectorObj.sourceNode.id == selectId || connectorObj.targetNode.id == selectId)) {
+        if (connectorObj.type === 'Line' && (connectorObj.sourceNode.id === selectId || connectorObj.targetNode.id === selectId)) {
           this.topoData.connectors.splice(i, 1)
           i--
           connectorsLen--
@@ -1123,7 +1164,7 @@ export default {
         CURNODE.containNodes.forEach((containNodeId, key) => {
           let containId = containNodeId
           this.topoData.nodes.forEach((ele, index) => {
-            if (ele.id == containId) {
+            if (ele.id === containId) {
               let curnode = ele
               this.topoData.nodes.splice(index, 1)
               this.deleteSelectNodeLink(containId)
@@ -1142,10 +1183,10 @@ export default {
       this.topoData.connectors.forEach((ele, key) => {
         let sourceNodeId = ele.sourceNode.id
         let targetNodeId = ele.targetNode.id
-        if (ele.type == 'Line') {
+        if (ele.type === 'Line') {
           this.topoData.nodes.forEach((topoNode, index) => {
-            if (topoNode.id == targetNodeId) topoNode.isLeftConnectShow = true
-            if (topoNode.id == sourceNodeId) topoNode.isRightConnectShow = true
+            if (topoNode.id === targetNodeId) topoNode.isLeftConnectShow = true
+            if (topoNode.id === sourceNodeId) topoNode.isRightConnectShow = true
           })
         }
       })
@@ -1160,13 +1201,107 @@ export default {
     },
     // 保存topo的json数据
     saveTopoJson() {
-      console.log(JSON.stringify(this.topoData))
+      this.editShow = true
+    },
+    handleOk(){
+      if (this.layout.name === '' || this.layout.name === null){
+        this.$message({
+          message: '请输入环境名称',
+          type: 'error'
+        })
+        return
+      }
+      if (this.layout.imageName === '' || this.layout.imageName === null || this.layout.imageName === process.env.VUE_APP_BASE_API + '/static/'){
+        this.$message({
+          message: '请上传 banner 图',
+          type: 'error'
+        })
+        return
+      }
+      if (this.layout.id !== null && this.layout.id !== undefined && this.layout.id !== "") {
+        this.$confirm('确认修改，修改会影响用户得分', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          this.handleLayoutCreate()
+        }).catch()
+      }else{
+        this.handleLayoutCreate()
+      }
+    },
+    handleLayoutCreate(){
+      let imgName = this.layout.imageName.replace(process.env.VUE_APP_BASE_API + '/static/', "")
+      let formData = new FormData()
+      formData.set("id", this.layout.id)
+      formData.set("data", JSON.stringify(this.topoData))
+      formData.set("name", this.layout.name)
+      formData.set("desc", this.layout.desc)
+      formData.set("img", imgName)
+
+      layoutCreate(formData).then(response => {
+        let rsp = response.data
+        if (rsp.status === 200){
+          if (this.layout.id !== null && this.layout.id !== undefined && this.layout.id !== ""){
+            this.$message({
+              message: "修改成功",
+              type: 'success'
+            })
+          }else{
+            this.$message({
+              message: "创建成功",
+              type: 'success'
+            })
+          }
+          this.goBack()
+        }else{
+          this.$message({
+            message: rsp.msg,
+            type: 'error'
+          })
+        }
+        this.editShow = false
+      })
+    },
+    handleCancel(){
+      this.editShow = false
+    },
+    beforeAvatarUpload(file){
+      if (file){
+        this.newFile.set("img", file)
+      }else{
+        return false;
+      }
+    },
+    upload(){
+      let data = this.newFile
+      uploadImage(data).then(response => {
+        let rsp = response.data
+        if (rsp.data && rsp.status === 200){
+          this.$message({
+            message: '上传成功',
+            type: 'success'
+          })
+          this.layout.imageName = process.env.VUE_APP_BASE_API + '/static/' + rsp.data
+        }else{
+          this.$message({
+            message: rsp.msg,
+            type: 'error'
+          })
+        }
+      }).catch(err => {
+        this.$message({
+          message: "服务器内部错误",
+          type: 'error'
+        })
+      })
+    },
+    goBack(){
+      this.$router.push({path:'/layout/manager'})
     },
     // 初始化获取topo组件宽高
     initTopoWH() {
       this.$nextTick(() => {
-        // let width = this.$refs.topoWrap.offsetWidth - 2
-        // let height = this.$refs.topoWrap.offsetHeight - 2
         let ele = `#topoId${this.topoId}`
         let topoW = $(ele).width()
         let topoH = $(ele).height()
@@ -1176,19 +1311,33 @@ export default {
         this.svgAttr.height = topoH
         this.svgAttr.minW = topoW
         this.svgAttr.minH = topoH
-        // this.marker.xmarkerX = width
-        // this.marker.ymarkerY = height
-        // this.svgAttr.width = width
-        // this.svgAttr.height = height
-        // this.svgAttr.minW = width
-        // this.svgAttr.minH = height
       })
     }
   },
   mounted() {
-    this.deleteNodeAndConnector() //绑定删除Node事件
+    if (this.$route.query.layoutData !== null && this.$route.query.layoutData !== undefined && this.$route.query.layoutData.layout_id){
+      this.topoData = JSON.parse(this.$route.query.layoutData.raw_content)
+      this.layout.id = this.$route.query.layoutData.layout_id
+      this.layout.name = this.$route.query.layoutData.layout_name
+      this.layout.desc = this.$route.query.layoutData.layout_desc
+      this.layout.imageName = this.$route.query.layoutData.image_name
+    }else{
+      this.layout = {
+        id: '',
+        name: '',
+        desc: '',
+        imageName: '',
+      }
+      this.topoData = {
+        nodes:[],
+          connectors: []
+      }
+    }
+    //绑定删除Node事件
+    this.deleteNodeAndConnector()
     this.topoId = this.GenNonDuplicateID(5)
-    this.initTopoWH() //初始化topo组件宽高
+    // 初始化topo组件宽高
+    this.initTopoWH()
   }
 }
 </script>
@@ -1442,6 +1591,29 @@ export default {
 }
 </style>
 <style>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409EFF;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 120px;
+  height: 120px;
+  line-height: 120px;
+  text-align: center;
+}
+.avatar {
+  width: 120px;
+  height: 120px;
+  display: block;
+}
 .el-collapse-item__header {
   -webkit-user-select: none;
   user-select: none;

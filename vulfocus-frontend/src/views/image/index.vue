@@ -408,7 +408,7 @@
           this.imgTypeText = "切换为文本"
         }
       },
-      uploadImg(fileObj) {
+      uploadImg() {
         let formData = new FormData()
         if (this.$refs.upload != null){
           let uploadFiles = this.$refs.upload.uploadFiles

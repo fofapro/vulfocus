@@ -11,7 +11,10 @@ class Layout(models.Model):
     layout_id = models.UUIDField(default=uuid.uuid4(), editable=False, primary_key=True, verbose_name="编排UUID")
     layout_name = models.CharField(max_length=255, null=False, verbose_name="环境名称")
     layout_desc = models.TextField(null=True, verbose_name="描述")
+    image_name = models.TextField(null=False, default="", verbose_name="图片名称")
     create_user_id = models.IntegerField(verbose_name='用户ID')
+    is_release = models.BooleanField(null=False, default=False, verbose_name="是否发布，默认否")
+    raw_content = models.TextField(null=False, default="", verbose_name="原json内容")
     yml_content = models.TextField(null=False, verbose_name="编排内容")
     env_content = models.TextField(null=False, verbose_name="环境变量")
     create_date = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
@@ -27,9 +30,9 @@ class LayoutService(models.Model):
     """
     service_id = models.UUIDField(default=uuid.uuid4(), editable=False, primary_key=True, verbose_name="ID")
     layout_id = models.ForeignKey(Layout, on_delete=models.CASCADE, verbose_name="编排 ID")
-    image_id = models.ForeignKey(ImageInfo, on_delete=models.CASCADE, verbose_name='Docker ID')
+    image_id = models.ForeignKey(ImageInfo, on_delete=models.CASCADE, verbose_name='镜像ID')
+    service_name = models.TextField(null=False, default="", verbose_name="服务环境名称")
     is_exposed = models.BooleanField(editable=False, verbose_name="是否暴露")
-    exposed_port = models.CharField(max_length=255, null=False, verbose_name="暴露随机端口")
     exposed_source_port = models.CharField(max_length=255, null=False, verbose_name="暴露原端口")
     create_date = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_date = models.DateTimeField(auto_now=True, verbose_name='更新时间')
@@ -60,6 +63,7 @@ class LayoutData(models.Model):
     create_user_id = models.IntegerField(verbose_name='用户ID')
     layout_id = models.ForeignKey(Layout, on_delete=models.CASCADE, verbose_name="编排 ID")
     status = models.CharField(max_length=255, null=False, verbose_name="状态信息")
+    file_path = models.TextField(null=False, default="", verbose_name="启动目录")
     create_date = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_date = models.DateTimeField(auto_now=True, verbose_name='更新时间')
 
@@ -85,16 +89,12 @@ class LayoutServiceContainer(models.Model):
     image_id = models.ForeignKey(ImageInfo, on_delete=models.CASCADE, verbose_name="镜像ID")
     # 容器 host
     container_host = models.CharField(max_length=255, verbose_name='容器漏洞URL')
-    # 容器状态 running create exited
+    # 容器状态 running stop
     container_status = models.CharField(max_length=255, verbose_name='容器当前状态')
     # 容器暴露端口
     container_port = models.CharField(max_length=255, verbose_name='容器端口')
     # flag
     container_flag = models.CharField(max_length=255, verbose_name='flag')
-    # 是否通过
-    is_check = models.BooleanField(default=False, verbose_name='Flag是否通过')
-    # 通过时间
-    is_check_date = models.DateTimeField(null=True, verbose_name='Flag提交时间')
     # 创建时间
     create_date = models.DateTimeField(auto_now_add=True, verbose_name='容器创建时间，默认为当前时间')
     # 更新时间
@@ -103,3 +103,28 @@ class LayoutServiceContainer(models.Model):
     class Meta:
         db_table = "layout_service_container"
 
+
+class LayoutServiceContainerScore(models.Model):
+    # id
+    layout_service_container_score_id = models.UUIDField(default=uuid.uuid4(), editable=False, primary_key=True, verbose_name="ID")
+    # flag 提交用户 ID
+    user_id = models.IntegerField(verbose_name='用户ID')
+    # 环境 ID
+    layout_id = models.ForeignKey(Layout, on_delete=models.CASCADE, verbose_name="编排 ID")
+    # 环境 ID
+    layout_data_id = models.ForeignKey(LayoutData, on_delete=models.CASCADE, verbose_name="编排 ID")
+    # 服务编排id
+    service_container_id = models.ForeignKey(LayoutServiceContainer, on_delete=models.CASCADE, verbose_name="编排 ID")
+    # 服务 id
+    service_id = models.ForeignKey(LayoutService, on_delete=models.CASCADE, default=None, verbose_name="服务ID")
+    # 镜像 id
+    image_id = models.ForeignKey(ImageInfo, on_delete=models.CASCADE, default=None, verbose_name="镜像ID")
+    # 用户提交flag
+    flag = models.CharField(max_length=255, null=False, verbose_name="flag")
+    # 创建时间
+    create_date = models.DateTimeField(auto_now_add=True, verbose_name='创建时间，默认为当前时间')
+    # 更新时间
+    update_date = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        db_table = "layout_service_container_score"

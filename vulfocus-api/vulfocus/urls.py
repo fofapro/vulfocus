@@ -21,6 +21,7 @@ from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView
 from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
+from layout_image.views import LayoutViewSet, upload_img
 
 router = routers.DefaultRouter()
 router.register('images', ImageInfoViewSet, base_name='Images')
@@ -30,6 +31,7 @@ router.register('user', UserSet, base_name='user')
 router.register('syslog', SysLogSet, base_name="SysLog")
 router.register('tasks', TaskSet, base_name="TaskSet")
 router.register("network", NetWorkInfoViewSet, basename="network")
+router.register('layout', LayoutViewSet, basename="layout")
 
 urlpatterns = [
     url(r'^', include(router.urls)),
@@ -38,5 +40,6 @@ urlpatterns = [
     url(r'user/info', get_user_info.as_view()),
     url(r'setting/get', get_setting),
     url(r'setting/update', update_setting),
+    url(r'img/upload', upload_img),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

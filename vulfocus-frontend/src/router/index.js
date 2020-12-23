@@ -70,6 +70,26 @@ export const constantRoutes = [
         meta: { title: '用户', icon: 'user', noCache: true }
       }
     ]
+  },
+  {
+    path: '/scene',
+    component: Layout,
+    redirect: '/scene/list',
+    children: [
+      {
+        path: 'list',
+        component: () => import('@/views/scene/list'),
+        name: 'List',
+        meta: { title: '场景', icon: 'table', noCache: true }
+      },
+      {
+        path: 'index',
+        component: () => import('@/views/scene/index'),
+        name: 'Index',
+        hidden: true,
+        meta: { title: '场景', icon: 'table', noCache: true }
+      }
+    ]
   }
 ]
 
@@ -88,20 +108,6 @@ export function resetRouter() {
 }
 
 export const asyncRoutes = [
-  {
-    // 网卡管理
-    path: '/network',
-    component: Layout,
-    redirect: '/network',
-    meta: {role: ['admin']},
-    children: [{
-      path: 'network',
-      affix: true,
-      name: 'network',
-      component: () => import('@/views/network/index'),
-      meta: { title: '网卡管理', icon: 'tree' , role: ['admin']}
-    }]
-  },
   {
     // 镜像管理
     path: '/image',
@@ -127,14 +133,29 @@ export const asyncRoutes = [
     path: '/layout',
     component: Layout,
     redirect: '/layout',
-    meta: {role: ['admin']},
+    meta: {role: ['admin'], title: "环境编排管理", icon: "barrage_fill"},
     children: [{
-      path: 'layout',
+      path: 'network',
       affix: true,
-      name: 'layout',
-      component: () => import('@/views/layout/index'),
+      name: 'network',
+      component: () => import('@/views/network/index'),
+      meta: { title: '网卡管理', icon: 'tree' , role: ['admin']}
+    },{
+      path: 'manager',
+      affix: true,
+      name: 'manager',
+      component: () => import('@/views/layout/manager'),
       meta: { title: '环境编排管理', icon: 'barrage_fill' , role: ['admin']}
-    }]
+    },
+      {
+      path: 'index',
+      affix: true,
+      name: 'index',
+      hidden: true,
+      component: () => import('@/views/layout/index'),
+      meta: { title: '创建', icon: 'barrage_fill' , role: ['admin']}
+    }
+    ]
   },
   {
     // 账户管理
