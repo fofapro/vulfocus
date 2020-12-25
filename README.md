@@ -33,6 +33,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 2. 自带 Flag 功能：每次启动 flag 都会自动更新，明确漏洞是否利用成功。
 3. 带有计分功能也可适用于相关安全人员能力的考核。
 4. 兼容 [Vulhub](https://vulhub.org/)、[Vulapps](http://vulapps.evalbug.com/) 中所有漏洞镜像。
+5. 支持可视化编排漏洞环境
 
 ## 使用
 
@@ -63,6 +64,14 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 ![](./imgs/flag.gif)
 
 5. 镜像启动后，会在环境里写入一个 flag （默认 flag 会写入 **/tmp/** 下），读取到 flag 后填入 flag 窗口，镜像会自动关闭，如需重新启动，需强刷一下，然后再次点击启动即可。
+
+6. 可视化编排（管理员权限）
+
+![](./imgs/8.gif)
+
+7. 场景模式（普通用户权限）
+
+![](./imgs/9.gif)
 
 ## FAQ
 
