@@ -52,13 +52,13 @@
                 <svg-icon style="color: #20a0ff;" icon-class="stop" />
               </el-tooltip>
               <div style="display: inline-block;margin: 0;" v-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date !== 0">
-                <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
+                <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
                   <i class="el-icon-time"></i>
                 </el-tooltip>
                 <count-down style="display: inline-block;height: 20px;line-height: 20px;size: 20px;margin-block-start: 0em;margin-block-end: 0em;" v-on:end_callback="stop(item.status.container_id, item)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
               </div>
               <div style="display: inline-block;" v-else-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date === 0">
-                <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
+                <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
                   <i class="el-icon-time"></i>
                 </el-tooltip>
                 <p style="display: inline-block;">-1</p>
