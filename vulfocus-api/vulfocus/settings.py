@@ -38,6 +38,11 @@ ALLOWED_HOSTS = ["*"]
 AUTH_USER_MODEL = "user.UserProfile"
 
 # Application definition
+ALLOWED_IMG_SUFFIX = ["jpg", "jpeg", "png"]
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static")
+]
 
 INSTALLED_APPS = [
     'django.contrib.auth',
@@ -49,8 +54,11 @@ INSTALLED_APPS = [
     'user',
     'corsheaders',
     'dockerapi',
+    'network',
     'tasks',
+    'layout_image'
 ]
+
 # redis host
 REDIS_HOST = "127.0.0.1"
 # redis port
@@ -58,7 +66,6 @@ REDIS_PORT = 6379
 # redis pass
 REDIS_PASS = ""
 if REDIS_PASS:
-    # 'redis://:discoverer_spider@134.209.100.83/0'
     CELERY_BROKER_URL = "redis://:%s@%s:%s/0" % (REDIS_PASS, str(REDIS_HOST), str(REDIS_PORT))
     REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), password=REDIS_PASS, decode_responses=True, db=1)
 else:
@@ -182,6 +189,7 @@ DOCKER_CONTAINER_TIME = 60
 
 try:
     # DOCKER_URL tcp://127.0.0.1:2375 or unix://var/run/docker.sock
+    # DOCKER_URL = "tcp://192.168.87.136:2375"
     DOCKER_URL = os.environ['DOCKER_URL']
 except:
     DOCKER_URL = "unix://var/run/docker.sock"
@@ -193,6 +201,14 @@ else:
     client = docker.DockerClient(DOCKER_URL)
     api_docker_client = docker.APIClient(base_url=DOCKER_URL)
 
+try:
+    """
+    设置 docker-compose 连接
+    """
+    os.environ['DOCKER_HOST'] = DOCKER_URL
+except Exception as e:
+    pass
+
 
 # 靶场绑定 IP，提供用户访问靶场与 Docker 服务IP保持一致。
 VUL_IP = ""
@@ -201,6 +217,9 @@ try:
         VUL_IP = os.environ['VUL_IP']
 except Exception as e:
     pass
+
+DOCKER_COMPOSE = os.path.join(BASE_DIR, "docker-compose")
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 

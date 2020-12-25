@@ -14,6 +14,7 @@ import traceback
 import json
 import django.utils.timezone as timezone
 import random
+from django.db.models import Q
 from vulfocus.settings import client, api_docker_client, DOCKER_CONTAINER_TIME, VUL_IP, REDIS_POOL
 from dockerapi.common import DEFAULT_CONFIG
 from dockerapi.views import get_setting_config
@@ -154,6 +155,7 @@ def create_container_task(container_vul, user_info, request_ip):
         if countdown == 0:
             run_container.delay(container_vul.container_id, user_id, task_id)
         elif countdown != 0 and countdown > 60:
+            # run_container(container_vul.container_id, user_id, task_id, countdown)
             add_chain_sig = chain(run_container.s(container_vul.container_id, user_id, task_id, countdown) |
                                   stop_container.s().set(countdown=countdown))
             add_chain_sig.apply_async()
@@ -231,6 +233,7 @@ def run_container(container_id, user_id, tmp_task_id, countdown):
     :param container_id: 漏洞容器数据库 id
     :param user_id: 用户ID
     :param tmp_task_id: 任务ID
+    :param countdown 定时
     """
     # docker container id
     container_vul = ContainerVul.objects.filter(container_id=container_id).first()
@@ -312,6 +315,8 @@ def run_container(container_id, user_id, tmp_task_id, countdown):
             task_info.save()
             return str(task_info.task_id)
         vul_flag = "flag-{bmh%s}" % (uuid.uuid4(),)
+        if container_vul.container_flag:
+            vul_flag = container_vul.container_flag
         command = 'touch /tmp/%s' % (vul_flag,)
         vul_host = get_local_ip() + ":" + container_port
     task_start_date = timezone.now()
@@ -441,7 +446,9 @@ def delete_container(task_id):
     operation_args = task_info.operation_args
     args = json.loads(operation_args)
     container_id = args["container_id"]
-    container_vul = ContainerVul.objects.filter(container_id=container_id).first()
+    # 删除容器
+    container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
+                                                container_id=container_id).first()
     msg = R.ok(msg="删除成功")
     if container_vul:
         # docker 连接容器ID
@@ -456,7 +463,11 @@ def delete_container(task_id):
         except Exception:
             pass
         finally:
-            container_vul.delete()
+            container_vul.container_status = "delete"
+            container_vul.docker_container_id = ""
+            # 保存成功
+            container_vul.save()
+            # container_vul.delete()
             msg = R.ok(msg="删除成功")
     task_info.task_status = 3
     task_info.task_msg = json.dumps(msg)
@@ -630,9 +641,9 @@ def share_image(task_id):
                     r.set(str(task_id), json.dumps(progress_info,ensure_ascii=False))
                     print(json.dumps(progress_info, ensure_ascii=False))
                 last_info = line
-            print("last_info")
-            print("==========================")
-            print(json.dumps(last_info, ensure_ascii=False))
+            # print("last_info")
+            # print("==========================")
+            # print(json.dumps(last_info, ensure_ascii=False))
             if "error" in last_info and last_info["error"]:
                 task_info.task_msg = R.build(msg="原%s构建新镜像%s失败，错误信息：%s" % (image_name, new_image_name, str(last_info["error"]),))
                 task_info.task_status = 4
@@ -823,15 +834,16 @@ def get_local_ip():
     获取本机IP
     :return: ip
     """
-    local_ip = ''
     if VUL_IP:
         return VUL_IP
+    s = None
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(('8.8.8.8', 80))
         local_ip = s.getsockname()[0]
     finally:
-        s.close()
+        if s:
+            s.close()
     return local_ip
 
 

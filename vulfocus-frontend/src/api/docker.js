@@ -40,9 +40,12 @@ export function ContainerSTART(id) {
   })
 }
 
-export function ContainerHisory() {
+export function ContainerHisory(page) {
+  if(page === undefined || page === null || page < 1){
+    page = 1
+  }
   return request({
-    url: '/container/',
+    url: '/container/?page='+page,
     method: 'get',
   })
 }

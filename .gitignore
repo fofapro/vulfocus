@@ -6,6 +6,7 @@ imgs/.DS_Store
 images/.DS_Stor
 .idea/
 vulfocus-api/.idea/
+vulfocus-api/docker-compose/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

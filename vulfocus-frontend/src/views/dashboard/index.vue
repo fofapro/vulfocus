@@ -23,7 +23,7 @@
             <el-input v-model="input" placeholder="请输入Flag：格式flag-{xxxxxxxx}"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="subflag(container_id,input.trim())" :disabled="cStatus">提 交</el-button>
+            <el-button type="primary" @click="subFlag(container_id,input.trim())" :disabled="cStatus">提 交</el-button>
             <!--</div>-->
           </el-form-item>
         </el-form>
@@ -42,8 +42,8 @@
           <div class="clearfix" >
             <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
               <svg-icon icon-class="bug"  style="font-size: 20px;"/>
-              <el-tooltip v-if="item.status.status === 'stop' && item.status.is_check === true" content="已经通过" placement="top">
-                <i style="color: #20a0ff;" v-if="item.status.status === 'stop' && item.status.is_check === true" class="el-icon-check"></i>
+              <el-tooltip v-if="(item.status.status === 'stop' || item.status.status === 'delete') && item.status.is_check === true" content="已通过" placement="top">
+                <i style="color: #20a0ff;" class="el-icon-check"></i>
               </el-tooltip>
               <el-tooltip v-else-if="item.status.status === 'running'" content="运行中" placement="top">
                 <i style="color: #20a0ff;" class="el-icon-loading"></i>
@@ -55,7 +55,7 @@
                 <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
                   <i class="el-icon-time"></i>
                 </el-tooltip>
-                <count-down style="display: inline-block;height: 20px;line-height: 20px;size: 20px;margin-block-start: 0em;margin-block-end: 0em;" v-on:end_callback="Stop(item.status.container_id, item)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
+                <count-down style="display: inline-block;height: 20px;line-height: 20px;size: 20px;margin-block-start: 0em;margin-block-end: 0em;" v-on:end_callback="stop(item.status.container_id, item)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
               </div>
               <div style="display: inline-block;" v-else-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date === 0">
                 <el-tooltip content="容器剩余时间，-1 为用不过期" placement="top">
@@ -79,9 +79,9 @@
               <div class="time container-title">{{ item.image_desc }}</div>
             </div>
             <el-row>
-              <el-button type="primary" @click.stop="Stop(item.status.container_id,item)" :disabled="item.status.stop_flag" size="mini" v-if="item.status.status === 'running'">停止</el-button>
+              <el-button type="primary" @click.stop="stop(item.status.container_id,item)" :disabled="item.status.stop_flag" size="mini" v-if="item.status.status === 'running'">停止</el-button>
               <el-button type="primary" @click.stop="open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" :disabled="item.status.start_flag" size="mini" v-else="item.status.status === '' || item.status.status === 'stop'">启动</el-button>
-              <el-button type="primary" @click.stop="Delete(item.status.container_id,item)" v-if="item.status.status === 'running' || item.status.status === 'stop'" :disabled="item.status.delete_flag" size="mini" icon="el-icon-stopwatch">删除</el-button>
+              <el-button type="primary" @click.stop="deleteContainer(item.status.container_id,item)" v-if="item.status.status === 'running' || item.status.status === 'stop'" :disabled="item.status.delete_flag" size="mini" icon="el-icon-stopwatch">删除</el-button>
             </el-row>
           </div>
         </el-card>
@@ -131,10 +131,10 @@ export default {
       };
     },
   created() {
-    this.ListData(1)
+    this.listData(1)
   },
   methods:{
-      ListData() {
+      listData() {
           ImgList().then(response => {
             this.listdata = response.data.results
             this.page.total = response.data.count
@@ -163,11 +163,12 @@ export default {
         this.$forceUpdate();
         if(raw_data.status.is_check === true){
           this.$message({
-            message:  "该题目已经通过",
+            message:  "该题目已经通过，重复答题分数不会累计",
             type: "success",
           })
-          this.centerDialogVisible = false
-        }else if(raw_data.status.status === "running"){
+          // this.centerDialogVisible = false
+        }
+        if (raw_data.status.status === "running"){
           this.vul_host = raw_data.status.host
           this.vul_port = JSON.parse(raw_data.status.port)
           this.container_id = raw_data.status.container_id
@@ -217,14 +218,16 @@ export default {
         })
         }
       },
-      subflag(id,flag) {
+      subFlag(id,flag) {
           SubFlag(id,flag).then(response => {
+            this.input = ""
             let responseData = response.data
             if(responseData["status"] === 200){
               this.$message({
                 message:  "恭喜！通过",
                 type: "success",
               })
+              this.listData(1)
             }else if(responseData.status === 201){
               this.$message({
                 message: responseData["msg"],
@@ -239,9 +242,8 @@ export default {
             this.centerDialogVisible = false
             this.item_raw_data.status.status = 'stop'
           })
-
       },
-      Stop(container_id,raw) {
+      stop(container_id,raw) {
         /**
          * 停止容器运行
          */
@@ -278,7 +280,7 @@ export default {
           },2000)
         })
       },
-      Delete(container_id,raw){
+      deleteContainer(container_id,raw){
         /**
          * 删除容器
          */
@@ -314,6 +316,7 @@ export default {
                       message: responseData["msg"],
                       type: "success",
                     })
+                    this.listData(1)
                   }else{
                     this.$message({
                       message: responseData["msg"],
@@ -325,7 +328,7 @@ export default {
             },1)
           },2000)
         })
-      },
+    },
       handleQuery(page){
         ImgList(this.search,false,page).then(response => {
           this.listdata = response.data.results

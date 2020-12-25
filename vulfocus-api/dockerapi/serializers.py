@@ -1,4 +1,5 @@
 # coding:utf-8
+from django.db.models import Q
 from rest_framework import serializers
 from dockerapi.models import ImageInfo, ContainerVul, SysLog
 from user.models import UserProfile
@@ -25,8 +26,8 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         检测是否在时间模式中
         '''
         time_model_id = ''
+        # 排出已经删除数据 Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
         data = ContainerVul.objects.all().filter(user_id=id, image_id=obj.image_id, time_model_id=time_model_id).first()
-
         status["status"] = ""
         status["is_check"] = False
         status["container_id"] = ""
@@ -39,6 +40,8 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         if data:
             status["start_date"] = ""
             status["end_date"] = ""
+            if not data.docker_container_id:
+                data.container_status = "delete"
             if data.container_status == "running":
                 status["host"] = data.vul_host
                 status["port"] = data.vul_port

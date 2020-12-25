@@ -11,7 +11,7 @@ class ImageInfo(models.Model):
     image_id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     image_name = models.CharField(max_length=256, unique=True, verbose_name='Docker镜像名称', null=False)
     image_vul_name = models.CharField(max_length=256, verbose_name='漏洞名称', null=False)
-    image_port = models.CharField(null=False, verbose_name='暴露端口', max_length=256)
+    image_port = models.CharField(null=True, default="", verbose_name='暴露端口', max_length=256)
     image_desc = models.TextField(verbose_name='镜像描述', null=True)
     rank = models.FloatField(verbose_name='Rank', null=False)
     is_ok = models.BooleanField(verbose_name="镜像是否可用", default=True)
@@ -29,7 +29,7 @@ class ContainerVul(models.Model):
     """
     container_id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, verbose_name='漏洞容器创建ID')
     docker_container_id = models.CharField(max_length=255, verbose_name='Docker容器运行进ID')
-    image_id = models.ForeignKey(ImageInfo, on_delete=models.CASCADE, verbose_name='Docker ID')
+    image_id = models.ForeignKey(ImageInfo, on_delete=models.CASCADE, verbose_name='镜像ID')
     user_id = models.IntegerField(verbose_name='用户ID')
     vul_host = models.CharField(max_length=255, verbose_name='容器漏洞URL')
     container_status = models.CharField(max_length=255, verbose_name='容器当前状态')
