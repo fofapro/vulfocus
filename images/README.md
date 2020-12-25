@@ -4,6 +4,17 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE-2020-9496|`docker pull vulfocus/ofbiz-cve_2020_9496`|CVE-2020-9496|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-9978|`docker pull vulfocus/wordpress-cve_2019_9978`|CVE-2019-9978|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-2725|`docker pull vulfocus/weblogic-cve_2019_2725`|CVE-2019-2725|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-100300|`docker pull vulfocus/jenkins-cve_2019_100300`|CVE-2019-100300|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-6340|`docker pull vulfocus/drupal-cve_2019_6340`|CVE-2019-6340|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-16759|`docker pull vulfocus/vbulletin-cve_2019_16759`|CVE-2019-16759|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-6340|`docker pull vulfocus/drupal-cve_2019_6340`|CVE-2019-6340|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|zentaopms|`docker pull vulfocus/zentaopms_9.1.2_sql`|zentaopms|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CNVD-2020-121325|`vulfocus/zentaopms-cnvd_2020_121325`|CNVD-2020-121325|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|phpmyadmin-pma|`docker pull vulfocus/phpmyadmin-pma`|phpmyadmin-pma|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|Struts2 061|`docker pull vulfocus/struts2-cve_2020_17530`|Struts2 061|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |XXL-JOB 命令执行|`docker pull vulfocus/xxl-job-api-rce`|XXL-JOB 命令执行|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |Struts2-059 命令执行 CVE-2019-0230|`docker pull vulfocus/struts059-cve_2019_0230`|CVE-2019-0230|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-10199|`docker pull vulfocus/nexus-cve_2020_10199`|CVE-2020-10199|[Vulfocus](https://github.com/fofapro/vulfocus)|

@@ -13,7 +13,7 @@
     <div v-show="isContainer">
       <el-form ref="containerForm" :model="image" label-width="80px">
         <el-form-item label="漏洞名称">
-          <el-autocomplete v-model="searchImageName" size="small" placeholder="镜像名称"
+          <el-autocomplete v-model="searchImageName" style="width: 100%" size="small" placeholder="镜像名称"
                            :fetch-suggestions="querySearchImageAsync" @select="handleImageSelect"></el-autocomplete>
         </el-form-item>
         <el-form-item label="漏洞镜像">
@@ -110,24 +110,40 @@ export default {
         this.imageList = false
         this.isContainer = false
         this.isNetwork = false
-        this.searchImageName = ""
-        this.image = {
-          id: '',
-          name: '',
-          desc: '',
-          port: '',
-          open: false
-        }
         let nodeData = JSON.parse(JSON.stringify(this.vSelectNodeData))
         let nodeType = nodeData["type"]
         if('Container' === nodeType){
           this.isContainer = true
+          this.searchImageName = ""
+          this.image = {
+            id: '',
+            vul_name: '',
+            name: '',
+            desc: '',
+            port: '',
+            open: false,
+            raw: {}
+          }
           if (JSON.stringify(nodeData.attrs) !== '{}'){
             this.searchImageName = nodeData.attrs.name
             this.image = nodeData.attrs
           }
         }else if('Network' === nodeType){
           this.isNetwork = true;
+          this.searchNetworkName = ""
+          this.network = {
+            id: '',
+            name: '',
+            // 子网
+            subnet: '',
+            // 网关
+            gateway: '',
+            raw:{}
+          }
+          if (JSON.stringify(nodeData.attrs) !== '{}'){
+            this.searchNetworkName = nodeData.attrs.name
+            this.network = nodeData.attrs
+          }
         }
         return nodeData
       }
@@ -138,11 +154,10 @@ export default {
   methods:{
     querySearchImageAsync(queryString, cb) {
       this.imageList = []
-      this.searchImageName = null
       if (queryString == null){
         queryString = ""
       }
-      ImgList(queryString, true, 1).then(response => {
+      ImgList(queryString).then(response => {
         let results = response.data.results
         if(results !== null){
           results.forEach((item, index, arr) => {
@@ -166,7 +181,6 @@ export default {
     },
     querySearchNetworkAsync(queryString, cb){
       this.networkList = []
-      this.searchNetworkName = ""
       if (queryString == null){
         queryString = ""
       }
@@ -254,10 +268,6 @@ export default {
     handleNetworkCancel(){
       this.isTopoAttrShow = false
     }
-  },
-  mounted(){
-  },
-  created(){
   }
 }
 </script>

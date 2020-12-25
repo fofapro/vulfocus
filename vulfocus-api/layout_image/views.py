@@ -4,7 +4,8 @@ from .serializers import LayoutSerializer
 from django.core.paginator import Paginator
 from .models import Layout, LayoutService, LayoutServiceNetwork, LayoutData, LayoutServiceContainer, \
     LayoutServiceContainerScore
-from dockerapi.models import ImageInfo, ContainerVul
+from dockerapi.models import ImageInfo, ContainerVul, SysLog
+from dockerapi.views import get_request_ip
 from network.models import NetWorkInfo
 from django.http import JsonResponse
 from django.db.models import Q
@@ -150,8 +151,10 @@ class LayoutViewSet(viewsets.ModelViewSet):
                 if len(env_data) > 0:
                     env_content = "\n".join(env_data)
                 with transaction.atomic():
+                    operation_name = "创建"
                     if id:
                         layout = Layout.objects.filter(layout_id=id).first()
+                        operation_name = "修改"
                     else:
                         layout = Layout(layout_id=uuid.uuid4(), create_date=timezone.now(), update_date=timezone.now())
                     layout_data = LayoutData.objects.filter(layout_id=layout).first()
@@ -237,6 +240,11 @@ class LayoutViewSet(viewsets.ModelViewSet):
                             LayoutServiceContainer.objects.filter(service_id=service_id).delete()
                             # 删除分数
                             LayoutServiceContainerScore.objects.filter(layout_id=layout, service_id=service_id).delete()
+                    request_ip = get_request_ip(request)
+                    sys_log = SysLog(user_id=user.id, operation_type="编排环境", operation_name=operation_name,
+                                     operation_value=name, operation_args=json.dumps(LayoutSerializer(layout).data),
+                                     ip=request_ip)
+                    sys_log.save()
             except Exception as e:
                 return JsonResponse(R.err(msg="服务器内部错误，请联系管理员"))
             return JsonResponse(R.ok())
@@ -260,6 +268,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
             layout = Layout.objects.filter(layout_id=pk).first()
             if not layout:
                 return JsonResponse(R.build(msg="环境不存在"))
+            layout_name = layout.layout_name
             layout_id = str(layout.layout_id)
             layout_path = os.path.join(DOCKER_COMPOSE, layout_id)
             with transaction.atomic():
@@ -284,8 +293,11 @@ class LayoutViewSet(viewsets.ModelViewSet):
                 layout.delete()
                 # 删除文件和文件夹
                 shutil.rmtree(layout_path)
-                # if os.path.exists(layout_path):
-                #     # shutil
+                request_ip = get_request_ip(request)
+                sys_log = SysLog(user_id=user.id, operation_type="编排环境", operation_name="删除",
+                                 operation_value=layout_name, operation_args=json.dumps(LayoutSerializer(layout).data),
+                                 ip=request_ip)
+                sys_log.save()
         except Exception as e:
             traceback.print_exc()
             return JsonResponse(R.err())
@@ -447,6 +459,11 @@ class LayoutViewSet(viewsets.ModelViewSet):
             },
             "open": open_host_list
         }
+        request_ip = get_request_ip(request)
+        sys_log = SysLog(user_id=user.id, operation_type="编排环境", operation_name="启动",
+                         operation_value=layout_info.layout_name, operation_args=json.dumps(LayoutSerializer(layout_info).data),
+                         ip=request_ip)
+        sys_log.save()
         return JsonResponse(R.ok(data=result_data))
 
     @action(methods=["get"], detail=True, url_path="stop")
@@ -482,7 +499,12 @@ class LayoutViewSet(viewsets.ModelViewSet):
                 layout_data.status = "stop"
                 layout_data.save()
         except Exception as e:
-            pass
+            return JsonResponse(R.err())
+        request_ip = get_request_ip(request)
+        sys_log = SysLog(user_id=user.id, operation_type="编排环境", operation_name="停止",
+                         operation_value=layout_info.layout_name, operation_args=json.dumps(LayoutSerializer(layout_info).data),
+                         ip=request_ip)
+        sys_log.save()
         return JsonResponse(R.ok())
 
     @action(methods=["get"], detail=True, url_path="flag")
@@ -518,6 +540,11 @@ class LayoutViewSet(viewsets.ModelViewSet):
                                                                   service_container_id=service_container, flag=flag,
                                                                   update_date=timezone.now())
         service_container_score.save()
+        request_ip = get_request_ip(request)
+        sys_log = SysLog(user_id=user.id, operation_type="编排环境", operation_name="提交Flag",
+                         operation_value=layout_info.layout_name, operation_args=json.dumps({"flag": flag}),
+                         ip=request_ip)
+        sys_log.save()
         return JsonResponse(R.ok())
 
     @action(methods=["get"], detail=True, url_path="rank")

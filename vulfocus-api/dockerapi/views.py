@@ -252,12 +252,11 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         operation_args = ImageInfoSerializer(img_info).data
         request_ip = get_request_ip(request)
         sys_log = SysLog(user_id=user.id, operation_type="镜像", operation_name="删除",
-                         operation_value=operation_args["image_vul_name"], operation_args=operation_args, ip=request_ip)
+                         operation_value=operation_args["image_vul_name"], operation_args=json.dumps(operation_args), ip=request_ip)
         sys_log.save()
         image_id = img_info.image_id
         container_vul = ContainerVul.objects.filter(image_id=image_id)
         data_json = ContainerVulSerializer(container_vul, many=True)
-        print(data_json.data)
         if container_vul.count() == 0:
             img_info.delete()
             return JsonResponse(R.ok())

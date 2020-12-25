@@ -603,6 +603,8 @@ export default {
       this.topoData.nodes.forEach((node, key) => {            // 关联属性设置框
         if (node.id === CURNODE.id) {
           this.selectNodeData = node
+          // this.editable = true
+          // this.isTopoAttrShow = true
         }
       })
       document.onmousemove = (event) => {
@@ -877,7 +879,7 @@ export default {
             containNode = node
           }
         })
-        if (key == 0) {
+        if (key === 0) {
           this.refreshRowNodesPosition(TARGETNODE, containNode, null)
         } else {
           let preNodeIndex = key - 1
@@ -1071,7 +1073,8 @@ export default {
       this.cancelAllLinksSelect()
       selectLine.isSelect = true
       this.$set(connectors, lastIndex, selectLine)
-      this.selectNodeData = selectLine //将点击的连线信息赋值给属性面板
+      // 将点击的连线信息赋值给属性面板
+      this.selectNodeData = selectLine
     },
     // 取消所有节点选中
     cancelAllNodesSelect() {
