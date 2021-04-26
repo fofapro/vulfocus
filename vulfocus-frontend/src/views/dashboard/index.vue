@@ -103,6 +103,7 @@ import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop } from '@/
 import { getTask } from '@/api/tasks'
 import CountDown from 'vue2-countdown'
 export default {
+  inject: ['reload'],
   name: 'Dashboard',
   components: {
     CountDown
@@ -132,9 +133,6 @@ export default {
     },
   created() {
     this.listData(1)
-  },
-  mounted(){
-    this.reload()
   },
   methods:{
       listData() {
@@ -409,6 +407,11 @@ export default {
   margin: 0;
 
   margin-block-end: 0em;
+}
+
+.el-row {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 /*p {*/
