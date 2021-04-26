@@ -133,6 +133,9 @@ export default {
   created() {
     this.listData(1)
   },
+  mounted(){
+    this.reload()
+  },
   methods:{
       listData() {
           ImgList().then(response => {
@@ -240,6 +243,7 @@ export default {
               })
             }
             this.centerDialogVisible = false
+            this.reload()
             this.item_raw_data.status.status = 'stop'
           })
       },
