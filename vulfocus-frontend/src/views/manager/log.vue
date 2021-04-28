@@ -1,5 +1,11 @@
 <template>
   <div class="app-container">
+    <div class="filter-container">
+      <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
+      <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery">
+        查询
+      </el-button>
+    </div>
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column type="index" width="50"></el-table-column>
       <el-table-column prop="user_name" width="150" :show-overflow-tooltip=true label="用户名"></el-table-column>
@@ -33,6 +39,7 @@
     name: 'log',
     data(){
       return {
+        search: "",
         page:{
           total: 0,
           size: 20,
@@ -45,10 +52,15 @@
     },
     methods:{
       inintTableData(page){
-        LogList(page).then(response => {
-          this.tableData = response.data.results
+        let search = this.search
+        LogList(search, page).then(response => {
+          let data = response.data.results
+          this.tableData = data
           this.page.total = response.data.count
         })
+      },
+      handleQuery(){
+        this.inintTableData(1)
       }
     }
   }

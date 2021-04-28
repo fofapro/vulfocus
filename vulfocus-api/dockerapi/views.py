@@ -16,7 +16,7 @@ from vulfocus.settings import client, VUL_IP
 from tasks.models import TaskInfo
 import re
 from rest_framework.decorators import api_view
-
+import time
 
 def get_request_ip(request):
     """
@@ -400,8 +400,11 @@ class SysLogSet(viewsets.ModelViewSet):
     def get_queryset(self):
         request = self.request
         user = request.user
+        query = self.request.GET.get("query", "")
         if user.is_superuser:
-            return SysLog.objects.all().order_by('-create_date')
+            return SysLog.objects.filter(Q(operation_args__contains=query) | Q(operation_name__contains=query)
+                                         | Q(operation_type__contains=query) | Q(ip__contains=query)
+                                         | Q(operation_value__contains=query )).order_by('-create_date')
         else:
             return []
 
