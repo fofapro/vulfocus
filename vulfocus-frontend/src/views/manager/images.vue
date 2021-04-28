@@ -162,7 +162,7 @@
       },
       querySearchImageAsync(queryString, cb) {
         this.imageList = []
-        this.searchImageName = null
+        //this.searchImageName = null
         this.searchImageId = null
         if(queryString !== "" && queryString !== null && queryString.length !== 0){
           ImgList(queryString, true, 1).then(response => {
