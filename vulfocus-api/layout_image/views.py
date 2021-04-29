@@ -45,6 +45,9 @@ def upload_img(request):
     if img_suffix not in ALLOWED_IMG_SUFFIX:
         return JsonResponse(R.build(msg="不支持此格式图片文件，请上传%s格式文件" % ("、".join(ALLOWED_IMG_SUFFIX),)))
     image_name = str(uuid.uuid4()).replace('-', '') + "." + img_suffix
+    static_path = os.path.join(BASE_DIR, "static")
+    if not os.path.exists(static_path):
+        os.mkdir(static_path)
     with open(os.path.join(BASE_DIR, "static", image_name), "wb") as f:
         for chunk in img.chunks():
             f.write(chunk)
