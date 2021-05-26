@@ -1,15 +1,18 @@
 import socket
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from dockerapi.models import ImageInfo
-from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer, SysLogSerializer
+from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer, SysLogSerializer, TimeMoudelSerializer, TimeRankSerializer, TimeTempSerializer
 from dockerapi.models import ContainerVul
+from user.serializers import UserProfileSerializer
+from user.models import UserProfile
 import django.utils
 import django.utils.timezone as timezone
 from .common import R, DEFAULT_CONFIG, get_setting_config
 from django.db.models import Q
-from .models import SysLog, SysConfig
+from .models import SysLog, SysConfig, TimeMoudel, TimeTemp, TimeRank
 import json
 from tasks import tasks
 from vulfocus.settings import client, VUL_IP
@@ -17,6 +20,8 @@ from tasks.models import TaskInfo
 import re
 from rest_framework.decorators import api_view
 import time
+import datetime
+import uuid
 
 def get_request_ip(request):
     """
@@ -31,14 +36,219 @@ def get_request_ip(request):
         request_ip = request.META.get("REMOTE_ADDR")
     return request_ip
 
+class CreateTimeTemplate(viewsets.ModelViewSet):
+
+    serializer_class = TimeTempSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        request = self.request
+        user_id = request.user.id
+        now_time = datetime.datetime.now().timestamp()
+        flag = self.request.GET.get("flag", "")
+        data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+        if data:
+            if flag and flag=="flag":
+                return TimeTemp.objects.all()
+            else:
+                data_list = TimeTemp.objects.filter(temp_id=data.temp_time_id_id)
+                print(data_list)
+                data_l = [{'temp_id': data_list[0].temp_id, 'time_desc':data_list[0].time_desc,
+                          'time_range': data_list[0].time_range, 'user_id': data_list[0].user_id,
+                          'flag_status': True}]
+                return data_l
+        else:
+            return TimeTemp.objects.all()
+
+
+    # 创建计时模式模版
+    def create(self, request, *args, **kwargs):
+        user_id = request.user.id
+        time_desc = request.data['desc']
+        if request.data['time_range'].isdigit() != True or int(request.data['time_range']) % 30 != 0:
+            data = {
+                "code": 2001,
+                "message": "时间范围必须是整数，并且是30的倍数",
+            }
+            return JsonResponse(data=data)
+        try:
+            time_range = request.data['time_range']
+        except Exception as e:
+            return JsonResponse(data={"code": 2001, "message": "时间范围不能为空"})
+        timetemp_info = TimeTemp(user_id=user_id, time_range=int(time_range), time_desc=time_desc)
+        timetemp_info.save()
+        data = self.serializer_class(timetemp_info).data
+        return JsonResponse(R.ok(data=data))
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build(msg="权限不足"))
+        temp = self.get_object()
+        temp_id = self.get_serializer(temp).data['temp_id']
+        try:
+
+            temp = TimeTemp.objects.filter(temp_id=temp_id).first()
+        except Exception as e:
+            return JsonResponse({"code": 2001, "message": "删除失败"})
+        return JsonResponse({"code": 200, "message": "删除成功"})
+
+
+class TimeRankSet(viewsets.ModelViewSet):
+    serializer_class = TimeRankSerializer
+
+    def get_queryset(self):
+        value = self.request.GET.get("value")
+        time_data = TimeTemp.objects.all().filter(time_range=value).first()
+        temp_data = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id)
+        return temp_data
+
+
+
+
+class TimeMoudelSet(viewsets.ModelViewSet):
+
+    serializer_class = TimeMoudelSerializer
+
+    def get_queryset(self):
+        data = TimeMoudel.objects.all().filter(user_id=self.request.user.id, status=True)
+        return data
+
+    '''
+    删除时间模式，删除会所有该用户目前运行的容器
+    '''
+    def delete(self, request, *args, **kwargs):
+        user_id = request.user.id
+        now_time = datetime.datetime.now().timestamp()
+        try:
+            TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).delete()
+            container_vul_list = ContainerVul.objects.filter(user_id=user_id)
+            for container_vul in container_vul_list:
+                try:
+                    docker_container_id = container_vul.docker_container_id
+                    # 移除Docker容器
+                    docker_container = client.containers.get(container_id=docker_container_id)
+                    docker_container.remove()
+                except Exception as e:
+                    pass
+                container_vul.delete()
+            return JsonResponse({"code": "2000", "msg": "成功"}, status=201)
+        except Exception as e:
+            return JsonResponse({"code": "2001", "msg": str(e)})
+
+    '''
+    获取时间模式数据信息
+    '''
+    @action(methods=['get'], detail=False, url_path="info")
+    def info(self, request, pk=None):
+        user_id = request.user.id
+        now_time = datetime.datetime.now().timestamp()
+        user_data = UserProfile.objects.filter(id=user_id).first()
+        data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+        if not data:
+            return JsonResponse({"code": "2001", "msg": "不在答题模式中", "data": ""})
+        time_moudel_serializer = TimeMoudelSerializer(data)
+        info = time_moudel_serializer.data
+        # 计算分数
+        time_id = data.time_id
+        total_rank = 0.0
+        time_moudel_vul_list = ContainerVul.objects.filter(time_model_id=time_id,is_check=True)
+        for time_moudel_vul in time_moudel_vul_list:
+            total_rank += time_moudel_vul.image_id.rank
+        trdata = TimeRank.objects.filter(time_temp_id=data.temp_time_id_id,user_id=user_id).first()
+        if trdata:
+            trdata.update(rank=total_rank)
+        else:
+            tr = TimeRank(user_id=user_id, rank=total_rank, time_temp_id=data.temp_time_id_id,
+                          user_name=user_data.username)
+            tr.save()
+        info['rank'] = total_rank
+        return JsonResponse({"code": "200", "msg": "", "data": info})
+
+    '''
+    检测是否时间过期
+    '''
+    @action(methods=['get'], detail=False, url_path="check")
+    def check(self, request, pk=None):
+        user_id = request.user.id
+        now_time = datetime.datetime.now().timestamp()
+        data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+        if data:
+            # 移除所有的镜像
+            container_vul_list = ContainerVul.objects.filter(user_id=user_id)
+            for container_vul in container_vul_list:
+                try:
+                    docker_container_id = container_vul.docker_container_id
+                    # 移除Docker
+                    docker_container = client.containers.get(container_id=docker_container_id)
+                    docker_container.remove()
+                except Exception as e:
+                    pass
+                container_vul.delete()
+            return JsonResponse({"code": "200", "msg": "OK"})
+        else:
+            return JsonResponse({"code": "2001", "msg": "时间已到"})
+
+    '''
+    创建计分模式
+    '''
+
+    def create(self, request, *args, **kwargs):
+        user_id = request.user.id
+        now_time = datetime.datetime.now().timestamp()
+        if "type" in request.data:
+            dasdata = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+            if dasdata:
+                tm1 = TimeMoudel.objects.filter(user_id=user_id, status=True ).all()
+                print(tm1)
+                tm = TimeMoudel.objects.filter(user_id=user_id, status=True ).first()
+                tm_moudel_info = TimeMoudelSerializer(tm)
+                data = tm_moudel_info.data
+                data["start_date"] = int(time.time())
+                onetime = time.strptime(data["end_date"], "%Y-%m-%d %H:%M:%S")
+                data["end_date"] = int(time.mktime(onetime))
+                print(data)
+                return JsonResponse({"code": "2002", "msg": "时间未到", "data": data})
+            else:
+                return JsonResponse({"code": "20000", "msg": "响应成功", "data": ""})
+        if "time_range" in request.data:
+            time_minute = request.data['time_range']
+        data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+        if data:
+            return JsonResponse({"code": "2001", "msg": "时间未到", "data": ""})
+        else:
+            try:
+                request_ip = get_request_ip(request)
+                sys_log = SysLog(user_id=user_id, operation_type="时间模式", operation_name="创建 ", operation_value="",
+                                 operation_args={},
+                                 ip=request_ip)
+                sys_log.save()
+            except Exception as e:
+                pass
+            now_time = datetime.datetime.now()
+            end_time = now_time + datetime.timedelta(minutes=time_minute)
+            start_time_timestamp = now_time.timestamp()
+            end_time_timestamp = end_time.timestamp()
+            temp_id = request.data['temp_id']
+            time_moudel = TimeMoudel(time_id=str(uuid.uuid4()), user_id=user_id, start_time=start_time_timestamp,
+                                     end_time=end_time_timestamp, temp_time_id_id=temp_id, status=True)
+            time_moudel.save()
+            time_moudel_info = TimeMoudelSerializer(time_moudel)
+            data = time_moudel_info.data
+            data["start_date"] = int(time.time())
+            onetime = time.strptime(data["end_date"], "%Y-%m-%d %H:%M:%S")
+            data["end_date"] = int(time.mktime(onetime))
+            return JsonResponse({"code": "200", "msg": "OK", "data": data}, status=201)
+
 
 class ImageInfoViewSet(viewsets.ModelViewSet):
     serializer_class = ImageInfoSerializer
 
     def get_queryset(self):
+        now_time = datetime.datetime.now().timestamp()
         query = self.request.GET.get("query", "")
         flag = self.request.GET.get("flag", "")
         user = self.request.user
+        data = TimeMoudel.objects.filter(user_id=self.request.user.id, end_time__gte=now_time).first()
         if user.is_superuser:
             if query:
                 query = query.strip()
@@ -60,6 +270,11 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                                                        | Q(image_desc__contains=query), is_ok=True).order_by('-create_date')
             else:
                 image_info_list = ImageInfo.objects.filter(is_ok=True).order_by('-create_date')
+        if data:
+            for image_info in image_info_list:
+                image_info.image_name = ''
+                image_info.image_vul_name = ''
+                image_info.image_desc = ''
         return image_info_list
 
     def destroy(self, request, *args, **kwargs):
@@ -496,6 +711,16 @@ def update_setting(request):
     else:
         build_msg.extend(msg_list)
         return JsonResponse(R.build(msg=build_msg, data=rsp_data))
+
+
+class UserRank(viewsets.ModelViewSet):
+    serializer_class = UserProfileSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return UserProfile.objects.all().order_by("rank")
+        else:
+            return []
 
 
 def get_local_ip():

@@ -4,6 +4,48 @@ from user.models import UserProfile
 # Create your models here.
 
 
+class TimeTemp(models.Model):
+    """
+    时间模式模板信息
+    """
+    temp_id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    user_id = models.IntegerField(verbose_name='用户ID')
+    time_range = models.IntegerField(verbose_name='计时模式时间')
+    time_desc = models.TextField(verbose_name='计时模版描述', null=True)
+    flag_status = models.BooleanField(verbose_name='用于判断', default=False)
+
+    class Meta:
+        db_table = 'time_Temp'
+
+
+class TimeRank(models.Model):
+    """
+    时间模式排名
+    """
+    rank_id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    user_id = models.IntegerField(verbose_name='用户ID')
+    user_name = models.CharField(max_length=256, verbose_name='用户名称')
+    rank = models.FloatField(verbose_name='Rank', null=False)
+    time_temp = models.ForeignKey(to="TimeTemp", to_field='temp_id', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'time_rank'
+
+
+class TimeMoudel(models.Model):
+    """
+    时间模式信息
+    """
+    time_id = models.CharField(max_length=255, default=str(uuid.uuid4()), primary_key=True,verbose_name='ID')  # 关键
+    user_id = models.IntegerField(verbose_name='用户ID')
+    start_time = models.FloatField(null=False, verbose_name='开始时间戳')  # 时间模式开始时间
+    end_time = models.FloatField(null=False, verbose_name='结束时间')  # 时间模式结束时间
+    temp_time_id = models.ForeignKey(to="TimeTemp", to_field='temp_id', on_delete=models.CASCADE)  # 关联模版id
+    status = models.BooleanField(verbose_name='用于判断', default=False)
+
+    class Meta:
+        db_table = 'time_moudel'
+
 class ImageInfo(models.Model):
     """
     镜像实体Model

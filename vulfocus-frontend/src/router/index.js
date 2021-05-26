@@ -72,25 +72,44 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/scene',
+    path: '/userrank',
     component: Layout,
-    redirect: '/scene/list',
-    children: [
-      {
-        path: 'list',
+    redirect: '/userrank',
+    children: [{
+      path: 'list',
+      affix: true,
+      name: 'list',
+      component: () => import('@/views/rank/index'),
+      meta: { title: '用户积分榜', icon: 'form' }
+    }]
+  },
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/',
+    meta: {title: "情景模式", icon: 'form'},
+    children: [{
+      path: 'time',
+      affix: true,
+      name: 'time',
+      component: () => import('@/views/time/index'),
+      meta: { title: '计时模式', icon: 'form' }
+    },
+    {
+        path: '/scene/list',
         component: () => import('@/views/scene/list'),
         name: 'List',
         meta: { title: '场景', icon: 'table', noCache: true }
       },
       {
-        path: 'index',
+        path: '/scene/index',
         component: () => import('@/views/scene/index'),
         name: 'Index',
         hidden: true,
         meta: { title: '场景', icon: 'table', noCache: true }
-      }
-    ]
-  }
+      }]
+  },
+
 ]
 
 const createRouter = () => new Router({
@@ -133,7 +152,7 @@ export const asyncRoutes = [
     path: '/layout',
     component: Layout,
     redirect: '/layout',
-    meta: {role: ['admin'], title: "环境编排管理", icon: "barrage_fill"},
+    meta: {role: ['admin'], title: "情景模式管理", icon: "barrage_fill"},
     children: [{
       path: 'network',
       affix: true,
@@ -154,7 +173,14 @@ export const asyncRoutes = [
       hidden: true,
       component: () => import('@/views/layout/index'),
       meta: { title: '创建', icon: 'barrage_fill' , role: ['admin']}
-    }
+    },
+    {
+        path: 'time',
+        affix: true,
+        name: 'time',
+        component: () => import("@/views/manager/timetemp"),
+        meta: { title: '计时模版管理', icon: 'setting' , role: ['admin']}
+    },
     ]
   },
   {
@@ -183,7 +209,8 @@ export const asyncRoutes = [
         component: () => import('@/views/manager/setting'),
         name: 'setting',
         meta: { title: '系统配置', icon: 'setting', noCache: true }
-      }
+      },
+
     ]
   },
   { path: '*', redirect: '/404', hidden: true }

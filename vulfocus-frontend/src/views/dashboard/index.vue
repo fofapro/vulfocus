@@ -95,13 +95,16 @@
         :total="page.total">
       </el-pagination>
     </div>
+
   </div>
 </template>
 
 <script>
 import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop } from '@/api/docker'
 import { getTask } from '@/api/tasks'
+import { start } from '@/api/timemoudel'
 import CountDown from 'vue2-countdown'
+import { Notification } from 'element-ui'
 export default {
   inject: ['reload'],
   name: 'Dashboard',
@@ -128,13 +131,40 @@ export default {
       item_raw_data: "",
       cStatus: true,
       search: "",
-      vul_port:{}
+      vul_port:{},
+      notifications: {},
+      dasstatus: {
+        "status":true,
+        "type": "dashboard"
+      }
       };
     },
   created() {
     this.listData(1)
+    this.timeData()
+  },
+  mounted() {
+  },
+  beforeDestroy(){
+    Notification.closeAll()
   },
   methods:{
+      timeData(){
+        start(this.dasstatus).then(respones =>{
+          const data = respones.data
+          if ("2002"===data.code){
+            this.$notify({
+              title: '计时模式',
+              message:<count-down currentTime={data.data.start_date} startTime={data.data.start_date} endTime={data.data.end_date} dayTxt={"天"} hourTxt={"小时"} minutesTxt={"分钟"} secondsTxt={"秒"}></count-down>,
+              duration: 0,
+              position: 'bottom-right',
+              showClose: false,
+              dangerouslyUseHTMLString:true,
+            });
+          }else{
+          }
+        })
+      },
       listData() {
           ImgList().then(response => {
             this.listdata = response.data.results
