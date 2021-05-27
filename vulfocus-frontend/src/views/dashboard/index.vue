@@ -100,7 +100,8 @@
 </template>
 
 <script>
-import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop } from '@/api/docker'
+import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop, } from '@/api/docker'
+import { timetemplist,publicMethod,gettimetemp } from '@/api/timemoudel'
 import { getTask } from '@/api/tasks'
 import { start } from '@/api/timemoudel'
 import CountDown from 'vue2-countdown'
@@ -132,6 +133,7 @@ export default {
       cStatus: true,
       search: "",
       vul_port:{},
+      countlist:[],
       notifications: {},
       dasstatus: {
         "status":true,
@@ -143,27 +145,29 @@ export default {
     this.listData(1)
     this.timeData()
   },
-  mounted() {
-  },
   beforeDestroy(){
     Notification.closeAll()
   },
   methods:{
       timeData(){
-        start(this.dasstatus).then(respones =>{
-          const data = respones.data
-          if ("2002"===data.code){
+        gettimetemp().then(response => {
+        let data = response.data.results
+          this.countlist = data
+          if (this.countlist.length===0){
+              console.log(1111)
+          }else {
+            this.countlist[0].end_date = publicMethod.getTimestamp(this.countlist[0].end_date)
+            this.countlist[0].start_date = publicMethod.getTimestamp(this.get_time)
+            console.log(this.countlist)
             this.$notify({
               title: '计时模式',
-              message:<count-down currentTime={data.data.start_date} startTime={data.data.start_date} endTime={data.data.end_date} dayTxt={"天"} hourTxt={"小时"} minutesTxt={"分钟"} secondsTxt={"秒"}></count-down>,
+              message:<count-down currentTime={this.countlist[0].start_date} startTime={this.countlist[0].start_date} endTime={this.countlist[0].end_date} dayTxt={"天"} hourTxt={"小时"} minutesTxt={"分钟"} secondsTxt={"秒"}></count-down>,
               duration: 0,
               position: 'bottom-right',
               showClose: false,
               dangerouslyUseHTMLString:true,
             });
-          }else{
-          }
-        })
+          }})
       },
       listData() {
           ImgList().then(response => {
@@ -262,7 +266,7 @@ export default {
             }else if(responseData.status === 201){
               this.$message({
                 message: responseData["msg"],
-                type: "info",
+                type: "error",
               })
             }else{
               this.$message({
@@ -367,6 +371,16 @@ export default {
           this.page.total = response.data.count
         })
       }
+  },
+  mounted: function() {
+      var _this = this;
+      let yy = new Date().getFullYear();
+      let mm = new Date().getMonth()+1;
+      let dd = new Date().getDate();
+      let hh = new Date().getHours();
+      let mf = new Date().getMinutes()<10 ? '0'+new Date().getMinutes() : new Date().getMinutes();
+      let ss = new Date().getSeconds()<10 ? '0'+new Date().getSeconds() : new Date().getSeconds();
+      _this.get_time = yy+'-'+mm+'-'+dd+' '+hh+':'+mf+':'+ss;
   },
 }
 

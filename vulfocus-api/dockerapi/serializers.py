@@ -10,6 +10,7 @@ from vulfocus.settings import REDIS_POOL
 from dockerapi.common import get_setting_config
 import redis
 import time
+import datetime
 r = redis.Redis(connection_pool=REDIS_POOL)
 
 
@@ -68,7 +69,11 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         '''
         检测是否在时间模式中
         '''
+        now_time = datetime.datetime.now().timestamp()
+        time_moudel_data = TimeMoudel.objects.filter(user_id=id, end_time__gte=now_time).first()
         time_model_id = ''
+        if time_moudel_data:
+            time_model_id = time_moudel_data.time_id
         # 排出已经删除数据 Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
         data = ContainerVul.objects.all().filter(user_id=id, image_id=obj.image_id, time_model_id=time_model_id).first()
         status["status"] = ""

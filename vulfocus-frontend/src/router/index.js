@@ -84,30 +84,43 @@ export const constantRoutes = [
     }]
   },
   {
-    path: '/',
+    path: '/time',
     component: Layout,
-    redirect: '/',
-    meta: {title: "情景模式", icon: 'form'},
+    redirect: '/time',
     children: [{
       path: 'time',
       affix: true,
-      name: 'time',
+      name: 'list',
+      hidden: true,
       component: () => import('@/views/time/index'),
-      meta: { title: '计时模式', icon: 'form' }
-    },
-    {
-        path: '/scene/list',
-        component: () => import('@/views/scene/list'),
-        name: 'List',
-        meta: { title: '场景', icon: 'table', noCache: true }
-      },
+      meta: { title: '场景模式', icon: 'form' }
+    }]
+  },
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/',
+    children: [{
+      path: '/scene/list',
+      name: 'List',
+      component: () => import('@/views/scene/list'),
+      meta: { title: '场景', icon: 'table', noCache: true }
+    }]
+  },
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/',
+    meta: {title: "场景模式", icon: 'form'},
+    hidden: true,
+    children: [
       {
         path: '/scene/index',
         component: () => import('@/views/scene/index'),
         name: 'Index',
         hidden: true,
         meta: { title: '场景', icon: 'table', noCache: true }
-      }]
+      },]
   },
 
 ]
@@ -152,7 +165,7 @@ export const asyncRoutes = [
     path: '/layout',
     component: Layout,
     redirect: '/layout',
-    meta: {role: ['admin'], title: "情景模式管理", icon: "barrage_fill"},
+    meta: {role: ['admin'], title: "场景管理", icon: "barrage_fill"},
     children: [{
       path: 'network',
       affix: true,
@@ -175,9 +188,9 @@ export const asyncRoutes = [
       meta: { title: '创建', icon: 'barrage_fill' , role: ['admin']}
     },
     {
-        path: 'time',
+        path: 'timetemp',
         affix: true,
-        name: 'time',
+        name: 'timetemp',
         component: () => import("@/views/manager/timetemp"),
         meta: { title: '计时模版管理', icon: 'setting' , role: ['admin']}
     },

@@ -11,6 +11,7 @@ class TimeTemp(models.Model):
     temp_id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     user_id = models.IntegerField(verbose_name='用户ID')
     time_range = models.IntegerField(verbose_name='计时模式时间')
+    image_name = models.TextField(null=False, default="", verbose_name="图片名称")
     time_desc = models.TextField(verbose_name='计时模版描述', null=True)
     flag_status = models.BooleanField(verbose_name='用于判断', default=False)
 

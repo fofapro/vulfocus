@@ -41,23 +41,12 @@ class CreateTimeTemplate(viewsets.ModelViewSet):
     serializer_class = TimeTempSerializer
 
     def get_queryset(self, *args, **kwargs):
+
         request = self.request
+        r_ip = get_request_ip(request)
         user_id = request.user.id
         now_time = datetime.datetime.now().timestamp()
-        flag = self.request.GET.get("flag", "")
-        data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
-        if data:
-            if flag and flag=="flag":
-                return TimeTemp.objects.all()
-            else:
-                data_list = TimeTemp.objects.filter(temp_id=data.temp_time_id_id)
-                print(data_list)
-                data_l = [{'temp_id': data_list[0].temp_id, 'time_desc':data_list[0].time_desc,
-                          'time_range': data_list[0].time_range, 'user_id': data_list[0].user_id,
-                          'flag_status': True}]
-                return data_l
-        else:
-            return TimeTemp.objects.all()
+        return TimeTemp.objects.all()
 
 
     # 创建计时模式模版
@@ -70,24 +59,41 @@ class CreateTimeTemplate(viewsets.ModelViewSet):
                 "message": "时间范围必须是整数，并且是30的倍数",
             }
             return JsonResponse(data=data)
+        time_data = TimeTemp.objects.filter(time_range=int(request.data['time_range'])).first()
+        if time_data:
+            data = {
+                "code": 2001,
+                "message": "该时间模式已经创建",
+            }
+            return JsonResponse(data=data)
         try:
             time_range = request.data['time_range']
         except Exception as e:
             return JsonResponse(data={"code": 2001, "message": "时间范围不能为空"})
-        timetemp_info = TimeTemp(user_id=user_id, time_range=int(time_range), time_desc=time_desc)
+        img = request.data['imageName']
+        timetemp_info = TimeTemp(user_id=user_id, time_range=int(time_range), time_desc=time_desc, image_name=img)
         timetemp_info.save()
         data = self.serializer_class(timetemp_info).data
         return JsonResponse(R.ok(data=data))
 
     def destroy(self, request, *args, **kwargs):
         user = request.user
+        now_time = datetime.datetime.now().timestamp()
         if not user.is_superuser:
             return JsonResponse(R.build(msg="权限不足"))
-        temp = self.get_object()
-        temp_id = self.get_serializer(temp).data['temp_id']
-        try:
+        request = self.request
 
+        if "id" in request.data:
+            temp_id = request.data['id']
+        else:
+            temp = self.get_object()
+            temp_id = self.get_serializer(temp).data['temp_id']
+        data = TimeMoudel.objects.filter(temp_time_id_id=temp_id,end_time__gte=now_time).first()
+        if data:
+            return JsonResponse({"code": 2001, "message": "删除失败，该模版计时模式已启动"})
+        try:
             temp = TimeTemp.objects.filter(temp_id=temp_id).first()
+            temp.delete()
         except Exception as e:
             return JsonResponse({"code": 2001, "message": "删除失败"})
         return JsonResponse({"code": 200, "message": "删除成功"})
@@ -120,8 +126,10 @@ class TimeMoudelSet(viewsets.ModelViewSet):
         user_id = request.user.id
         now_time = datetime.datetime.now().timestamp()
         try:
+            data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+            time_id = data.time_id
             TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).delete()
-            container_vul_list = ContainerVul.objects.filter(user_id=user_id)
+            container_vul_list = ContainerVul.objects.filter(user_id=user_id, time_model_id=time_id)
             for container_vul in container_vul_list:
                 try:
                     docker_container_id = container_vul.docker_container_id
@@ -133,6 +141,7 @@ class TimeMoudelSet(viewsets.ModelViewSet):
                 container_vul.delete()
             return JsonResponse({"code": "2000", "msg": "成功"}, status=201)
         except Exception as e:
+            print(e)
             return JsonResponse({"code": "2001", "msg": str(e)})
 
     '''
@@ -195,23 +204,7 @@ class TimeMoudelSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         user_id = request.user.id
         now_time = datetime.datetime.now().timestamp()
-        if "type" in request.data:
-            dasdata = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
-            if dasdata:
-                tm1 = TimeMoudel.objects.filter(user_id=user_id, status=True ).all()
-                print(tm1)
-                tm = TimeMoudel.objects.filter(user_id=user_id, status=True ).first()
-                tm_moudel_info = TimeMoudelSerializer(tm)
-                data = tm_moudel_info.data
-                data["start_date"] = int(time.time())
-                onetime = time.strptime(data["end_date"], "%Y-%m-%d %H:%M:%S")
-                data["end_date"] = int(time.mktime(onetime))
-                print(data)
-                return JsonResponse({"code": "2002", "msg": "时间未到", "data": data})
-            else:
-                return JsonResponse({"code": "20000", "msg": "响应成功", "data": ""})
-        if "time_range" in request.data:
-            time_minute = request.data['time_range']
+        time_minute = request.data['time_range']
         data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
         if data:
             return JsonResponse({"code": "2001", "msg": "时间未到", "data": ""})
@@ -234,9 +227,6 @@ class TimeMoudelSet(viewsets.ModelViewSet):
             time_moudel.save()
             time_moudel_info = TimeMoudelSerializer(time_moudel)
             data = time_moudel_info.data
-            data["start_date"] = int(time.time())
-            onetime = time.strptime(data["end_date"], "%Y-%m-%d %H:%M:%S")
-            data["end_date"] = int(time.mktime(onetime))
             return JsonResponse({"code": "200", "msg": "OK", "data": data}, status=201)
 
 
@@ -491,13 +481,18 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         user = request.user
         image_id = img_info.image_id
         user_id = user.id
-        container_vul = ContainerVul.objects.filter(user_id=user_id, image_id=image_id, time_model_id="").first()
+        now_time = datetime.datetime.now().timestamp()
+        time_moudel_data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+        time_model_id = ''
+        if time_moudel_data:
+            time_model_id = time_moudel_data.time_id
+        container_vul = ContainerVul.objects.filter(user_id=user_id, image_id=image_id, time_model_id=time_model_id).first()
         if not container_vul:
             container_vul = ContainerVul(image_id=img_info, user_id=user_id, vul_host="", container_status="stop",
                                          docker_container_id="",
                                          vul_port="",
                                          container_port="",
-                                         time_model_id="",
+                                         time_model_id=time_model_id,
                                          create_date=django.utils.timezone.now(),
                                          container_flag="")
             container_vul.save()
@@ -514,13 +509,21 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         user = request.user
         flag = request.GET.get("flag", "")
         image_id = request.GET.get("image_id", "")
+        '''
+        检测是否在时间模式中
+        '''
+        now_time = datetime.datetime.now().timestamp()
+        time_moudel_data = TimeMoudel.objects.filter(user_id=user.id, end_time__gte=now_time).first()
+        time_model_id = ''
+        if time_moudel_data:
+            time_model_id = time_moudel_data.time_id
         if flag == 'list' and user.is_superuser:
             if image_id:
                 container_vul_list = ContainerVul.objects.filter(image_id=image_id).order_by('-create_date')
             else:
                 container_vul_list = ContainerVul.objects.all().order_by('-create_date')
         else:
-            container_vul_list = ContainerVul.objects.filter(user_id=self.request.user.id, time_model_id="")
+            container_vul_list = ContainerVul.objects.filter(user_id=user.id, time_model_id=time_model_id)
         return container_vul_list
 
     @action(methods=["get"], detail=True, url_path='start')
@@ -579,7 +582,9 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         :param pk:
         :return:
         """
-        flag = request.GET.get('flag', None)
+        
+        request = self.request
+        flag = request.GET.get('flag', "")
         container_vul = self.get_object()
         user_info = request.user
         user_id = user_info.id
@@ -589,7 +594,6 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
                          operation_value=operation_args["vul_name"], operation_args={"flag": flag},
                          ip=request_ip)
         sys_log.save()
-
         if user_id != container_vul.user_id:
             return JsonResponse(R.build(msg="Flag 与用户不匹配"))
         if not flag:
