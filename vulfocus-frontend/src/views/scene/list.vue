@@ -14,7 +14,8 @@
             </div>
           </div>
           <div style="padding: 5px; margin-top: 5px;" >
-            <img :src="item.image_name"  alt="" width="285px" height="300px;"/>
+            <img v-if="item.image_name!=imgpath" :src="item.image_name"  alt="" width="285px" height="300px;"/>
+            <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="285px" height="300px;"/>
             <div class="container-title" style="margin-top: 5px;">
               <span>{{item.layout_name}}</span>
             </div>
@@ -36,7 +37,8 @@
             </div>
           </div>
           <div style="padding: 5px; margin-top: 5px;" >
-            <img :src= "titem.image_name"  alt="" width="285px" height="300px;"/>
+            <img v-if="titem.image_name!=imgpath" :src= "titem.image_name"  alt="" width="285px" height="300px;"/>
+            <img v-else-if="titem.image_name===imgpath" :src= "modelimg"  alt="" width="285px" height="300px;"/>
             <div class="container-title" style="margin-top: 5px;">
               <span>{{titem.time_range}}分钟计时挑战赛</span>
             </div>
@@ -97,6 +99,8 @@ export default {
       get_time:"",
       timelist:[],
       countlist:[],
+      imgpath:process.env.VUE_APP_BASE_API+ '/static/',
+      modelimg: require("../../assets/modelbg.jpg")
       // isAdmin: false
     }
   },
@@ -109,7 +113,6 @@ export default {
           info.image_name = process.env.VUE_APP_BASE_API+ '/static/'+ info.image_name
           this.tableData.push(info)
         })
-        console.log(this.tableData)
         this.page.total = rsp.count
       }).catch(err => {
         this.$message({
@@ -120,6 +123,7 @@ export default {
     },
     gettimelist(){
       gettimetemp().then(response => {
+        console.log(this.modelimg)
         let data = response.data.results
           this.countlist = data
           console.log(data)
@@ -141,7 +145,6 @@ export default {
     templist(){
         timetemplist().then(response =>{
           let data = response.data
-          console.log(data)
           data.results.forEach((info,index) => {
             info.image_name = process.env.VUE_APP_BASE_API+ '/static/'+ info.image_name
             this.timelist.push(info)

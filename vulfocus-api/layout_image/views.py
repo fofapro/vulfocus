@@ -97,8 +97,6 @@ class LayoutViewSet(viewsets.ModelViewSet):
                 return JsonResponse(R.build(msg="名称不能为空"))
             desc = request.POST.get("desc", "")
             img = request.POST.get("img", "")
-            if not img:
-                return JsonResponse(R.build(msg="图片不能为空"))
             if not data:
                 return JsonResponse(R.build(msg="参数不能为空"))
             topo_data = json.loads(data)
