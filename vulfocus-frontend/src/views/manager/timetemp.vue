@@ -5,9 +5,9 @@
         </el-button>
     </div>
     <el-dialog :visible.sync="editShow" title="创建">
-      <el-form label-width="80px" v-loading="editLoading" element-loading-text="创建中">
+      <el-form label-width="150px" v-loading="editLoading" element-loading-text="创建中">
         <el-form-item label="计时时间" :label-width="formLabelWidth">
-          <el-select v-model="form.time_range" placeholder="请选择时间范围">
+          <el-select v-model="form.time_range" placeholder="请选择时间范围" size="medium" >
             <el-option label="30分钟" value="30"></el-option>
             <el-option label="60分钟" value="60"></el-option>
             <el-option label="90分钟" value="90"></el-option>
@@ -15,11 +15,9 @@
           </el-select>
         </el-form-item>
         <el-form-item label="模版描述" :label-width="formLabelWidth" >
-          <el-col :span="80">
-            <el-input type="textarea" v-model="form.desc" autocomplete="off" autosize ></el-input>
-          </el-col>
+          <el-input type="textarea" v-model="form.desc" autocomplete="off" :autosize="{ minRows: 4, maxRows: 6}" ></el-input>
         </el-form-item>
-        <el-form-item label="Banner 图">
+        <el-form-item label="Banner 图" :label-width="formLabelWidth">
           <el-upload
             class="avatar-uploader"
             action=""
@@ -37,7 +35,7 @@
       </el-form>
     </el-dialog>
     <el-table :data="tableData" border stripe style="width: 100%;margin-top:20px;">
-      <el-table-column prop="temp_id" label="id" width="180"></el-table-column>
+      <el-table-column prop="temp_id" label="id" width="300"></el-table-column>
       <el-table-column prop="time_range" label="时间范围" width="180"></el-table-column>
       <el-table-column prop="time_desc" label="描述"></el-table-column>
       <el-table-column fixed="right" label="操作" width="100">
@@ -164,10 +162,6 @@
 </script>
 
 <style scoped>
-.el-row {
-  display: flex;
-  flex-wrap: wrap;
-}
 .avatar-uploader .el-upload {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
@@ -176,7 +170,7 @@
   overflow: hidden;
 }
 .avatar-uploader .el-upload:hover {
-  border-color: #409EFF;
+  border-color: #409eff;
 }
 .avatar-uploader-icon {
   font-size: 28px;

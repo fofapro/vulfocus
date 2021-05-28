@@ -1,6 +1,6 @@
 <template>
   <div class="block">
-    <el-timeline>
+    <el-timeline v-if="timemodel===false" >
       <el-timeline-item v-for="(item,index) of timeline" :key="index" :timestamp="item.create_date" placement="top">
         <el-card>
           <h4>启动 {{ item.name }}</h4>
@@ -12,7 +12,14 @@
         </el-card>
       </el-timeline-item>
     </el-timeline>
-    <div style="margin-top: 20px">
+    <el-timeline v-else-if="timemodel===true" >
+      <el-timeline-item placement="top">
+          <el-card>
+            <h4>正在进行计时挑战赛</h4>
+          </el-card>
+        </el-timeline-item>
+    </el-timeline>
+      <div style="margin-top: 20px">
       <el-pagination
         :page-size="page.size"
         @current-change="handleQuery"
@@ -25,6 +32,7 @@
 
 <script>
 import { ContainerHisory } from '@/api/docker'
+import { gettimetemp } from '@/api/timemoudel'
 export default {
   data() {
     return {
@@ -32,7 +40,8 @@ export default {
       page: {
         size: 20,
         total: 0,
-      }
+      },
+      timemodel:false
     }
 
   },
@@ -45,9 +54,20 @@ export default {
         this.page.total = response.data.count
       })
     },
+    gettimelist(){
+      gettimetemp().then(response => {
+        let data = response.data.results
+          if (data.length===0){
+          }else {
+            this.timemodel = true
+          }
+        }
+      )
+    },
   },
   created() {
     this.handleQuery(1)
+    this.gettimelist()
   },
 
 }

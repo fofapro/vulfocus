@@ -631,8 +631,9 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
                     rd = TimeRank.objects.filter(time_temp_id=time_moudel_data.temp_time_id_id, user_id=user_id).first()
                     for i in successful:
                         rank += i.image_id.rank
-                    rd.rank = rank
-                    rd.save()
+                    if rank >= rd.rank:
+                        rd.rank = rank
+                        rd.save()
                 # 停止 Docker
                 tasks.stop_container_task(container_vul=container_vul, user_info=user_info,
                                           request_ip=get_request_ip(request))
