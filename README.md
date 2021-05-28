@@ -37,9 +37,8 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 ## 使用
 
-![](./imgs/register.gif)
+![](./imgs/10.png)
 
-![](./imgs/login.gif)
 
 1. 安装完成后，访问80端口
 
@@ -72,6 +71,10 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 7. 场景模式（普通用户权限）
 
 ![](./imgs/9.gif)
+
+8. 计时模式
+
+![](./imgs/11.gif)
 
 ## FAQ
 

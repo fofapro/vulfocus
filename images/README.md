@@ -4,6 +4,13 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE-2020-13384|`docker pull vulfocus/monstra-cve_2020_13384`|CVE-2020-13384|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-24741|`docker pull vulfocus/junams-cnvd_2020_24741`|CVE-2020-24741|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-22721|`docker pull vulfocus/seacms-cnvd_2020_22721`|CVE-2020-22721|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-8933|`docker pull vulfocus/dedecms-cve_2019_8933`|CVE-2019-8933|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-15642|`docker pull vulfocus/webmin-cve_2019_15642`|CVE-2019-15642|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-18086|`docker pull vulfocus/empirecms-cve_2018_18086`|CVE-2018-18086|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-15877|`docker pull vulfocus/wordpress-cve_2018_15877`|CVE-2018-15877|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-16846|`docker pull vulfocus/saltstack-cve_2020_16846`|CVE-2020-16846|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-27175|`docker pull vulfocus/dcrcms-cnvd_2020_27175`|CVE-2020-27175|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-5504|`docker pull vulfocus/phpmyadmin-cve_2020_5504`|CVE-2020-5504|[Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -126,6 +133,16 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 | CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 
 ## 镜像新增日志
+
+2021-05-28
+
+- vulfocus/monstra-cve_2020_13384
+- vulfocus/junams-cnvd_2020_24741
+- vulfocus/seacms-cnvd_2020_22721
+- vulfocus/dedecms-cve_2019_8933
+- vulfocus/webmin-cve_2019_15642
+- vulfocus/empirecms-cve_2018_18086
+- vulfocus/wordpress-cve_2018_15877
 
 2021-05-21
 

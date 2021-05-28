@@ -24,12 +24,12 @@ from network.views import NetWorkInfoViewSet
 from layout_image.views import LayoutViewSet, upload_img
 
 router = routers.DefaultRouter()
-router.register('images', ImageInfoViewSet, base_name='Images')
-router.register('container', ContainerVulViewSet, base_name='Container')
-router.register('user/register', UserRegView, base_name='register')
-router.register('user', UserSet, base_name='user')
-router.register('syslog', SysLogSet, base_name="SysLog")
-router.register('tasks', TaskSet, base_name="TaskSet")
+router.register('images', ImageInfoViewSet, basename='Images')
+router.register('container', ContainerVulViewSet, basename='Container')
+router.register('user/register', UserRegView, basename='register')
+router.register('user', UserSet, basename='user')
+router.register('syslog', SysLogSet, basename="SysLog")
+router.register('tasks', TaskSet, basename="TaskSet")
 router.register("network", NetWorkInfoViewSet, basename="network")
 router.register('layout', LayoutViewSet, basename="layout")
 router.register('time', TimeMoudelSet, basename="time")
