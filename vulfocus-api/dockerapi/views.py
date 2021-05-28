@@ -126,10 +126,16 @@ class TimeMoudelSet(viewsets.ModelViewSet):
         user_id = request.user.id
         now_time = datetime.datetime.now().timestamp()
         try:
-            data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
-            time_id = data.time_id
-            TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).delete()
-            container_vul_list = ContainerVul.objects.filter(user_id=user_id, time_model_id=time_id)
+            auto_end_data = TimeMoudel.objects.filter(user_id=user_id, end_time__lte=now_time).first()
+            if auto_end_data:
+                time_id = auto_end_data.time_id
+                container_vul_list = ContainerVul.objects.filter(user_id=user_id, time_model_id=time_id)
+                TimeMoudel.objects.filter(user_id=user_id, end_time__lte=now_time).delete()
+            else:
+                data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+                time_id = data.time_id
+                TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).delete()
+                container_vul_list = ContainerVul.objects.filter(user_id=user_id, time_model_id=time_id)
             for container_vul in container_vul_list:
                 try:
                     docker_container_id = container_vul.docker_container_id
@@ -205,7 +211,13 @@ class TimeMoudelSet(viewsets.ModelViewSet):
         user_id = request.user.id
         now_time = datetime.datetime.now().timestamp()
         time_minute = request.data['time_range']
+        temp_id = request.data['temp_id']
         data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+        rankdata = TimeRank.objects.filter(user_id=user_id,time_temp_id=temp_id).first()
+        user_data = UserProfile.objects.filter(id=user_id).first()
+        if not rankdata:
+            rd = TimeRank(rank_id=str(uuid.uuid4()), user_id=user_id, user_name=user_data.username, rank=0, time_temp_id=temp_id)
+            rd.save()
         if data:
             return JsonResponse({"code": "2001", "msg": "时间未到", "data": ""})
         else:
@@ -221,12 +233,12 @@ class TimeMoudelSet(viewsets.ModelViewSet):
             end_time = now_time + datetime.timedelta(minutes=time_minute)
             start_time_timestamp = now_time.timestamp()
             end_time_timestamp = end_time.timestamp()
-            temp_id = request.data['temp_id']
             time_moudel = TimeMoudel(time_id=str(uuid.uuid4()), user_id=user_id, start_time=start_time_timestamp,
                                      end_time=end_time_timestamp, temp_time_id_id=temp_id, status=True)
             time_moudel.save()
             time_moudel_info = TimeMoudelSerializer(time_moudel)
             data = time_moudel_info.data
+
             return JsonResponse({"code": "200", "msg": "OK", "data": data}, status=201)
 
 
@@ -245,12 +257,14 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                 if flag and flag == "flag":
                     image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
                                                        | Q(image_desc__contains=query)).order_by('-create_date')
+                    return image_info_list
                 else:
                     image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
                                                        | Q(image_desc__contains=query),is_ok=True).order_by('-create_date')
             else:
                 if flag and flag == "flag":
                     image_info_list = ImageInfo.objects.filter().order_by('-create_date')
+                    return image_info_list
                 else:
                     image_info_list = ImageInfo.objects.filter(is_ok=True).order_by('-create_date')
         else:
@@ -606,6 +620,19 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
                 container_vul.is_check_date = timezone.now()
                 container_vul.is_check = True
                 container_vul.save()
+                # 检测是否在时间模式中
+                now_time = datetime.datetime.now().timestamp()
+                time_moudel_data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+                if time_moudel_data:
+                    rank = 0
+                    time_model_id = time_moudel_data.time_id
+                    successful = ContainerVul.objects.filter(is_check=True, user_id=user_id,
+                                                             time_model_id=time_model_id)
+                    rd = TimeRank.objects.filter(time_temp_id=time_moudel_data.temp_time_id_id, user_id=user_id).first()
+                    for i in successful:
+                        rank += i.image_id.rank
+                    rd.rank = rank
+                    rd.save()
                 # 停止 Docker
                 tasks.stop_container_task(container_vul=container_vul, user_info=user_info,
                                           request_ip=get_request_ip(request))

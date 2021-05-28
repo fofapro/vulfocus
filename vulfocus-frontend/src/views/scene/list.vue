@@ -43,7 +43,7 @@
             <div class="bottom clearfix" style="margin-top: 10px;height: 80px;" v-if="countlist.length!=0">
               <span style="color:#999;font-size: 13px;" class="hoveDesc"> 描述:{{ titem.time_desc }}</span>
               <span style="color:#999;font-size: 13px;" class="hoveDesc" v-if="titem.temp_id===countlist[0].temp_time_id">倒计时
-              <count-down :currentTime="countlist[0].start_date" :startTime="countlist[0].start_date" :endTime="countlist[0].end_date" :dayTxt="'天'" :hourTxt="'小时'" :minutesTxt="'分钟'" :secondsTxt="'秒'">
+              <count-down v-on:end_callback="autostop()" :currentTime="countlist[0].start_date" :startTime="countlist[0].start_date" :endTime="countlist[0].end_date" :dayTxt="'天'" :hourTxt="'小时'" :minutesTxt="'分钟'" :secondsTxt="'秒'">
               </count-down>
               </span>
             </div>
@@ -228,6 +228,23 @@ export default {
         });
       });
     },
+    autostop(){
+      stoptimetemp().then(response => {
+          const data = response.data;
+          let msgType = 'success';
+          let msg = '';
+          if('2000'===data.code){
+            msg = '计时模式已经关闭！'
+          }else{
+            msgType = 'error';
+            msg = '关闭失败,内部错误';
+          }
+          this.$message({
+            type: msgType,
+            message: msg,
+          });
+        })
+    }
   },
   created() {
     this.handleQuery()

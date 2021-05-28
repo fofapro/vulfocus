@@ -80,7 +80,7 @@ export const constantRoutes = [
       affix: true,
       name: 'list',
       component: () => import('@/views/rank/index'),
-      meta: { title: '用户积分榜', icon: 'form' }
+      meta: { title: '积分总榜', icon: 'form' }
     }]
   },
   {
