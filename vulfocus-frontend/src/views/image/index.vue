@@ -142,7 +142,7 @@
       <el-table-column prop="image_port" label="端口" width="150"></el-table-column>
       <el-table-column prop="rank" label="分数" width="50"></el-table-column>
       <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
-      <el-table-column fixed="right" label="操作" width="260">
+      <el-table-column fixed="right" label="操作" width="280">
         <template slot-scope="{row}">
           <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
                   @click="openProgress(row,1)" effect="dark" v-if="row.is_ok === false && row.status.task_id !== ''">

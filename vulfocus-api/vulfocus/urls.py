@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from rest_framework import routers
-from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting
+from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet
 from user.views import UserRegView, UserSet
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView
@@ -32,6 +32,10 @@ router.register('syslog', SysLogSet, base_name="SysLog")
 router.register('tasks', TaskSet, base_name="TaskSet")
 router.register("network", NetWorkInfoViewSet, basename="network")
 router.register('layout', LayoutViewSet, basename="layout")
+router.register('time', TimeMoudelSet, basename="time")
+router.register('timetemp', CreateTimeTemplate, basename="timetmep")
+router.register('userrank', UserRank, basename="userrank")
+router.register('timerank', TimeRankSet, basename="timerankset")
 
 urlpatterns = [
     url(r'^', include(router.urls)),

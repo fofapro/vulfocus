@@ -1,7 +1,7 @@
 # coding:utf-8
 from django.db.models import Q
 from rest_framework import serializers
-from dockerapi.models import ImageInfo, ContainerVul, SysLog
+from dockerapi.models import ImageInfo, ContainerVul, SysLog, TimeMoudel, TimeRank, TimeTemp
 from user.models import UserProfile
 from tasks.models import TaskInfo
 import django.utils.timezone as timezone
@@ -9,7 +9,51 @@ import json
 from vulfocus.settings import REDIS_POOL
 from dockerapi.common import get_setting_config
 import redis
+import time
+import datetime
 r = redis.Redis(connection_pool=REDIS_POOL)
+
+
+class TimeTempSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TimeTemp
+        fields = "__all__"
+
+
+class TimeRankSerializer(serializers.ModelSerializer):
+    flag_s = serializers.SerializerMethodField('flag_status')
+    name = serializers.SerializerMethodField("a_user_name")
+
+    class Meta:
+        model = TimeRank
+        fields = "__all__"
+
+    def flag_status(self, obj):
+        flag = ""
+        return str(flag)
+
+    def a_user_name(self, obj):
+        name = obj.user_name
+        return name
+
+class TimeMoudelSerializer(serializers.ModelSerializer):
+
+    start_date = serializers.SerializerMethodField('a_start_date')
+    end_date = serializers.SerializerMethodField('a_end_date')
+
+    class Meta:
+        model = TimeMoudel
+        fields = ['start_date', 'end_date', "temp_time_id"]
+
+    def a_start_date(self, obj):
+        time_stamp = obj.start_time
+        time_arr = time.localtime(time_stamp)
+        return str(time.strftime("%Y-%m-%d %H:%M:%S", time_arr))
+
+    def a_end_date(self, obj):
+        time_stamp = obj.end_time
+        time_arr = time.localtime(time_stamp)
+        return str(time.strftime("%Y-%m-%d %H:%M:%S", time_arr))
 
 
 class ImageInfoSerializer(serializers.ModelSerializer):
@@ -25,7 +69,11 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         '''
         检测是否在时间模式中
         '''
+        now_time = datetime.datetime.now().timestamp()
+        time_moudel_data = TimeMoudel.objects.filter(user_id=id, end_time__gte=now_time).first()
         time_model_id = ''
+        if time_moudel_data:
+            time_model_id = time_moudel_data.time_id
         # 排出已经删除数据 Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
         data = ContainerVul.objects.all().filter(user_id=id, image_id=obj.image_id, time_model_id=time_model_id).first()
         status["status"] = ""

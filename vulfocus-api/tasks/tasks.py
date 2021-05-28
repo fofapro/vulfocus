@@ -153,7 +153,7 @@ def create_container_task(container_vul, user_info, request_ip):
         except:
             countdown = int(DEFAULT_CONFIG["time"])
         if countdown == 0:
-            run_container.delay(container_vul.container_id, user_id, task_id)
+            run_container.delay(container_vul.container_id, user_id, task_id, countdown)
         elif countdown != 0 and countdown > 60:
             # run_container(container_vul.container_id, user_id, task_id, countdown)
             add_chain_sig = chain(run_container.s(container_vul.container_id, user_id, task_id, countdown) |

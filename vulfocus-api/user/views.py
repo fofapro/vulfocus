@@ -23,7 +23,7 @@ class UserSet(ListAndUpdateViewSet):
         if self.request.user.is_superuser:
             return UserProfile.objects.all()
         else:
-            return []
+            return UserProfile.objects.all()
 
     def update(self, request, *args, **kwargs):
         user = request.user

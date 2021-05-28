@@ -95,14 +95,19 @@
         :total="page.total">
       </el-pagination>
     </div>
+
   </div>
 </template>
 
 <script>
-import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop } from '@/api/docker'
+import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop, } from '@/api/docker'
+import { timetemplist,publicMethod,gettimetemp } from '@/api/timemoudel'
 import { getTask } from '@/api/tasks'
+import { start } from '@/api/timemoudel'
 import CountDown from 'vue2-countdown'
+import { Notification } from 'element-ui'
 export default {
+  inject: ['reload'],
   name: 'Dashboard',
   components: {
     CountDown
@@ -127,13 +132,43 @@ export default {
       item_raw_data: "",
       cStatus: true,
       search: "",
-      vul_port:{}
+      vul_port:{},
+      countlist:[],
+      notifications: {},
+      dasstatus: {
+        "status":true,
+        "type": "dashboard"
+      }
       };
     },
   created() {
     this.listData(1)
+    this.timeData()
+  },
+  beforeDestroy(){
+    Notification.closeAll()
   },
   methods:{
+      timeData(){
+        gettimetemp().then(response => {
+        let data = response.data.results
+          this.countlist = data
+          if (this.countlist.length===0){
+              console.log(1111)
+          }else {
+            this.countlist[0].end_date = publicMethod.getTimestamp(this.countlist[0].end_date)
+            this.countlist[0].start_date = publicMethod.getTimestamp(this.get_time)
+            console.log(this.countlist)
+            this.$notify({
+              title: '计时模式',
+              message:<count-down currentTime={this.countlist[0].start_date} startTime={this.countlist[0].start_date} endTime={this.countlist[0].end_date} dayTxt={"天"} hourTxt={"小时"} minutesTxt={"分钟"} secondsTxt={"秒"}></count-down>,
+              duration: 0,
+              position: 'bottom-right',
+              showClose: false,
+              dangerouslyUseHTMLString:true,
+            });
+          }})
+      },
       listData() {
           ImgList().then(response => {
             this.listdata = response.data.results
@@ -231,7 +266,7 @@ export default {
             }else if(responseData.status === 201){
               this.$message({
                 message: responseData["msg"],
-                type: "info",
+                type: "error",
               })
             }else{
               this.$message({
@@ -240,6 +275,7 @@ export default {
               })
             }
             this.centerDialogVisible = false
+            this.reload()
             this.item_raw_data.status.status = 'stop'
           })
       },
@@ -336,6 +372,16 @@ export default {
         })
       }
   },
+  mounted: function() {
+      var _this = this;
+      let yy = new Date().getFullYear();
+      let mm = new Date().getMonth()+1;
+      let dd = new Date().getDate();
+      let hh = new Date().getHours();
+      let mf = new Date().getMinutes()<10 ? '0'+new Date().getMinutes() : new Date().getMinutes();
+      let ss = new Date().getSeconds()<10 ? '0'+new Date().getSeconds() : new Date().getSeconds();
+      _this.get_time = yy+'-'+mm+'-'+dd+' '+hh+':'+mf+':'+ss;
+  },
 }
 
 </script>
@@ -405,6 +451,11 @@ export default {
   margin: 0;
 
   margin-block-end: 0em;
+}
+
+.el-row {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 /*p {*/
