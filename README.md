@@ -60,8 +60,6 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 4. 下载完成后点击启动即可。
 
-![](./imgs/flag.gif)
-
 5. 镜像启动后，会在环境里写入一个 flag （默认 flag 会写入 **/tmp/** 下），读取到 flag 后填入 flag 窗口，镜像会自动关闭，如需重新启动，需强刷一下，然后再次点击启动即可。
 
 6. 可视化编排（管理员权限）
