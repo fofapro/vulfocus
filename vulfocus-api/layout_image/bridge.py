@@ -34,7 +34,6 @@ def ps_(project):
         'ports': container.ports,
         'volumes': get_volumes(get_container_from_id(project.client, container.id)),
         'is_running': container.is_running} for container in running_containers]
-
     return items
 
 
@@ -84,7 +83,7 @@ def info():
     docker info
     """
     docker_info = client().info()
-    return dict(compose=compose_version,info=docker_info['ServerVersion'], name=docker_info['Name'])
+    return dict(compose=compose_version, info=docker_info['ServerVersion'], name=docker_info['Name'])
 
 
 def client():

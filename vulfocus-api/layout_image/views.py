@@ -26,6 +26,8 @@ from tasks import tasks
 from rest_framework.decorators import action
 from user.models import UserProfile
 import shutil
+
+
 # Create your views here.
 
 
@@ -73,7 +75,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
             if not flag:
                 if user.is_superuser:
                     return Layout.objects.filter(Q(layout_name__contains=query) | Q(layout_desc__contains=query) |
-                                                 Q(raw_content__contains=query) | Q(yml_content__contains=query))\
+                                                 Q(raw_content__contains=query) | Q(yml_content__contains=query)) \
                         .order_by('-create_date')
             return Layout.objects.filter(Q(layout_name__contains=query) | Q(layout_desc__contains=query) |
                                          Q(raw_content__contains=query) | Q(yml_content__contains=query),
@@ -186,7 +188,8 @@ class LayoutViewSet(viewsets.ModelViewSet):
                             is_exposed = True
                         if image_info.image_port:
                             ports = ",".join(str(image_info.image_port).split(","))
-                        layout_service = LayoutService.objects.filter(layout_id=layout, service_name=service_name).first()
+                        layout_service = LayoutService.objects.filter(layout_id=layout,
+                                                                      service_name=service_name).first()
                         if not layout_service:
                             layout_service = LayoutService(service_id=uuid.uuid4(), layout_id=layout,
                                                            service_name=service_name, create_date=timezone.now(),
@@ -206,16 +209,17 @@ class LayoutViewSet(viewsets.ModelViewSet):
                         for network in networks:
                             network_info = NetWorkInfo.objects.filter(net_work_name=network).first()
                             if not network_info:
-                                return JsonResponse(R.build(msg="%s 网卡不存在" % (network, )))
+                                return JsonResponse(R.build(msg="%s 网卡不存在" % (network,)))
                             service_network = LayoutServiceNetwork.objects.filter(service_id=layout_service,
-                                                                                  network_id=network_info,).first()
+                                                                                  network_id=network_info, ).first()
                             if not service_network:
                                 service_network = LayoutServiceNetwork(layout_service_network_id=uuid.uuid4(),
                                                                        service_id=layout_service,
                                                                        network_id=network_info,
                                                                        create_date=timezone.now(),
                                                                        update_date=timezone.now())
-                            if {"layout_service_network_id": service_network.layout_service_network_id} in service_network_list:
+                            if {
+                                "layout_service_network_id": service_network.layout_service_network_id} in service_network_list:
                                 service_network_list.remove({"layout_service_network_id": service_network.
                                                             layout_service_network_id})
                             service_network.save()
@@ -223,7 +227,8 @@ class LayoutViewSet(viewsets.ModelViewSet):
                         if len(service_network_list) > 0:
                             for service_network in service_network_list:
                                 LayoutServiceNetwork.objects.filter(layout_service_network_id=
-                                                                    service_network['layout_service_network_id']).delete()
+                                                                    service_network[
+                                                                        'layout_service_network_id']).delete()
                     # 删除服务数据
                     for layout_service in layout_service_list:
                         service_id = layout_service['service_id']
@@ -231,7 +236,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
                         LayoutService.objects.filter(service_id=service_id, layout_id=layout).delete()
                         if layout_data:
                             # 删除启动容器
-                            LayoutServiceContainer.objects.filter(service_id=service_id, layout_user_id=layout_data).\
+                            LayoutServiceContainer.objects.filter(service_id=service_id, layout_user_id=layout_data). \
                                 delete()
                             # 删除分数
                             LayoutServiceContainerScore.objects.filter(layout_id=layout, layout_data_id=layout_data,
@@ -273,7 +278,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
             layout_id = str(layout.layout_id)
             layout_path = os.path.join(DOCKER_COMPOSE, layout_id)
             with transaction.atomic():
-                _tmp_file_path = "docker-compose"+layout_path.replace(DOCKER_COMPOSE, "")
+                _tmp_file_path = "docker-compose" + layout_path.replace(DOCKER_COMPOSE, "")
                 layout_data = LayoutData.objects.filter(layout_id=layout, file_path=_tmp_file_path).first()
                 if layout_data and layout_data.status == 'running':
                     return JsonResponse(R.build(msg="环境正在运行中，请首先停止运行"))
@@ -364,23 +369,23 @@ class LayoutViewSet(viewsets.ModelViewSet):
         open_host_list = []
         try:
             with transaction.atomic():
-                _tmp_file_path = "docker-compose"+layout_path.replace(DOCKER_COMPOSE, "")
+                _tmp_file_path = "docker-compose" + layout_path.replace(DOCKER_COMPOSE, "")
                 layout_data = LayoutData.objects.filter(layout_id=layout_info, file_path=_tmp_file_path).first()
                 if not layout_data:
                     layout_data = LayoutData(layout_user_id=uuid.uuid4(), create_user_id=user.id, layout_id=layout_info,
                                              status="running",
-                                             file_path="docker-compose"+layout_path.replace(DOCKER_COMPOSE, ""),
+                                             file_path="docker-compose" + layout_path.replace(DOCKER_COMPOSE, ""),
                                              create_date=timezone.now(), update_date=timezone.now())
                 else:
                     layout_data.status = "running"
                 if not os.path.exists(layout_path):
-                    os.mkdir(layout_path)
+                    os.makedirs(layout_path)
                 docker_compose_file = os.path.join(layout_path, "docker-compose.yml")
                 with open(docker_compose_file, "w", encoding="utf-8") as f:
-                        f.write(yml_content)
+                    f.write(yml_content)
                 env_file = os.path.join(layout_path, ".env")
                 with open(env_file, "w", encoding="utf-8") as f:
-                        f.write("\n".join(env_content))
+                    f.write("\n".join(env_content))
                 # 启动
                 container_list = get_project(layout_path).up()
                 # 保存
@@ -435,7 +440,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
                             else:
                                 target_port = source_port
                             port_dict[source_port] = target_port
-                            vul_host_list.append(vul_ip+":"+target_port)
+                            vul_host_list.append(vul_ip + ":" + target_port)
                     if len(vul_host_list) > 0:
                         container_host = ",".join(vul_host_list)
                         if service_info.is_exposed:
@@ -452,6 +457,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
                     service_container.update_date = timezone.now()
                     service_container.save()
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse(R.build(msg=str(e)))
         result_data = {
             "layout": {
@@ -462,7 +468,8 @@ class LayoutViewSet(viewsets.ModelViewSet):
         }
         request_ip = get_request_ip(request)
         sys_log = SysLog(user_id=user.id, operation_type="编排环境", operation_name="启动",
-                         operation_value=layout_info.layout_name, operation_args=json.dumps(LayoutSerializer(layout_info).data),
+                         operation_value=layout_info.layout_name,
+                         operation_args=json.dumps(LayoutSerializer(layout_info).data),
                          ip=request_ip)
         sys_log.save()
         return JsonResponse(R.ok(data=result_data))
@@ -494,7 +501,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
                 if container_list:
                     for container in container_list:
                         container_id = container.id
-                        LayoutServiceContainer.objects.filter(docker_container_id=container_id)\
+                        LayoutServiceContainer.objects.filter(docker_container_id=container_id) \
                             .update(container_status="stop")
                 LayoutServiceContainer.objects.filter(layout_user_id=layout_data).update(container_status="stop")
                 layout_data.status = "stop"
@@ -503,7 +510,8 @@ class LayoutViewSet(viewsets.ModelViewSet):
             return JsonResponse(R.err())
         request_ip = get_request_ip(request)
         sys_log = SysLog(user_id=user.id, operation_type="编排环境", operation_name="停止",
-                         operation_value=layout_info.layout_name, operation_args=json.dumps(LayoutSerializer(layout_info).data),
+                         operation_value=layout_info.layout_name,
+                         operation_args=json.dumps(LayoutSerializer(layout_info).data),
                          ip=request_ip)
         sys_log.save()
         return JsonResponse(R.ok())
@@ -573,7 +581,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
             user_id = _score["user_id"]
             if user.id != user_id:
                 continue
-            current_rank = i+1
+            current_rank = i + 1
             current_score = _score["score"]
             break
         layout_path = os.path.join(DOCKER_COMPOSE, str(layout_info.layout_id))
@@ -656,12 +664,12 @@ def build_yml(container_list, network_dict, connector_list):
         network_list = []
         if open and port:
             for _port in port.split(","):
-                base_target_port = id+"-"+_port
+                base_target_port = id + "-" + _port
                 encode_base_target_port = base64.b64encode(base_target_port.encode("utf-8"))
-                encode_base_target_port = "VULFOCUS"+encode_base_target_port.hex().upper()
+                encode_base_target_port = "VULFOCUS" + encode_base_target_port.hex().upper()
                 if encode_base_target_port not in env_list:
                     env_list.append(encode_base_target_port)
-                port_str = "${"+encode_base_target_port+"}:"+_port+""
+                port_str = "${" + encode_base_target_port + "}:" + _port + ""
                 port_list.append(port_str)
         services[id] = {
             "image": image_name

@@ -13,10 +13,12 @@ class TimeTemp(models.Model):
     time_range = models.IntegerField(verbose_name='计时模式时间')
     image_name = models.TextField(null=False, default="", verbose_name="图片名称")
     time_desc = models.TextField(verbose_name='计时模版描述', null=True)
+    time_img_type = models.TextField(verbose_name="漏洞类型", default="")
+    rank_range = models.TextField(verbose_name="漏洞类型", default="")
     flag_status = models.BooleanField(verbose_name='用于判断', default=False)
 
     class Meta:
-        db_table = 'time_Temp'
+        db_table = 'time_temp'
 
 
 class TimeRank(models.Model):
@@ -47,6 +49,7 @@ class TimeMoudel(models.Model):
     class Meta:
         db_table = 'time_moudel'
 
+
 class ImageInfo(models.Model):
     """
     镜像实体Model
@@ -59,6 +62,7 @@ class ImageInfo(models.Model):
     rank = models.FloatField(verbose_name='Rank', null=False)
     is_ok = models.BooleanField(verbose_name="镜像是否可用", default=True)
     is_share = models.BooleanField(verbose_name="镜像是否贡献", default=False)
+    degree = models.TextField(verbose_name="漏洞类型", default="", blank=True)
     create_date = models.DateTimeField(auto_now_add=True, verbose_name='Docker创建时间，默认为当前时间')
     update_date = models.DateTimeField(auto_now=True, verbose_name='Docker更新时间，默认为当前时间')
 

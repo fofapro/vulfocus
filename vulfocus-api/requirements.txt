@@ -1,7 +1,7 @@
-Django==2.2.13
+Django==2.2.20
 django-cors-headers==3.1.0
 django-filter==2.2.0
-djangorestframework==3.10.3
+djangorestframework==3.11.2
 djangorestframework-jwt==1.11.0
 Markdown==3.1.1
 PyJWT==1.7.1
