@@ -15,9 +15,10 @@ import json
 import django.utils.timezone as timezone
 import random
 from django.db.models import Q
+
+from layout_image.bridge import get_project
 from vulfocus.settings import client, api_docker_client, DOCKER_CONTAINER_TIME, VUL_IP, REDIS_POOL
 from dockerapi.common import DEFAULT_CONFIG
-from dockerapi.views import get_setting_config
 from dockerapi.models import ContainerVul, ImageInfo
 from user.models import UserProfile
 from docker.errors import NotFound, ImageNotFound
@@ -27,6 +28,10 @@ from dockerapi.models import SysLog
 import datetime
 from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer
 import redis
+import requests
+import os
+from layout_image.models import LayoutData, LayoutServiceContainer, LayoutService
+from dockerapi.common import get_setting_config
 r = redis.Redis(connection_pool=REDIS_POOL)
 
 
@@ -305,6 +310,18 @@ def run_container(container_id, user_id, tmp_task_id, countdown):
             tmp_port = tmp_port.replace("/tcp", "")
             vul_port[tmp_port] = str(tmp_random_port)
         try:
+            client.images.get(image_name)
+        except Exception as e:
+            msg = R.build(msg="镜像不存在")
+            task_info.task_msg = json.dumps(msg)
+            task_info.update_date = timezone.now()
+            # except
+            task_info.task_status = 4
+            task_info.save()
+            image_info.is_ok = False
+            image_info.save()
+            return str(task_info.task_id)
+        try:
             docker_container = client.containers.run(image_name, ports=port_dict, detach=True)
         except ImageNotFound:
             msg = R.build(msg="镜像不存在")
@@ -313,6 +330,8 @@ def run_container(container_id, user_id, tmp_task_id, countdown):
             # except
             task_info.task_status = 4
             task_info.save()
+            image_info.is_ok = False
+            image_info.save()
             return str(task_info.task_id)
         vul_flag = "flag-{bmh%s}" % (uuid.uuid4(),)
         if container_vul.container_flag:
@@ -667,6 +686,137 @@ def share_image(task_id):
     task_info.task_status = 3
     task_info.task_msg = json.dumps(msg)
     task_info.save()
+
+
+@shared_task(name="tasks.update_images")
+def update_images():
+    """
+    定时获取dockerhub上的镜像信息
+    """
+    url = "https://hub.docker.com/v2/repositories/vulfocus/?ordering=last_updated&page=1&page_size=1"
+    res = requests.get(url).content
+    req = json.loads(res)
+    count = req['count']
+    num = count/100
+    for item_num in range(int(num)+1):
+        new_url = "https://hub.docker.com/v2/repositories/vulfocus/?ordering=last_updated&page={}&page_size=100".format(item_num+1)
+        new_res = requests.get(new_url).content
+        new_req = json.loads(new_res)
+        if "results" not in new_req:
+            break
+        result = new_req['results']
+        image_names = list(ImageInfo.objects.all().values_list('image_name', flat=True))
+        try:
+            for docker_image_info in result:
+                image_name ="vulfocus/%s" % (docker_image_info['name'],) + ':latest'
+                if image_name in image_names:
+                    continue
+                if image_name == "vulfocus/vulfocus:latest":
+                    continue
+                image_vul_name = image_name[:image_name.rfind(":")]
+                # 替换 CVE CNVD CNNVD _
+                if "cve" in image_vul_name:
+                    image_vul_name =image_vul_name.replace("cve", "CVE")
+                if "cnvd" in image_vul_name:
+                    image_vul_name = image_vul_name.replace("cnvd", "CNVD")
+                if "cnnvd" in image_vul_name:
+                    image_vul_name = image_vul_name.replace("cnnvd", "CNNVD")
+                if "_" in image_vul_name:
+                    image_vul_name = image_vul_name.replace("_", "-")
+                image_info = ImageInfo(image_name=image_name, image_vul_name=image_vul_name, image_desc="", rank=2.5,
+                                       is_ok=False, create_date=timezone.now(), update_date=timezone.now())
+                image_info.save()
+        except Exception as e:
+            pass
+
+
+@shared_task(name="tasks.download_images")
+def download_images():
+    """
+    同步漏洞镜像信息
+    """
+    setting_config = get_setting_config()
+    is_synchronization = setting_config['is_synchronization']
+    if not is_synchronization or is_synchronization == 0 or is_synchronization == '0':
+        return
+    image_info_list = ImageInfo.objects.all()
+    user = UserProfile.objects.filter(is_superuser=True).order_by('date_joined').first()
+    for image_info in image_info_list:
+        create_image_task(image_info, user, '127.0.0.1')
+
+
+@shared_task(name="tasks.check_images")
+def check_images():
+    """
+    定期检测镜像状态
+    """
+    image_info_list = ImageInfo.objects.all()
+    for image_info in image_info_list:
+        image_name = image_info.image_name
+        try:
+            client.images.get(image_name)
+            image_info.is_ok = True
+            image_info.save()
+            print("【检测镜像】%s 存在" % image_name,)
+        except Exception as e:
+            image_info.is_ok = False
+            image_info.save()
+            print("【检测镜像】%s 不存在" % image_name,)
+
+
+# @shared_task(name="tasks.check_layouts")
+# def check_layouts():
+#     """
+#     定期检测编排环境状态
+#     """
+#     layout_data_list = LayoutData.objects.filter().all()
+#     for layout_data in layout_data_list:
+#         layout_path = layout_data.layout_path
+#         if not os.path.exists(layout_path):
+#             layout_data.status = 'stop'
+#             LayoutServiceContainer.objects.filter(layout_user_id=layout_data).update(container_status="stop")
+#             layout_data.save()
+#         else:
+#             container_list = get_project(layout_path).containers(stopped=True)
+#             for container in container_list:
+#                 service_info = LayoutService.objects.filter(service_name=container.service, layout_id=layout_data.layout_id).first()
+#                 image_info = service_info.image_id
+#                 container
+#                 service_container = LayoutServiceContainer.objects.filter(service_id=service_info, layout_user_id=layout_data,image_id=image_info).first()
+#                 service_container.container_status = ''
+
+
+# @shared_task(name="tasks.timing_imgs")
+# def timing_imgs():
+#     """
+#     定时获取官网镜像信息
+#     """
+#     try:
+#         url = "http://vulfocus.fofa.so:8000/imgs/info"
+#         res = requests.get(url, verify=False).content
+#         req = json.loads(res)
+#         image_names = list(ImageInfo.objects.all().values_list('image_name', flat=True))
+#         for item in req:
+#             if item['image_name'] in image_names:
+#                 if item['image_name'] == "vulfocus/vulfocus:latest":
+#                     continue
+#                 single_img = ImageInfo.objects.filter(image_name__contains=item['image_name']).first()
+#                 if single_img.image_vul_name != item['image_vul_name'] or single_img.image_vul_name == "":
+#                     single_img.image_vul_name = item['image_vul_name']
+#                 if single_img.image_desc == "":
+#                     single_img.image_desc = item['image_desc']
+#                 if single_img.rank != item['rank']:
+#                     single_img.rank = item['rank']
+#                 if single_img.degree != item['degree']:
+#                     single_img.degree = item['degree']
+#                 single_img.save()
+#             else:
+#                 image_info = ImageInfo(image_name=item['image_name'], image_vul_name=item['image_vul_name'],
+#                                        image_desc=item['image_desc'], rank=item['rank'], degree=item['degree'],
+#                                        is_ok=False, create_date=timezone.now(), update_date=timezone.now())
+#                 image_info.save()
+#     except Exception as e:
+#         pass
 
 
 def create_share_image_task(image_info, user_info):

@@ -1,5 +1,6 @@
 # coding:utf-8
 from django.db.models import Q
+import traceback
 from rest_framework import serializers
 from dockerapi.models import ImageInfo, ContainerVul, SysLog, TimeMoudel, TimeRank, TimeTemp
 from user.models import UserProfile
@@ -15,6 +16,24 @@ r = redis.Redis(connection_pool=REDIS_POOL)
 
 
 class TimeTempSerializer(serializers.ModelSerializer):
+    time_img_type = serializers.SerializerMethodField('typeck')
+    rank_range = serializers.SerializerMethodField('rankck')
+
+    def typeck(self, obj):
+        img_d = obj.time_img_type
+        try:
+            return json.loads(img_d)
+        except Exception as e:
+            return []
+
+    def rankck(self, obj):
+        # rank = obj.rank_range
+        if obj.rank_range != "":
+            try:
+                return float(obj.rank_range)
+            except Exception as e:
+                return 0.0
+
     class Meta:
         model = TimeTemp
         fields = "__all__"
@@ -59,6 +78,8 @@ class TimeMoudelSerializer(serializers.ModelSerializer):
 class ImageInfoSerializer(serializers.ModelSerializer):
 
     status = serializers.SerializerMethodField('statusck')
+    degree = serializers.SerializerMethodField('degreeck')
+
 
     def statusck(self, obj):
         status = {}
@@ -143,6 +164,13 @@ class ImageInfoSerializer(serializers.ModelSerializer):
                 pass
         status["now"] = int(timezone.now().timestamp())
         return status
+
+    def degreeck(self, obj):
+        img_d = obj.degree
+        try:
+            return json.loads(img_d)
+        except Exception as e:
+            return []
 
     class Meta:
         model = ImageInfo

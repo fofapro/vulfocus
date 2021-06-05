@@ -33,7 +33,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count")
+        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count",)
 
     def get_user_name(self, obj):
         return obj.username

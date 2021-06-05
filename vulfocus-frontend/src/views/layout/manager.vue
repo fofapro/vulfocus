@@ -88,7 +88,7 @@ export default {
       layoutList(this.search, page).then(response => {
         let rsp = response.data
         rsp.results.forEach((info,index) => {
-          info.image_name = process.env.VUE_APP_BASE_API+ '/static/'+ info.image_name
+          info.image_name = '/images/'+ info.image_name
           this.tableData.push(info)
         })
         this.page.total = rsp.count

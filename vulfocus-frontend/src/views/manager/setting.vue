@@ -41,6 +41,17 @@
           </el-tooltip>
         </el-col>
       </el-form-item>
+      <el-form-item label="自动下载镜像" >
+        <el-col :span="20">
+          <el-switch v-model="data.is_synchronization"></el-switch>
+        </el-col>
+        <el-col :span="2" align="center">
+          <el-tooltip content="开启之后自动下载最新的镜像" placement="top">
+            <i class="el-icon-question"></i>
+          </el-tooltip>
+        </el-col>
+      </el-form-item>
+
       <el-form-item>
         <el-button type="primary" @click="settingUpdate">修改</el-button>
         <el-button>取消</el-button>
@@ -60,8 +71,9 @@
           share_username: '',
           username: '',
           pwd: '',
-          time: '1800'
-        }
+          time: '1800',
+          is_synchronization: false
+        },
       };
     },
     created() {
@@ -89,26 +101,24 @@
         formData.set("pwd", this.data.pwd)
         formData.set("time", this.data.time)
         formData.set("share_username",this.data.share_username)
+        formData.set("is_synchronization",this.data.is_synchronization)
         this.loading = true
         settingUpdate(formData).then(response => {
           let rspData = response.data
-          this.data = rspData.data
-          if(rspData.status === 200){
-            for(let i=0; i < rspData.msg.length; i++){
-              this.$message({
-                message: rspData.msg[i],
-                type: "success",
-              })
-            }
-          }else{
-            for(let i=0; i < rspData.msg.length; i++){
-              this.$message({
-                message: rspData.msg[i],
-                type: "info",
-              })
-            }
-          }
           this.loading = false
+          if(rspData.status === 200){
+            this.data = rspData.data
+            this.$message({
+              message: '修改成功',
+              type: "success",
+            })
+          }else{
+            this.$message({
+              message: rspData.msg,
+              type: "error",
+            })
+          }
+
         })
       }
     }

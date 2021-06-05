@@ -101,11 +101,11 @@
 
 <script>
 import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop, } from '@/api/docker'
-import { timetemplist,publicMethod,gettimetemp } from '@/api/timemoudel'
+import { publicMethod,gettimetemp } from '@/api/timemoudel'
 import { getTask } from '@/api/tasks'
-import { start } from '@/api/timemoudel'
 import CountDown from 'vue2-countdown'
 import { Notification } from 'element-ui'
+import {stoptimetemp} from "@/api/timemoudel";
 export default {
   inject: ['reload'],
   name: 'Dashboard',
@@ -151,14 +151,11 @@ export default {
   methods:{
       timeData(){
         gettimetemp().then(response => {
-        let data = response.data.results
-          this.countlist = data
+          this.countlist = response.data.results
           if (this.countlist.length===0){
-              console.log(1111)
           }else {
             this.countlist[0].end_date = publicMethod.getTimestamp(this.countlist[0].end_date)
             this.countlist[0].start_date = publicMethod.getTimestamp(this.get_time)
-            console.log(this.countlist)
             this.$notify({
               title: '计时模式',
               message:<count-down currentTime={this.countlist[0].start_date} startTime={this.countlist[0].start_date} endTime={this.countlist[0].end_date} dayTxt={"天"} hourTxt={"小时"} minutesTxt={"分钟"} secondsTxt={"秒"}></count-down>,
@@ -239,11 +236,15 @@ export default {
                       message: response.data["msg"],
                       type: "error",
                     })
+                    this.listData(1)
+                    this.timeData()
                     this.centerDialogVisible = false
                   }else{
                     this.$message({message:  response.data["msg"],
                       type: "error",
                     })
+                    this.listData(1)
+                    this.timeData()
                     this.centerDialogVisible = false
                   }
                 }
@@ -370,7 +371,24 @@ export default {
           this.listdata = response.data.results
           this.page.total = response.data.count
         })
-      }
+      },
+      autoStop(){
+        stoptimetemp().then(response => {
+          const data = response.data;
+          let msgType = 'success';
+          let msg = '';
+          if('2000'===data.code){
+            msg = '计时模式已经关闭！'
+          }else{
+            msgType = 'error';
+            msg = '关闭失败,内部错误';
+          }
+          this.$message({
+            type: msgType,
+            message: msg,
+          });
+        })
+    }
   },
   mounted: function() {
       var _this = this;

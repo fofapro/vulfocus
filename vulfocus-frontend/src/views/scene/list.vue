@@ -14,7 +14,7 @@
             </div>
           </div>
           <div style="padding: 5px; margin-top: 5px;" >
-            <img v-if="item.image_name!=imgpath" :src="item.image_name"  alt="" width="285px" height="300px;"/>
+            <img v-if="item.image_name !==imgpath" :src="item.image_name"  alt="" width="285px" height="300px;"/>
             <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="285px" height="300px;"/>
             <div class="container-title" style="margin-top: 5px;">
               <span>{{item.layout_name}}</span>
@@ -29,7 +29,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="6" v-for="titem in timelist"  style="padding-bottom: 18px;">
+      <el-col :span="6" v-for="(titem,index) in timelist" :key="index" style="padding-bottom: 18px;">
         <el-card :body-style="{ padding: '8px'}" shadow="hover">
           <div class="clearfix" style="margin-top: 5px">
             <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
@@ -37,30 +37,26 @@
             </div>
           </div>
           <div style="padding: 5px; margin-top: 5px;" >
-            <img v-if="titem.image_name!=imgpath" :src= "titem.image_name"  alt="" width="285px" height="300px;"/>
+            <img v-if="titem.image_name !== imgpath" :src= "titem.image_name"  alt="" width="285px" height="300px;"/>
             <img v-else-if="titem.image_name===imgpath" :src= "modelimg"  alt="" width="285px" height="300px;"/>
             <div class="container-title" style="margin-top: 5px;">
               <span>{{titem.time_range}}分钟计时挑战赛</span>
             </div>
-            <div class="bottom clearfix" style="margin-top: 10px;height: 80px;" v-if="countlist.length!=0">
+            <div class="bottom clearfix" style="margin-top: 10px;height: 80px;" >
               <span style="color:#999;font-size: 13px;" class="hoveDesc"> 描述:{{ titem.time_desc }}</span>
-              <span style="color:#999;font-size: 13px;" class="hoveDesc" v-if="titem.temp_id===countlist[0].temp_time_id">倒计时
-              <count-down v-on:end_callback="autostop()" :currentTime="countlist[0].start_date" :startTime="countlist[0].start_date" :endTime="countlist[0].end_date" :dayTxt="'天'" :hourTxt="'小时'" :minutesTxt="'分钟'" :secondsTxt="'秒'">
+              <span style="color:#999;font-size: 14px;" class="hoveDesc" v-if="titem.rank_range !== undefined && titem.rank_range > 0"> rank：{{ titem.rank_range }}</span>
+              <span style="color:#999;font-size: 13px;" class="hoveDesc" v-if="countlist.length >0 && titem.temp_id === countlist[0].temp_time_id">倒计时
+              <count-down v-if="countlist.length >0 && countlist[0].temp_time_id === titem.temp_id" v-on:end_callback="autostop()" :currentTime="countlist[0].start_date" :startTime="countlist[0].start_date" :endTime="countlist[0].end_date" :dayTxt="'天'" :hourTxt="'小时'" :minutesTxt="'分钟'" :secondsTxt="'秒'">
               </count-down>
               </span>
             </div>
-            <div class="bottom clearfix" style="margin-top: 10px;height: 80px;" v-else-if="countlist.length===0">
-              <span style="color:#999;font-size: 13px;" class="hoveDesc"> 描述:{{ titem.time_desc }}
-              </span>
-            </div>
             <span>计时模式</span>
-            <el-row style="margin-top: 5px;margin-bottom: 10px; float: right" v-if="countlist.length!=0">
-              <el-button type="primary" size="mini" v-if="titem.temp_id!=countlist[0].temp_time_id" @click="handleOk(titem)" >开始</el-button>
-              <el-button type="primary" size="mini" v-if="titem.temp_id===countlist[0].temp_time_id" @click="stop()">关闭</el-button>
+            <el-row style="margin-top: 5px;margin-bottom: 10px; float: right" v-if="countlist.length !==0">
+              <el-button type="primary" size="mini" v-if="titem.temp_id!== countlist[0].temp_time_id" @click="handleOk(titem)" >开始</el-button>
+              <el-button type="primary" size="mini" v-if="titem.temp_id === countlist[0].temp_time_id" @click="stop()">关闭</el-button>
             </el-row>
             <el-row style="margin-top: 5px;margin-bottom: 10px; float: right" v-else-if="countlist.length===0">
               <el-button type="primary" size="mini" @click="opendialog(titem)" >开始</el-button>
-
             </el-row>
           </div>
         </el-card>
@@ -99,7 +95,7 @@ export default {
       get_time:"",
       timelist:[],
       countlist:[],
-      imgpath:process.env.VUE_APP_BASE_API+ '/static/',
+      imgpath: '/images/',
       modelimg: require("../../assets/modelbg.jpg")
       // isAdmin: false
     }
@@ -110,7 +106,7 @@ export default {
       layoutList(this.search, page, "flag").then(response => {
         let rsp = response.data
         rsp.results.forEach((info,index) => {
-          info.image_name = process.env.VUE_APP_BASE_API+ '/static/'+ info.image_name
+          info.image_name = '/images/'+ info.image_name
           this.tableData.push(info)
         })
         this.page.total = rsp.count
@@ -123,12 +119,9 @@ export default {
     },
     gettimelist(){
       gettimetemp().then(response => {
-        console.log(this.modelimg)
         let data = response.data.results
           this.countlist = data
-          console.log(data)
           if (this.countlist.length===0){
-              console.log(1111)
           }else {
             this.countlist[0].end_date = publicMethod.getTimestamp(this.countlist[0].end_date)
             this.countlist[0].start_date = publicMethod.getTimestamp(this.get_time)
@@ -146,7 +139,7 @@ export default {
         timetemplist().then(response =>{
           let data = response.data
           data.results.forEach((info,index) => {
-            info.image_name = process.env.VUE_APP_BASE_API+ '/static/'+ info.image_name
+            info.image_name = '/images/'+ info.image_name
             this.timelist.push(info)
           })
         })
@@ -278,5 +271,6 @@ export default {
   width:auto;
   display:block;
   word-break:keep-all;
+  margin-top: 2px;
 }
 </style>
