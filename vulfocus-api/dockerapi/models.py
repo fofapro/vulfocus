@@ -9,13 +9,15 @@ class TimeTemp(models.Model):
     时间模式模板信息
     """
     temp_id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    name = models.CharField(max_length=256, verbose_name="模版名称", default="")
     user_id = models.IntegerField(verbose_name='用户ID')
     time_range = models.IntegerField(verbose_name='计时模式时间')
     image_name = models.TextField(null=False, default="", verbose_name="图片名称")
     time_desc = models.TextField(verbose_name='计时模版描述', null=True)
     time_img_type = models.TextField(verbose_name="漏洞类型", default="")
-    rank_range = models.TextField(verbose_name="漏洞类型", default="")
+    rank_range = models.TextField(verbose_name="Rank范围", default="")
     flag_status = models.BooleanField(verbose_name='用于判断', default=False)
+    image_ids = models.TextField(verbose_name="镜像id", default="")
 
     class Meta:
         db_table = 'time_temp'

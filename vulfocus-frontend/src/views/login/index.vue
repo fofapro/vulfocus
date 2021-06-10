@@ -198,7 +198,7 @@ $light_gray:#eee;
     height: 470px;
     max-width: 80%;
     /*padding: 120px 35px 0;*/
-    margin: 180px;
+    margin: 150px;
     overflow: hidden;
     float:right;
     background-image: url("../../assets/loginl.png");
@@ -254,7 +254,6 @@ $light_gray:#eee;
   background-color: $bg;
   overflow: hidden;
   background: url("../../assets/loginbackground.png") center no-repeat;
-  /*background-size: 100% 100%;*/
-
+  background-size: 100%;
 }
 </style>

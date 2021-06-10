@@ -4,6 +4,9 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CNVD-2020-24741|`docker pull vulfocus/junams-cnvd_2020_24741`|CNVD-2020-24741|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-23132|`docker pull vulfocus/joomla-cve_2021_23132`|CVE-2021-23132|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-15866|`docker pull vulfocus/wordpress-cve_2019_15866`|CVE-2019-15866|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-35606|`docker pull vulfocus/webmin-cve_2020_35606`|CVE-2020-35606|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-25790|`docker pull vulfocus/typesetter-cve_2020_25790`|CVE-2020-25790|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2018-1270|`docker pull vulfocus/spring-cve_2018_1270`|CVE-2018-1270|[Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -139,6 +142,12 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 | CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 
 ## 镜像新增日志
+
+2021-06-11
+
+- vulfocus/junams-cnvd_2020_24741
+- vulfocus/joomla-cve_2021_23132
+- vulfocus/wordpress-cve_2019_15866
 
 2021-06-05
 

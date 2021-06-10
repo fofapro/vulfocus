@@ -21,6 +21,7 @@ import re
 from rest_framework.decorators import api_view
 import datetime
 import uuid
+import requests
 from django.views.generic.base import View
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
@@ -55,11 +56,19 @@ class CreateTimeTemplate(viewsets.ModelViewSet):
         time_desc = request.data['desc']
         time_img_type = request.data['time_img_type']
         rank_range = request.data['rank_range']
+        name = request.data['name']
+        ilist = request.data['ilist']
+        existence_name = TimeTemp.objects.filter(name=name).first()
+        if ilist:
+            ilist = json.dumps(ilist.split(","))
+        if existence_name:
+            data = {"code": 2001, "message": "名称已存在"}
+            return JsonResponse(data=data)
+        if not name:
+            data = {"code": 2001, "message": "名称不能为空"}
+            return JsonResponse(data=data)
         if request.data['time_range'].isdigit() != True or int(request.data['time_range']) % 30 != 0:
-            data = {
-                "code": 2001,
-                "message": "时间范围必须是整数，并且是30的倍数",
-            }
+            data = {"code": 2001, "message": "时间范围不能为空，并且必须是整数，且是30的倍数"}
             return JsonResponse(data=data)
         try:
             time_range = request.data['time_range']
@@ -77,7 +86,7 @@ class CreateTimeTemplate(viewsets.ModelViewSet):
         time_img_type = json.dumps(image_type_list)
         img = request.data['imageName']
         timetemp_info = TimeTemp(user_id=user_id, time_range=int(time_range), time_desc=time_desc, image_name=img,
-                                 time_img_type=time_img_type, rank_range=rank_range)
+                                 time_img_type=time_img_type, rank_range=rank_range, name=name, image_ids=ilist)
         timetemp_info.save()
         data = self.serializer_class(timetemp_info).data
         return JsonResponse(R.ok(data=data))
@@ -110,8 +119,8 @@ class TimeRankSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         value = self.request.GET.get("value")
-        time_data = TimeTemp.objects.all().filter(time_range=value).first()
-        temp_data = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id)
+        time_data = TimeTemp.objects.all().filter(name=value).first()
+        temp_data = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank")
         return temp_data
 
 
@@ -255,12 +264,20 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         now_time = datetime.datetime.now().timestamp()
         query = self.request.GET.get("query", "")
         flag = self.request.GET.get("flag", "")
+        temp = self.request.GET.get("temp", "")
+        rank = self.request.GET.get("rank", "")
+        if rank != "undefined" and rank != "":
+            rank=float(rank)
+        img_t = self.request.GET.get("type", "")
         user = self.request.user
         time_img_type = []
         rank_range = ""
+        image_ids = ""
         data = TimeMoudel.objects.filter(user_id=self.request.user.id, end_time__gte=now_time).first()
         if data:
             data_temp = TimeTemp.objects.filter(temp_id=data.temp_time_id_id).first()
+            if data_temp.image_ids:
+                image_ids = json.loads(data_temp.image_ids)
             if data_temp.rank_range != "":
                 rank_range = float(data_temp.rank_range)
             try:
@@ -275,9 +292,53 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                                                        | Q(image_desc__contains=query)).order_by('-create_date')
                     return image_info_list
                 else:
-                    image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
-                                                       | Q(image_desc__contains=query),is_ok=True).order_by('-create_date')
+                    query = query.strip()
+                    time_img_type_q = Q()
+                    if len(time_img_type) > 0:
+                        time_img_type_q.connector = 'OR'
+                        for img_type in time_img_type:
+                            time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
+                    rank_range_q = Q()
+                    if rank_range != "":
+                        rank_range_q.children.append(('rank__lte', rank_range))
+                    image_q = Q()
+                    image_q.connector = "OR"
+                    image_q.children.append(('image_name__contains', query))
+                    image_q.children.append(('image_desc__contains', query))
+                    image_q.children.append(('image_vul_name__contains', query))
+                    query_q = Q()
+                    if len(time_img_type_q) > 0:
+                        query_q.add(time_img_type_q, 'AND')
+                    if type(rank_range) == float:
+                        query_q.add(rank_range_q, 'AND')
+                    is_ok_q = Q()
+                    is_ok_q.connector = 'AND'
+                    is_ok_q.children.append(('is_ok', True))
+                    query_q.add(is_ok_q, 'AND')
+                    if not data:
+                        query_q.add(image_q, 'AND')
+                    image_info_list = ImageInfo.objects.filter(query_q).order_by('-create_date')
             else:
+                if temp == "temp":
+                    if rank == 0.0:
+                        rank = 5
+                    if not img_t:
+                        data = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(is_ok=True)).all()
+                        return data
+                    else:
+                        img_t_list = img_t.split(",")
+                        rank_q = Q()
+                        rank_q.children.append(('rank__lte', rank))
+                        degree_q = Q()
+                        if len(img_t_list) > 0:
+                            degree_q.connector = 'OR'
+                            for img_type in img_t_list:
+                                degree_q.children.append(('degree__contains', json.dumps(img_type)))
+                        data = ImageInfo.objects.filter(~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()
+                        if not data:
+                            return []
+                        else:
+                            return data
                 if flag and flag == "flag":
                     image_info_list = ImageInfo.objects.filter().order_by('-create_date')
                     return image_info_list
@@ -286,7 +347,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if len(time_img_type) > 0:
                         time_img_type_q.connector = 'OR'
                         for img_type in time_img_type:
-                            time_img_type_q.children.append(('degree__contains', img_type))
+                            time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
                     rank_range_q = Q()
                     if rank_range != "":
                         rank_range_q.children.append(('rank__lte', rank_range))
@@ -300,20 +361,28 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     is_ok_q.children.append(('is_ok', True))
                     query_q.add(is_ok_q, 'AND')
                     image_info_list = ImageInfo.objects.filter(query_q).order_by('-create_date')
+                    if image_ids:
+                        imageids_q = Q()
+                        imageids_q.connector = 'OR'
+                        for img_id in image_ids:
+                            imageids_q.children.append(('image_id', img_id))
+                        image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True)).order_by('-create_date')
         else:
             if query:
                 query = query.strip()
-                image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
-                                                       | Q(image_desc__contains=query), is_ok=True).order_by('-create_date')
-            else:
                 time_img_type_q = Q()
                 if len(time_img_type) > 0:
                     time_img_type_q.connector = 'OR'
                     for img_type in time_img_type:
-                        time_img_type_q.children.append(('degree__contains', img_type))
+                        time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
                 rank_range_q = Q()
                 if rank_range != "":
                     rank_range_q.children.append(('rank__lte', rank_range))
+                image_q = Q()
+                image_q.connector = "OR"
+                image_q.children.append(('image_name__contains', query))
+                image_q.children.append(('image_desc__contains', query))
+                image_q.children.append(('image_vul_name__contains', query))
                 query_q = Q()
                 if len(time_img_type_q) > 0:
                     query_q.add(time_img_type_q, 'AND')
@@ -323,7 +392,55 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                 is_ok_q.connector = 'AND'
                 is_ok_q.children.append(('is_ok', True))
                 query_q.add(is_ok_q, 'AND')
+                if not data:
+                    query_q.add(image_q, 'AND')
                 image_info_list = ImageInfo.objects.filter(query_q).order_by('-create_date')
+            else:
+                if temp == "temp":
+                    if rank == 0.0:
+                        rank = 5
+                    if not img_t:
+                        data = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(is_ok=True)).all()
+                        return data
+                    else:
+                        img_t_list = img_t.split(",")
+                        rank_q = Q()
+                        rank_q.children.append(('rank__lte', rank))
+                        degree_q = Q()
+                        if len(img_t_list) > 0:
+                            degree_q.connector = 'OR'
+                            for img_type in img_t_list:
+                                degree_q.children.append(('degree__contains', json.dumps(img_type)))
+                        data = ImageInfo.objects.filter(~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()
+                        if not data:
+                            return []
+                        else:
+                            return data
+                else:
+                    time_img_type_q = Q()
+                    if len(time_img_type) > 0:
+                        time_img_type_q.connector = 'OR'
+                        for img_type in time_img_type:
+                            time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
+                    rank_range_q = Q()
+                    if rank_range != "":
+                        rank_range_q.children.append(('rank__lte', rank_range))
+                    query_q = Q()
+                    if len(time_img_type_q) > 0:
+                        query_q.add(time_img_type_q, 'AND')
+                    if type(rank_range) == float:
+                        query_q.add(rank_range_q, 'AND')
+                    is_ok_q = Q()
+                    is_ok_q.connector = 'AND'
+                    is_ok_q.children.append(('is_ok', True))
+                    query_q.add(is_ok_q, 'AND')
+                    image_info_list = ImageInfo.objects.filter(query_q).order_by('-create_date')
+                    if image_ids:
+                        imageids_q = Q()
+                        imageids_q.connector = 'OR'
+                        for img_id in image_ids:
+                            imageids_q.children.append(('image_id', img_id))
+                        image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True)).order_by('-create_date')
         if data:
             for image_info in image_info_list:
                 image_info.image_name = ''
@@ -807,13 +924,46 @@ def update_setting(request):
     rsp_data = get_setting_config()
     return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
 
+@api_view(http_method_names=["POST"])
+def get_timing_imgs(request):
+    """
+    获取官网镜像信息
+    """
+    # return JsonResponse({"code": 200, "data":"测试"})
+    try:
+        url = "http://vulfocus.fofa.so/api/imgs/info"
+        res = requests.get(url, verify=False).content
+        req = json.loads(res)
+        image_names = list(ImageInfo.objects.all().values_list('image_name', flat=True))
+        for item in req:
+            if item['image_name'] in image_names:
+                if item['image_name'] == "vulfocus/vulfocus:latest":
+                    continue
+                single_img = ImageInfo.objects.filter(image_name__contains=item['image_name']).first()
+                if single_img.image_vul_name != item['image_vul_name'] or single_img.image_vul_name == "":
+                    single_img.image_vul_name = item['image_vul_name']
+                if single_img.image_desc == "":
+                    single_img.image_desc = item['image_desc']
+                if single_img.rank != item['rank']:
+                    single_img.rank = item['rank']
+                if single_img.degree != item['degree']:
+                    single_img.degree = json.dumps(item['degree'])
+                single_img.save()
+            else:
+                image_info = ImageInfo(image_name=item['image_name'], image_vul_name=item['image_vul_name'],
+                                       image_desc=item['image_desc'], rank=item['rank'], degree=item['degree'],
+                                       is_ok=False, create_date=timezone.now(), update_date=timezone.now())
+                image_info.save()
+        return JsonResponse({"code": 200, "data": "成功"})
+    except Exception as e:
+        return JsonResponse({"code": 201, "data": e})
+
 
 class UserRank(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
 
     def get_queryset(self):
         return UserProfile.objects.all().order_by("rank")
-
 
 
 def get_local_ip():
@@ -833,13 +983,3 @@ def get_local_ip():
     return local_ip
 
 
-
-@csrf_exempt
-def get_img_info(req):
-    if req.method == "GET":
-        imgs = ImageInfo.objects.all()
-        imglist = list()
-        for i in imgs:
-            img = ImageInfoSerializer(i).data
-            imglist.append(img)
-        return JsonResponse(imglist, safe=False)

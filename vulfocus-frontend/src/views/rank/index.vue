@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-select v-model="value" placeholder="请选择排行榜" @change="StateChange">
       <el-option value="总榜">总榜</el-option>
-      <el-option v-for="item in options" :key="item.time_range" :label="item.time_range" :value="item.time_range">{{item.time_range}}分钟挑战赛</el-option>
+      <el-option v-for="item in options" :key="item.name" :label="item.name" :value="item.name">{{item.name}}</el-option>
     </el-select>
     <el-table :data="tableData" border stripe style="width: 100%; margin-top: 20px" >
       <el-table-column type="index" width="50"></el-table-column>
