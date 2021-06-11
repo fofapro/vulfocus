@@ -1,7 +1,7 @@
 <template>
 
   <div class="dashboard-container">
-    <el-dialog :visible.sync="centerDialogVisible" title="镜像信息" >
+    <el-dialog :visible.sync="centerDialogVisible" :before-close="handleDialogClose" title="镜像信息" >
       <div class="text item" v-loading="startCon" element-loading-text="环境启动中">
         <div class="text item" >
           访问地址: {{vul_host}}
@@ -29,13 +29,19 @@
         </el-form>
       </div>
     </el-dialog>
-    <el-row :gutter="24" >
-      <el-col>
+    <el-row :gutter="6" >
+      <el-col :span="18" v-if="this.countlist.length===0">
         <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
+        <el-select v-model="searchForm.time_img_type" @change="getselectdata" multiple filterable allow-create default-first-option placeholder="请选择漏洞类型" style="left: 5px">
+          <el-option v-for="item in degreeList" :key="item.value" :label="item.value" :value="item.value"></el-option>
+        </el-select>
+        <el-input-number @change="getselectdata" v-model="searchForm.rank_range" style="left: 10px" :precision="1" :step="0.5" :max="5" :min="0"></el-input-number>
         <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
           查询
         </el-button>
       </el-col>
+    </el-row>
+    <el-row :gutter="24" >
       <el-col :span="6" v-for="(item,index) in listdata" :key="index"  style="padding-bottom: 18px;">
         <el-card :body-style="{ padding: '8px' }" shadow="hover"
                  @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
@@ -100,7 +106,7 @@
 </template>
 
 <script>
-import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop, } from '@/api/docker'
+import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop } from '@/api/docker'
 import { publicMethod,gettimetemp } from '@/api/timemoudel'
 import { getTask } from '@/api/tasks'
 import CountDown from 'vue2-countdown'
@@ -132,13 +138,36 @@ export default {
       item_raw_data: "",
       cStatus: true,
       search: "",
+      searchForm:{
+        time_img_type:"",
+        rank_range:0
+      },
       vul_port:{},
       countlist:[],
       notifications: {},
-      dasstatus: {
-        "status":true,
-        "type": "dashboard"
-      }
+      degreeList:[
+          {value:"命令执行", lable:"命令执行"},
+          {value:"代码执行", lable:"代码执行"},
+          {value:"文件写入", lable:"文件写入"},
+          {value:"文件上传", lable:"文件上传"},
+          {value:"后门", lable:"后门"},
+          {value:"默认口令", lable:"默认口令"},
+          {value:"弱口令", lable:"弱口令"},
+          {value:"权限绕过", lable:"权限绕过"},
+          {value:"未授权访问", lable:"未授权访问"},
+          {value:"XXE漏洞", lable:"XXE漏洞"},
+          {value:"SQL注入", lable:"SQL注入"},
+          {value:"文件读取", lable:"文件读取"},
+          {value:"文件下载", lable:"文件下载"},
+          {value:"文件包含", lable:"文件包含"},
+          {value:"文件删除", lable:"文件删除"},
+          {value:"目录遍历", lable:"目录遍历"},
+          {value:"信息泄漏", lable:"信息泄漏"},
+          {value:"任意账户操作", lable:"任意账户操作"},
+          {value:"XSS漏洞", lable:"XSS漏洞"},
+          {value:"SSRF漏洞", lable:"SSRF漏洞"},
+          {value:"CSRF漏洞", lable:"CSRF漏洞"},
+        ],
       };
     },
   created() {
@@ -176,6 +205,17 @@ export default {
               this.listdata[i].status.delete_flag = false
             }
           })
+      },
+      getselectdata(){
+        ImgList(undefined,undefined,undefined,true,this.searchForm.time_img_type,this.searchForm.rank_range).then(response =>{
+            this.listdata = response.data.results
+            this.page.total = response.data.count
+            for (let i = 0; i <this.listdata.length ; i++) {
+            this.listdata[i].status.start_flag = false
+            this.listdata[i].status.stop_flag = false
+            this.listdata[i].status.delete_flag = false
+          }
+        }).catch((e)=>{})
       },
       open(id,images_name,images_desc,status,container_id,raw_data) {
         this.images_id = ""
@@ -367,7 +407,7 @@ export default {
         })
     },
       handleQuery(page){
-        ImgList(this.search,false,page).then(response => {
+        ImgList(this.search,false,page,true,this.searchForm.time_img_type,this.searchForm.rank_range).then(response => {
           this.listdata = response.data.results
           this.page.total = response.data.count
         })
@@ -388,7 +428,10 @@ export default {
             message: msg,
           });
         })
-    }
+    },
+      handleDialogClose(){
+        this.reload()
+      }
   },
   mounted: function() {
       var _this = this;
@@ -426,7 +469,7 @@ export default {
 }
 
 .button {
-  padding: 5;
+  padding: 5px;
   float: right;
 }
 

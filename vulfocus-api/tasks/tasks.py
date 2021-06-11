@@ -565,7 +565,7 @@ def create_image(task_id):
             else:
                 raise Exception
         except ImageNotFound:
-            msg = R.build(msg="%s 不存在")
+            msg = R.build(msg="%s 不存在" % (image_name,))
         except Exception:
             traceback.print_exc()
             msg = R.err(msg="%s 添加失败" % (image_name,))

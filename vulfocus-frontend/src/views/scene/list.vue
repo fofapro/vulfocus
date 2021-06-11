@@ -40,11 +40,12 @@
             <img v-if="titem.image_name !== imgpath" :src= "titem.image_name"  alt="" width="285px" height="300px;"/>
             <img v-else-if="titem.image_name===imgpath" :src= "modelimg"  alt="" width="285px" height="300px;"/>
             <div class="container-title" style="margin-top: 5px;">
-              <span>{{titem.time_range}}分钟计时挑战赛</span>
+              <span>{{titem.name}}</span>
             </div>
             <div class="bottom clearfix" style="margin-top: 10px;height: 80px;" >
               <span style="color:#999;font-size: 13px;" class="hoveDesc"> 描述:{{ titem.time_desc }}</span>
-              <span style="color:#999;font-size: 14px;" class="hoveDesc" v-if="titem.rank_range !== undefined && titem.rank_range > 0"> rank：{{ titem.rank_range }}</span>
+              <span style="color:#999;font-size: 13px;" class="hoveDesc"> 时间:{{ titem.time_range }}分钟</span>
+              <span style="color:#999;font-size: 14px;" class="hoveDesc" v-if="titem.rank_range !== undefined && titem.rank_range > 0"> rank:{{ titem.rank_range }}</span>
               <span style="color:#999;font-size: 13px;" class="hoveDesc" v-if="countlist.length >0 && titem.temp_id === countlist[0].temp_time_id">倒计时
               <count-down v-if="countlist.length >0 && countlist[0].temp_time_id === titem.temp_id" v-on:end_callback="autostop()" :currentTime="countlist[0].start_date" :startTime="countlist[0].start_date" :endTime="countlist[0].end_date" :dayTxt="'天'" :hourTxt="'小时'" :minutesTxt="'分钟'" :secondsTxt="'秒'">
               </count-down>
