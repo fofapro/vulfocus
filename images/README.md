@@ -4,6 +4,9 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE-2018-19462|`docker pull vulfocus/empire-cve_2018_19462`|CVE-2018-19462|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-21315|`docker pull vulfocus/node.js-cve_2021_21315`|CVE-2021-21315|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|PHP 8.1.0-dev 后门|`docker pull vulfocus/php8.1.0-dev`|PHP 8.1.0-dev 后门|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CNVD-2020-24741|`docker pull vulfocus/junams-cnvd_2020_24741`|CNVD-2020-24741|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2021-23132|`docker pull vulfocus/joomla-cve_2021_23132`|CVE-2021-23132|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-15866|`docker pull vulfocus/wordpress-cve_2019_15866`|CVE-2019-15866|[Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -148,6 +151,9 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 - vulfocus/junams-cnvd_2020_24741
 - vulfocus/joomla-cve_2021_23132
 - vulfocus/wordpress-cve_2019_15866
+- vulfocus/empire-cve_2018_19462
+- vulfocus/node.js-cve_2021_21315
+- vulfocus/php8.1.0-dev
 
 2021-06-05
 
