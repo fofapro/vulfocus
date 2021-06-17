@@ -122,3 +122,5 @@
 
 [struts2-052（CVE-2017-9805）](./struts2-052_CVE-2017-9805_hu4wufu/README.md) by [hu4wufu](https://github.com/hu4wufu)
 
+[Laravel 远程代码执行漏洞（CVE-2021-3129）](./Laravel_Debug_mode远程代码执行_anxianglang/CVE-2021-3129.md) by [anxianglang](https://github.com/anxianglang)
+

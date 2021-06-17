@@ -64,6 +64,7 @@
    * [ThinkPHP5远程代码执行漏洞（CNVD-2018-24942）](writeup/ThinkPHP5远程代码执行漏洞_CNVD-2018-24942_hu4wufu/README.md)
    * [struts2-045（CVE-2017-5638）](writeup/struts2-045_CVE-2017-5638_hu4wufu/README.md)
    * [struts2-052（CVE-2017-9805）](writeup/struts2-052_CVE-2017-9805_hu4wufu/README.md)
+   * [Laravel远程代码执行漏洞（CVE-2021-3129）](Laravel_Debug_mode远程代码执行_anxianglang/CVE-2021-3129.md)
 
 
 * 镜像
