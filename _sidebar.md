@@ -4,6 +4,7 @@
 
 * Writeup
 
+   * [SaltStack 远程命令执行漏洞（CVE-2020-16846）](writeup/CVE-2020-16846/CVE-2020-16846.md)
    * [ThinkPHP5 远程代码执行漏洞（CNVD-2018-24942）](writeup/CNVD-2018-24942/CNVD-2018-24942.md)
    * [Tomcat 任意写入文件漏洞（CVE-2017-12615）](writeup/CVE-2017-12615/CVE-2017-12615.md)
    * [ElasticSearch 命令执行漏洞（CVE-2014-3120）](writeup/CVE-2014-3120/CVE-2014-3120.md)
