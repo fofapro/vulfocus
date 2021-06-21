@@ -2,7 +2,7 @@
 
 主要收录关于 Vulfocus 相关的文章。
 
-[SaltStack 远程命令执行漏洞（CVE-2020-16846）](./CVE-2020-16846/CVE-2020-16846.md) by [FlyYoung729](https://github.com/FlyYoung729)
+[SaltStack 远程命令执行漏洞（CVE-2020-16846）](./SaltStack_远程命令执行漏洞_FlyYoung729/CVE-2020-16846.md) by [FlyYoung729](https://github.com/FlyYoung729)
 
 [ThinkPHP5 远程代码执行漏洞（CNVD-2018-24942）](./CNVD-2018-24942/CNVD-2018-24942.md) by [M2ayill](https://github.com/M2ayill)
 
