@@ -145,6 +145,23 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 | CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 
 ## 镜像新增日志
+2021-06-25
+
+- vulfocus/gitlab-cve_2021_22214
+- vulfocus/dedecms-cnvd_2018_01221
+- vulfocus/nginx-cve_2021_23017
+- vulfocus/activemq-cve_2017_15709
+- vulfocus/activemq-cve_2016_3088
+- vulfocus/phpok-cve_2018_12491
+
+2021-06-18
+
+- vulfocus/xstream-cve_2021_29505
+- vulfocus/xstream-cve_2021_21351
+- vulfocus/nexus-cve_2020_11444
+- vulfocus/nexus-cve_2019_5475
+- vulfocus/redis-cnvd_2019_21763
+- vulfocus/getsimple-cve_2019_11231
 
 2021-06-11
 
