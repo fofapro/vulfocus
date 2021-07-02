@@ -15,5 +15,3 @@ dockerpty==0.4.1
 celery==4.4.2
 redis==3.2.0
 Pillow==8.2.0
-
-pyt
