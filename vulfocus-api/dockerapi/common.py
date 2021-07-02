@@ -18,7 +18,8 @@ DEFAULT_CONFIG = {
     "share_username": "",
     "username": "vulshare",
     "pwd": "2a295233-801b-4efb-9f78-916330b984f6",
-    "time": 30 * 60
+    "time": 30 * 60,
+    "is_synchronization": 0
 }
 
 
@@ -41,7 +42,13 @@ def get_setting_config():
         if not config:
             config = SysConfig(config_key=config_key, config_value=config_value)
             config.save()
+        config_key = config.config_key
         config_value = config.config_value
+        if config_key == 'is_synchronization':
+            if config_value == 1 or config_value == '1':
+                config_value = True
+            else:
+                config_value = False
         rsp_data[config_key] = config_value
     return rsp_data
 

@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <el-select v-model="value" placeholder="请选择排行榜" @change="StateChange">
-      <el-option  :value="'--------'">总榜</el-option>
-      <el-option v-for="item in options" :key="item.time_range" :label="item.time_range" :value="item.time_range">{{item.time_range}}分钟挑战赛</el-option>
+      <el-option value="总榜">总榜</el-option>
+      <el-option v-for="item in options" :key="item.name" :label="item.name" :value="item.name">{{item.name}}</el-option>
     </el-select>
     <el-table :data="tableData" border stripe style="width: 100%; margin-top: 20px" >
       <el-table-column type="index" width="50"></el-table-column>
@@ -35,7 +35,7 @@
         options: [],
         tableData: [],
         status:"all",
-        value:"",
+        value: "",
         selectState:"",
         test:[]
       }
@@ -47,26 +47,25 @@
     methods:{
       StateChange(value){
         this.value = value
-        if (this.value==='--------'){
+        if (this.value ==='总榜'){
             this.reload()
         }else {
           timeranklist(this.value).then(response => {
-            let data = response.data.results
-            this.tableData = data
+            this.tableData = response.data.results
+            this.page.total = response.data.count
           })
         }
       },
       templist(){
         timetemplist(true).then(response =>{
-          let data = response.data.results
-          this.options = data
+          this.options = response.data.results
           })
       },
       initUserList(page){
+        this.value ='总榜'
         userranklist(page).then(response => {
-          let data = response.data.results
-          this.tableData = data
-          this.page.total = response.data.count
+          this.tableData = response.data.data.results
+          this.page.total = response.data.data.count
         })
       },
     }

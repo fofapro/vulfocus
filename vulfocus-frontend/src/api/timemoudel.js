@@ -62,7 +62,7 @@ export function timetempdelete(id) {
 
 export function userranklist(page) {
   return request({
-    url: '/user/?page='+ page,
+    url: '/rank/user/?page='+ page,
     method: 'get'
   })
 }

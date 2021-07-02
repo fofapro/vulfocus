@@ -1214,7 +1214,7 @@ export default {
         })
         return
       }
-      if (this.layout.imageName === '' || this.layout.imageName === null || this.layout.imageName === process.env.VUE_APP_BASE_API + '/static/'){
+      if (this.layout.imageName === '' || this.layout.imageName === null || this.layout.imageName === '/images/'){
         this.$message({
           message: '请上传 banner 图',
           type: 'error'
@@ -1234,7 +1234,7 @@ export default {
       }
     },
     handleLayoutCreate(){
-      let imgName = this.layout.imageName.replace(process.env.VUE_APP_BASE_API + '/static/', "")
+      let imgName = this.layout.imageName.replace('/images/', "")
       let formData = new FormData()
       formData.set("id", this.layout.id)
       formData.set("data", JSON.stringify(this.topoData))
@@ -1285,7 +1285,7 @@ export default {
             message: '上传成功',
             type: 'success'
           })
-          this.layout.imageName = process.env.VUE_APP_BASE_API + '/static/' + rsp.data
+          this.layout.imageName = '/images/' + rsp.data
         }else{
           this.$message({
             message: rsp.msg,

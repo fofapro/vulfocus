@@ -97,7 +97,6 @@ const actions = {
       commit('SET_TOKEN', '')
       commit('SET_ROLES', [])
       removeToken()
-      console.log("删除COOKIE")
       resolve()
     })
   }

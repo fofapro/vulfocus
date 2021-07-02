@@ -8,13 +8,19 @@ Vulfocus 是一个漏洞集成平台，将漏洞环境 docker 镜像，放入即
   <img src="https://img.shields.io/github/release/fofapro/vulfocus.svg?color=blue&label=update&style=flat-square" />
   <img src="https://img.shields.io/github/license/fofapro/vulfocus?style=flat-square" />
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<img src="https://img.shields.io/badge/all_contributors-22-orange.svg?style=flat-square" />
+<img src="https://img.shields.io/badge/all_contributors-24-orange.svg?style=flat-square" />
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 </p>
 
 Vulfocus 官网：[https://fofapro.github.io/vulfocus/](https://fofapro.github.io/vulfocus/)
 
-在线演示：[http://vulfocus.fofa.so/](http://vulfocus.fofa.so/)
+在线 Vulfocus：
+
+[http://vulfocus.fofa.so/](http://vulfocus.fofa.so/)
+
+[http://vulfocus.io/](http://vulfocus.io/)
+
+[http://vulfocus.club/](http://vulfocus.club/)
 
 ## 背景
 
@@ -37,9 +43,8 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 ## 使用
 
-![](./imgs/register.gif)
+![](./imgs/10.png)
 
-![](./imgs/login.gif)
 
 1. 安装完成后，访问80端口
 
@@ -61,8 +66,6 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 4. 下载完成后点击启动即可。
 
-![](./imgs/flag.gif)
-
 5. 镜像启动后，会在环境里写入一个 flag （默认 flag 会写入 **/tmp/** 下），读取到 flag 后填入 flag 窗口，镜像会自动关闭，如需重新启动，需强刷一下，然后再次点击启动即可。
 
 6. 可视化编排（管理员权限）
@@ -72,6 +75,10 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 7. 场景模式（普通用户权限）
 
 ![](./imgs/9.gif)
+
+8. 计时模式
+
+![](./imgs/11.gif)
 
 ## FAQ
 
@@ -102,39 +109,42 @@ Thanks goes to these wonderful people :
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/anonymity3712"><img src="https://avatars0.githubusercontent.com/u/40228178?v=4" width="100px;" alt=""/><br /><sub><b>anonymity3712</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/issues?q=author%3Aanonymity3712" title="Bug reports">🐛</a> <a href="#blog-anonymity3712" title="Blogposts">📝</a></td>
-    <td align="center"><a href="https://github.com/TC130"><img src="https://avatars2.githubusercontent.com/u/8563648?v=4" width="100px;" alt=""/><br /><sub><b>TC130</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/issues?q=author%3ATC130" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/hackwuli"><img src="https://avatars1.githubusercontent.com/u/47844992?v=4" width="100px;" alt=""/><br /><sub><b>hackwuli</b></sub></a><br /><a href="#question-hackwuli" title="Answering Questions">💬</a></td>
-    <td align="center"><a href="https://github.com/lxyevil"><img src="https://avatars3.githubusercontent.com/u/17840712?v=4" width="100px;" alt=""/><br /><sub><b>lxyevil</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=lxyevil" title="Tests">⚠️</a></td>
-    <td align="center"><a href="https://github.com/littleheary"><img src="https://avatars3.githubusercontent.com/u/26987382?v=4" width="100px;" alt=""/><br /><sub><b>littleheary</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/pulls?q=is%3Apr+reviewed-by%3Alittleheary" title="Reviewed Pull Requests">👀</a></td>
-    <td align="center"><a href="https://github.com/q2118cs"><img src="https://avatars0.githubusercontent.com/u/18305067?v=4" width="100px;" alt=""/><br /><sub><b>Rai Sun</b></sub></a><br /><a href="#ideas-q2118cs" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/luobei-Dynamic"><img src="https://avatars2.githubusercontent.com/u/13211734?v=4" width="100px;" alt=""/><br /><sub><b>luobei-Dynamic</b></sub></a><br /><a href="#ideas-luobei-Dynamic" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/anonymity3712"><img src="https://avatars0.githubusercontent.com/u/40228178?v=4?s=100" width="100px;" alt=""/><br /><sub><b>anonymity3712</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/issues?q=author%3Aanonymity3712" title="Bug reports">🐛</a> <a href="#blog-anonymity3712" title="Blogposts">📝</a></td>
+    <td align="center"><a href="https://github.com/TC130"><img src="https://avatars2.githubusercontent.com/u/8563648?v=4?s=100" width="100px;" alt=""/><br /><sub><b>TC130</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/issues?q=author%3ATC130" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/hackwuli"><img src="https://avatars1.githubusercontent.com/u/47844992?v=4?s=100" width="100px;" alt=""/><br /><sub><b>hackwuli</b></sub></a><br /><a href="#question-hackwuli" title="Answering Questions">💬</a></td>
+    <td align="center"><a href="https://github.com/lxyevil"><img src="https://avatars3.githubusercontent.com/u/17840712?v=4?s=100" width="100px;" alt=""/><br /><sub><b>lxyevil</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=lxyevil" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/littleheary"><img src="https://avatars3.githubusercontent.com/u/26987382?v=4?s=100" width="100px;" alt=""/><br /><sub><b>littleheary</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/pulls?q=is%3Apr+reviewed-by%3Alittleheary" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/q2118cs"><img src="https://avatars0.githubusercontent.com/u/18305067?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Rai Sun</b></sub></a><br /><a href="#ideas-q2118cs" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/luobei-Dynamic"><img src="https://avatars2.githubusercontent.com/u/13211734?v=4?s=100" width="100px;" alt=""/><br /><sub><b>luobei-Dynamic</b></sub></a><br /><a href="#ideas-luobei-Dynamic" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/wanglaiqi"><img src="https://avatars3.githubusercontent.com/u/9366714?v=4" width="100px;" alt=""/><br /><sub><b>wanglaiqi</b></sub></a><br /><a href="#ideas-wanglaiqi" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/zhuhongchang1227"><img src="https://avatars2.githubusercontent.com/u/59280688?v=4" width="100px;" alt=""/><br /><sub><b>zhuhongchang1227</b></sub></a><br /><a href="#ideas-zhuhongchang1227" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/daibing125"><img src="https://avatars1.githubusercontent.com/u/49011861?v=4" width="100px;" alt=""/><br /><sub><b>daibing</b></sub></a><br /><a href="#ideas-daibing125" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/zhangfeitao"><img src="https://avatars0.githubusercontent.com/u/10626929?v=4" width="100px;" alt=""/><br /><sub><b>zhangfeitao</b></sub></a><br /><a href="#ideas-zhangfeitao" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/TORRYGUO"><img src="https://avatars0.githubusercontent.com/u/43666746?v=4" width="100px;" alt=""/><br /><sub><b>TORRYGUO</b></sub></a><br /><a href="#ideas-TORRYGUO" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/Becivells"><img src="https://avatars2.githubusercontent.com/u/12883127?v=4" width="100px;" alt=""/><br /><sub><b>李大壮</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Becivells" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://github.com/Vdeem"><img src="https://avatars1.githubusercontent.com/u/24988893?v=4" width="100px;" alt=""/><br /><sub><b>Vdeem</b></sub></a><br /><a href="#blog-Vdeem" title="Blogposts">📝</a></td>
+    <td align="center"><a href="https://github.com/wanglaiqi"><img src="https://avatars3.githubusercontent.com/u/9366714?v=4?s=100" width="100px;" alt=""/><br /><sub><b>wanglaiqi</b></sub></a><br /><a href="#ideas-wanglaiqi" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/zhuhongchang1227"><img src="https://avatars2.githubusercontent.com/u/59280688?v=4?s=100" width="100px;" alt=""/><br /><sub><b>zhuhongchang1227</b></sub></a><br /><a href="#ideas-zhuhongchang1227" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/daibing125"><img src="https://avatars1.githubusercontent.com/u/49011861?v=4?s=100" width="100px;" alt=""/><br /><sub><b>daibing</b></sub></a><br /><a href="#ideas-daibing125" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/zhangfeitao"><img src="https://avatars0.githubusercontent.com/u/10626929?v=4?s=100" width="100px;" alt=""/><br /><sub><b>zhangfeitao</b></sub></a><br /><a href="#ideas-zhangfeitao" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/TORRYGUO"><img src="https://avatars0.githubusercontent.com/u/43666746?v=4?s=100" width="100px;" alt=""/><br /><sub><b>TORRYGUO</b></sub></a><br /><a href="#ideas-TORRYGUO" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/Becivells"><img src="https://avatars2.githubusercontent.com/u/12883127?v=4?s=100" width="100px;" alt=""/><br /><sub><b>李大壮</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Becivells" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/Vdeem"><img src="https://avatars1.githubusercontent.com/u/24988893?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Vdeem</b></sub></a><br /><a href="#blog-Vdeem" title="Blogposts">📝</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/xiajibaxie"><img src="https://avatars2.githubusercontent.com/u/45410321?v=4" width="100px;" alt=""/><br /><sub><b>xiajibaxie</b></sub></a><br /><a href="#blog-xiajibaxie" title="Blogposts">📝</a> <a href="https://github.com/fofapro/vulfocus/commits?author=xiajibaxie" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/Frivolous-scholar"><img src="https://avatars0.githubusercontent.com/u/48624840?v=4" width="100px;" alt=""/><br /><sub><b>Frivolous-scholar</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Frivolous-scholar" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/D4ch1au"><img src="https://avatars3.githubusercontent.com/u/46175208?v=4" width="100px;" alt=""/><br /><sub><b>D4ch1au</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=D4ch1au" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/M2ayill"><img src="https://avatars2.githubusercontent.com/u/22850233?v=4" width="100px;" alt=""/><br /><sub><b>M2ayill</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=m2ayill" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/Whippet0"><img src="https://avatars0.githubusercontent.com/u/46486374?v=4" width="100px;" alt=""/><br /><sub><b>Whippet</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Whippet0" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/Aa1141415869"><img src="https://avatars1.githubusercontent.com/u/46923769?v=4" width="100px;" alt=""/><br /><sub><b>Aa1141415869</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Aa1141415869" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/fengyehack"><img src="https://avatars2.githubusercontent.com/u/58175380?v=4" width="100px;" alt=""/><br /><sub><b>fengyehack</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=fengyehack" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/xiajibaxie"><img src="https://avatars2.githubusercontent.com/u/45410321?v=4?s=100" width="100px;" alt=""/><br /><sub><b>xiajibaxie</b></sub></a><br /><a href="#blog-xiajibaxie" title="Blogposts">📝</a> <a href="https://github.com/fofapro/vulfocus/commits?author=xiajibaxie" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Frivolous-scholar"><img src="https://avatars0.githubusercontent.com/u/48624840?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Frivolous-scholar</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Frivolous-scholar" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/D4ch1au"><img src="https://avatars3.githubusercontent.com/u/46175208?v=4?s=100" width="100px;" alt=""/><br /><sub><b>D4ch1au</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=D4ch1au" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/M2ayill"><img src="https://avatars2.githubusercontent.com/u/22850233?v=4?s=100" width="100px;" alt=""/><br /><sub><b>M2ayill</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=m2ayill" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Whippet0"><img src="https://avatars0.githubusercontent.com/u/46486374?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Whippet</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Whippet0" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Aa1141415869"><img src="https://avatars1.githubusercontent.com/u/46923769?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Aa1141415869</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Aa1141415869" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/fengyehack"><img src="https://avatars2.githubusercontent.com/u/58175380?v=4?s=100" width="100px;" alt=""/><br /><sub><b>fengyehack</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=fengyehack" title="Code">💻</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/wuli888"><img src="https://avatars1.githubusercontent.com/u/47844992?v=4" width="100px;" alt=""/><br /><sub><b>wuli</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=wuli888" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/wuli888"><img src="https://avatars1.githubusercontent.com/u/47844992?v=4?s=100" width="100px;" alt=""/><br /><sub><b>wuli</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=wuli888" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Liiuliu"><img src="https://avatars.githubusercontent.com/u/48509067?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Liiuliu</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=Liiuliu" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/atdpa4sw0rd"><img src="https://avatars.githubusercontent.com/u/24519788?v=4?s=100" width="100px;" alt=""/><br /><sub><b>atdpa4sw0rd</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/commits?author=atdpa4sw0rd" title="Code">💻</a></td>
   </tr>
 </table>
 
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ## 讨论区

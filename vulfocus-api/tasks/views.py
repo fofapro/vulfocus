@@ -5,9 +5,11 @@ from django.http import JsonResponse
 from rest_framework.decorators import action
 from .models import TaskInfo
 from dockerapi.common import R
+from django.views.generic.base import View
 import django.utils.timezone as timezone
 import json
 import redis
+from tasks import tasks
 from vulfocus.settings import REDIS_POOL
 r = redis.Redis(connection_pool=REDIS_POOL)
 

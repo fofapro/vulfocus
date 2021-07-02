@@ -1,8 +1,10 @@
 * [Vulfocus]()
 * [安装](INSTALL.md)
+* [漏洞镜像规范](_sidebar.md)
 
 * Writeup
 
+   * [SaltStack 远程命令执行漏洞（CVE-2020-16846）](writeup/SaltStack_远程命令执行漏洞_FlyYoung729/CVE-2020-16846.md)
    * [ThinkPHP5 远程代码执行漏洞（CNVD-2018-24942）](writeup/CNVD-2018-24942/CNVD-2018-24942.md)
    * [Tomcat 任意写入文件漏洞（CVE-2017-12615）](writeup/CVE-2017-12615/CVE-2017-12615.md)
    * [ElasticSearch 命令执行漏洞（CVE-2014-3120）](writeup/CVE-2014-3120/CVE-2014-3120.md)
@@ -63,6 +65,7 @@
    * [ThinkPHP5远程代码执行漏洞（CNVD-2018-24942）](writeup/ThinkPHP5远程代码执行漏洞_CNVD-2018-24942_hu4wufu/README.md)
    * [struts2-045（CVE-2017-5638）](writeup/struts2-045_CVE-2017-5638_hu4wufu/README.md)
    * [struts2-052（CVE-2017-9805）](writeup/struts2-052_CVE-2017-9805_hu4wufu/README.md)
+   * [Laravel远程代码执行漏洞（CVE-2021-3129）](writeup/Laravel_Debug_mode远程代码执行_anxianglang/CVE-2021-3129.md)
 
 
 * 镜像

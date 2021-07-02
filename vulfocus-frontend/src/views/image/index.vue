@@ -28,6 +28,11 @@
                   <el-button v-model="imgType" @click.stop="changeType" size="medium">{{imgTypeText}}</el-button>
                 </el-col>
               </el-form-item>
+              <el-form-item label="分类">
+                <el-select v-model="vulInfo.degree" multiple filterable allow-create default-first-option placeholder="请选择镜像标签" >
+                  <el-option v-for="item in degreeList" :key="item.value" :label="item.label" :value="item.value"> </el-option>
+                </el-select>
+              </el-form-item>
               <el-form-item label="Rank">
                 <el-input-number v-model="vulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
                 &nbsp;&nbsp;&nbsp;
@@ -111,9 +116,13 @@
         <el-form-item label="镜像">
           <el-input v-model="editVulInfo.image_name" disabled></el-input>
         </el-form-item>
+        <el-form-item label="分类" >
+          <el-select v-model="editVulInfo.degree" multiple placeholder="请选择镜像标签" style="width: 100%">
+            <el-option v-for="item in degreeList" :key="item.value" :label="item.label" :value="item.value" > </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="Rank">
           <el-input-number v-model="editVulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
-          &nbsp;&nbsp;&nbsp;
           <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
             <i class="el-icon-question"></i>
           </el-tooltip>
@@ -134,6 +143,10 @@
       <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-edit" @click="openCreate">
         添加
       </el-button>
+      <el-button v-if="loading===false" class="filter-item" @click="getWebsiteData" size="medium" style="float: right;margin-bottom: 10px" type="primary" icon="el-icon-refresh-left">
+        一键同步
+      </el-button>
+      <el-button v-else-if="loading===true" type="primary" :loading="true" style="float: right;margin-bottom: 10px" >同步中</el-button>
     </div>
     <el-table :data="tableData" border stripe align = "center" style="width: 100%">
       <el-table-column type="index" width="50"> </el-table-column>
@@ -141,6 +154,11 @@
       <el-table-column prop="image_vul_name" label="漏洞名称" :show-overflow-tooltip=true></el-table-column>
       <el-table-column prop="image_port" label="端口" width="150"></el-table-column>
       <el-table-column prop="rank" label="分数" width="50"></el-table-column>
+      <el-table-column label="漏洞分类" width="260">
+        <template slot-scope="{row}" v-if="row.degree.length > 0 && row.degree !==''">
+          <el-tag v-for="i in row.degree" style="margin-left: 2px;">{{i}}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
       <el-table-column fixed="right" label="操作" width="280">
         <template slot-scope="{row}">
@@ -199,7 +217,7 @@
 </template>
 
 <script>
-  import { ImgList } from "@/api/docker"
+  import { ImgList,get_website_imgs } from "@/api/docker"
   import { search } from "@/api/utils"
   import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageDownload,ImageEdit } from "@/api/image"
   import { containerDel } from '@/api/container'
@@ -219,15 +237,40 @@
           name: "",
           vul_name: "",
           desc: "",
+          degree:[]
         },
         editShow: false,
         editLoding: false,
+        degreeList:[
+          {value:"命令执行", lable:"命令执行"},
+          {value:"代码执行", lable:"代码执行"},
+          {value:"文件写入", lable:"文件写入"},
+          {value:"文件上传", lable:"文件上传"},
+          {value:"后门", lable:"后门"},
+          {value:"默认口令", lable:"默认口令"},
+          {value:"弱口令", lable:"弱口令"},
+          {value:"权限绕过", lable:"权限绕过"},
+          {value:"未授权访问", lable:"未授权访问"},
+          {value:"XXE漏洞", lable:"XXE漏洞"},
+          {value:"SQL注入", lable:"SQL注入"},
+          {value:"文件读取", lable:"文件读取"},
+          {value:"文件下载", lable:"文件下载"},
+          {value:"文件包含", lable:"文件包含"},
+          {value:"文件删除", lable:"文件删除"},
+          {value:"目录遍历", lable:"目录遍历"},
+          {value:"信息泄漏", lable:"信息泄漏"},
+          {value:"任意账户操作", lable:"任意账户操作"},
+          {value:"XSS漏洞", lable:"XSS漏洞"},
+          {value:"SSRF漏洞", lable:"SSRF漏洞"},
+          {value:"CSRF漏洞", lable:"CSRF漏洞"},
+        ],
         editVulInfo:{
           rank: "",
           image_name: "",
           image_id: "",
           image_vul_name: "",
           image_desc: "",
+          degree:[]
         },
         imgType: "text",
         imgTypeText: "切换为文件",
@@ -256,7 +299,8 @@
         page:{
           total: 0,
           size: 20,
-        }
+        },
+        value:[]
       }
     },
     created() {
@@ -284,6 +328,26 @@
             }
           })
         }
+      },
+      getWebsiteData(){
+        this.loading=true
+        get_website_imgs().then(response=>{
+          let data = response.data
+          if (data.code===200){
+            this.$message(
+              {
+                message:"同步完成",
+                type:"success"
+              }
+            )
+          }else{
+            this.$message({
+              message:"同步失败",
+              type:"error"
+            })
+          }
+          this.loading=false
+        })
       },
       searchSummariesList(keyword){
         this.summaries = []
@@ -329,6 +393,7 @@
         this.vulInfo.name = ""
         this.vulInfo.vul_name = ""
         this.vulInfo.desc = ""
+        this.vulInfo.degree = []
       },
       openProgress(row,flag){
         this.progress = {
@@ -420,6 +485,7 @@
         formData.set("image_name", this.vulInfo.name)
         formData.set("image_vul_name", this.vulInfo.vul_name)
         formData.set("image_desc", this.vulInfo.desc)
+        formData.set("degree", this.vulInfo.degree)
         this.loading = true
         ImageAdd(formData).then(response => {
           this.loading = false

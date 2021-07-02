@@ -4,6 +4,42 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE-2018-19462|`docker pull vulfocus/empire-cve_2018_19462`|CVE-2018-19462|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-21315|`docker pull vulfocus/node.js-cve_2021_21315`|CVE-2021-21315|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|PHP 8.1.0-dev 后门|`docker pull vulfocus/php8.1.0-dev`|PHP 8.1.0-dev 后门|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CNVD-2020-24741|`docker pull vulfocus/junams-cnvd_2020_24741`|CNVD-2020-24741|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-23132|`docker pull vulfocus/joomla-cve_2021_23132`|CVE-2021-23132|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-15866|`docker pull vulfocus/wordpress-cve_2019_15866`|CVE-2019-15866|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-35606|`docker pull vulfocus/webmin-cve_2020_35606`|CVE-2020-35606|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-25790|`docker pull vulfocus/typesetter-cve_2020_25790`|CVE-2020-25790|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-1270|`docker pull vulfocus/spring-cve_2018_1270`|CVE-2018-1270|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-50280|`docker pull vulfocus/wordpress-cnvd_2020_50280`|CVE-2020-50280|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-33156|`docker pull vulfocus/apache-zeppelin-cnvd_2019_33156`|CVE-2019-33156|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-7580|`docker pull vulfocus/thinkcmf-cve_2019_7580`|CVE-2019-7580|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-13384|`docker pull vulfocus/monstra-cve_2020_13384`|CVE-2020-13384|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-24741|`docker pull vulfocus/junams-cnvd_2020_24741`|CVE-2020-24741|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-22721|`docker pull vulfocus/seacms-cnvd_2020_22721`|CVE-2020-22721|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-8933|`docker pull vulfocus/dedecms-cve_2019_8933`|CVE-2019-8933|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-15642|`docker pull vulfocus/webmin-cve_2019_15642`|CVE-2019-15642|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-18086|`docker pull vulfocus/empirecms-cve_2018_18086`|CVE-2018-18086|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-15877|`docker pull vulfocus/wordpress-cve_2018_15877`|CVE-2018-15877|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-16846|`docker pull vulfocus/saltstack-cve_2020_16846`|CVE-2020-16846|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-27175|`docker pull vulfocus/dcrcms-cnvd_2020_27175`|CVE-2020-27175|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-5504|`docker pull vulfocus/phpmyadmin-cve_2020_5504`|CVE-2020-5504|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-5420|`docker pull vulfocus/ruby-on-rails-cve_2019_5420`|CVE-2019-5420|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-2729|`docker pull vulfocus/weblogic-cve_2019_2729`|CVE-2021-2729|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-2109|`docker pull vulfocus/solr-cve_2019_17558`|CVE-2019-17558|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-14234|`docker pull vulfocus/django-cve_2019_14234`|CVE-2019-14234|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-16278|`docker pull vulfocus/nostromo-cve_2019_16278`|CVE-2019-16278|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-17733|`docker pull vulfocus/maccms-cve_2017_17733`|CVE-2017-17733|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-2109|`docker pull vulfocus/weblogic-cve_2021_2109`|CVE-2021-2109|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-3129|`docker pull vulfocus/laravel-cve_2021_3129`|CVE-2021-3129|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-26295|`docker pull vulfocus/apache-ofbiz-cve_2021_26295`|CVE-2021-26295|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-14882|`docker pull vulfocus/weblogic-cve_2020_14882`|CVE-2020-14882|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-6339|`docker pull vulfocus/drupal-cve_2019_6339`|CVE-2019-6339|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-3799|`vulfocus/spring-cve_2019_3799`|CVE-2019-3799|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-7602|`vulfocus/drupal-cve_2018_7602`|CVE-2018-7602|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-25646|`docker pull vulfocus/apache_druid-cve_2021_25646`|CVE-2021-25646|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-9496|`docker pull vulfocus/ofbiz-cve_2020_9496`|CVE-2020-9496|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-9978|`docker pull vulfocus/wordpress-cve_2019_9978`|CVE-2019-9978|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-2725|`docker pull vulfocus/weblogic-cve_2019_2725`|CVE-2019-2725|[Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -90,14 +126,14 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 | CVE-2019-15107   | `docker pull vulfocus/webmin-cve_2019_15107`         | CVE-2019-15107   | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CVE-2019-8942    | `docker pull vulfocus/wordpress-cve_2019_8942`       | CVE-2019-8942    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CNVD-2018-24942  | `docker pull vulfocus/thinkphp-cnvd_2018_24942`      | CNVD-2018-24942  | [Vulfocus](https://github.com/fofapro/vulfocus)|
-| CVE-2018_1000861 | `docker pull vulfocus/jenkins-cve2018_1000861`       | CVE-2018_1000861 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2018_1000861 | `docker pull vulfocus/jenkins-cve_2018_1000861`       | CVE-2018-1000861 | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CVE-2018-7600    | `docker pull vulfocus/drupal-cve_2018_7600`          | CVE-2018-7600    | [Vulfocus](https://github.com/fofapro/vulfocus)|
-| CVE-2017_1000353 | `docker pull vulfocus/jenkins-cve2017_1000353`       | CVE-2017_1000353 | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017_1000353 | `docker pull vulfocus/jenkins-cve_2017_1000353`       | CVE-2017-1000353 | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CVE-2017-12636   | `docker pull vulfocus/couchdb-cve_2017_12636`        | CVE-2017-12636   | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CVE-2017-12615   | `docker pull vulfocus/tomcat-cve_2017_12615`         | CVE-2017-12615   | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CVE-2017-12149   | `docker pull vulfocus/jboss-cve_2017_12149`          | CVE-2017-12149   | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CVE-2017-9791    | `docker pull vulfocus/struts2-cve_2017_9791`         | CVE-2017-9791    | [Vulfocus](https://github.com/fofapro/vulfocus)|
-| CVE-2017_8046    | `docker pull vulfocus/vulfocus/spring-cve_2017_8046` | CVE-2017_8046    | [Vulfocus](https://github.com/fofapro/vulfocus)|
+| CVE-2017_8046    | `docker pull vulfocus/spring-cve_2017_8046` | CVE-2017_8046    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CVE-2017-7504    | `docker pull vulfocus/jboss-cve_2017_7504`           | CVE-2017-7504    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CVE-2017-5941    | `docker pull vulfocus/nodejs-cve_2017_594`           | CVE-2017-5941    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 | CVE-2017-5638    | `docker pull vulfocus/struts2-cve_2017_5638`         | CVE-2017-5638    | [Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -109,6 +145,58 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 | CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 
 ## 镜像新增日志
+
+2021-06-11
+
+- vulfocus/junams-cnvd_2020_24741
+- vulfocus/joomla-cve_2021_23132
+- vulfocus/wordpress-cve_2019_15866
+- vulfocus/empire-cve_2018_19462
+- vulfocus/node.js-cve_2021_21315
+- vulfocus/php8.1.0-dev
+
+2021-06-05
+
+- vulfocus/webmin-cve_2020_35606
+- vulfocus/typesetter-cve_2020_25790
+- vulfocus/spring-cve_2018_1270
+- vulfocus/wordpress-cnvd_2020_50280
+- vulfocus/apache-zeppelin-cnvd_2019_33156
+- vulfocus/thinkcmf-cve_2019_7580
+
+2021-05-28
+
+- vulfocus/monstra-cve_2020_13384
+- vulfocus/junams-cnvd_2020_24741
+- vulfocus/seacms-cnvd_2020_22721
+- vulfocus/dedecms-cve_2019_8933
+- vulfocus/webmin-cve_2019_15642
+- vulfocus/empirecms-cve_2018_18086
+- vulfocus/wordpress-cve_2018_15877
+
+2021-05-21
+
+- vulfocus/saltstack-cve_2020_16846
+- vulfocus/dcrcms-cnvd_2020_27175
+- vulfocus/phpmyadmin-cve_2020_5504
+- vulfocus/ruby-on-rails-cve_2019_5420
+- vulfocus/weblogic-cve_2019_2729
+- vulfocus/solr-cve_2019_17558
+- vulfocus/django-cve_2019_14234
+- vulfocus/nostromo-cve_2019_16278
+- vulfocus/maccms-cve_2017_17733
+
+2021-05-14
+
+- vulfocus/apache_druid-cve_2021_25646
+- vulfocus/weblogic-cve_2021_2109
+- vulfocus/laravel-cve_2021_3129
+- vulfocus/apache-ofbiz-cve_2021_26295
+- vulfocus/weblogic-cve_2020_14882
+- vulfocus/drupal-cve_2019_6339
+- vulfocus/spring-cve_2019_3799
+- vulfocus/drupal-cve_2018_7602
+- vulfocus/phpmoadmin-cve_2015_2208
 
 2020-09-04
 

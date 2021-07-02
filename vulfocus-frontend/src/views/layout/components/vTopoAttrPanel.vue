@@ -214,7 +214,6 @@ export default {
       }else{
         // attrs
         this.vSelectNodeData.attrs = this.image
-        console.log(this.vSelectNodeData)
         this.$message({
           type: "success",
           message: "设置成功"
@@ -244,7 +243,6 @@ export default {
         });
       }else{
         this.vSelectNodeData.attrs = this.network
-        console.log(this.vSelectNodeData)
         this.$message({
           type: "success",
           message: "设置成功"

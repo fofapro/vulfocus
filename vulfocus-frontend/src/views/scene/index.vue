@@ -199,7 +199,6 @@ export default {
             rsp.data["is_run"] = true
           }
           this.isRun = !rsp.data["is_run"]
-          console.log(this.isRun)
           this.$message({
             message: "启动成功",
             type: 'success'

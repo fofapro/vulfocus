@@ -2,6 +2,8 @@
 
 主要收录关于 Vulfocus 相关的文章。
 
+[SaltStack 远程命令执行漏洞（CVE-2020-16846）](./SaltStack_远程命令执行漏洞_FlyYoung729/CVE-2020-16846.md) by [FlyYoung729](https://github.com/FlyYoung729)
+
 [ThinkPHP5 远程代码执行漏洞（CNVD-2018-24942）](./CNVD-2018-24942/CNVD-2018-24942.md) by [M2ayill](https://github.com/M2ayill)
 
 [Tomcat 任意写入文件漏洞（CVE-2017-12615）](./CVE-2017-12615/CVE-2017-12615.md) by [M2ayill](https://github.com/M2ayill)
@@ -121,4 +123,6 @@
 [struts2-045（CVE-2017-5638）](./struts2-045_CVE-2017-5638_hu4wufu/README.md) by [hu4wufu](https://github.com/hu4wufu)
 
 [struts2-052（CVE-2017-9805）](./struts2-052_CVE-2017-9805_hu4wufu/README.md) by [hu4wufu](https://github.com/hu4wufu)
+
+[Laravel 远程代码执行漏洞（CVE-2021-3129）](./Laravel_Debug_mode远程代码执行_anxianglang/CVE-2021-3129.md) by [anxianglang](https://github.com/anxianglang)
 
