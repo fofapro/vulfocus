@@ -34,8 +34,8 @@ def get_request_ip(request):
     :return:
     """
     request_ip = ""
-    if request.META.get('HTTP_X_FORWARDED_FOR'):
-        request_ip = request.META.get("HTTP_X_FORWARDED_FOR")
+    if request.META.get("HTTP_X_REAL_IP"):
+        request_ip = request.META.get("HTTP_X_REAL_IP")
     else:
         request_ip = request.META.get("REMOTE_ADDR")
     return request_ip
@@ -266,8 +266,20 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         flag = self.request.GET.get("flag", "")
         temp = self.request.GET.get("temp", "")
         rank = self.request.GET.get("rank", "")
-        if rank != "undefined" and rank != "":
-            rank=float(rank)
+        min_rank = 0
+        try:
+            if rank != "undefined" and rank != "":
+                rank = float(rank)
+                if rank == 0.5:
+                    min_rank = 0.0
+                if rank == 2.0:
+                    min_rank = 0.5
+                if rank == 3.5:
+                    min_rank = 2.0
+                if rank == 5.0:
+                    min_rank = 3.5
+        except:
+            rank = 0.0
         img_t = self.request.GET.get("type", "")
         user = self.request.user
         time_img_type = []
@@ -300,7 +312,9 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                             time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
                     rank_range_q = Q()
                     if rank_range != "":
+                        rank_range_q = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
+                        rank_range_q.children.append(('rank__gt', min_rank))
                     image_q = Q()
                     image_q.connector = "OR"
                     image_q.children.append(('image_name__contains', query))
@@ -323,12 +337,14 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if rank == 0.0:
                         rank = 5
                     if not img_t:
-                        data = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(is_ok=True)).all()
+                        data = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()
                         return data
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
+                        rank_q.connector = "AND"
                         rank_q.children.append(('rank__lte', rank))
+                        rank_q.children.append(('rank__gt', min_rank))
                         degree_q = Q()
                         if len(img_t_list) > 0:
                             degree_q.connector = 'OR'
@@ -350,7 +366,9 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                             time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
                     rank_range_q = Q()
                     if rank_range != "":
+                        rank_range_q.connector = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
+                        rank_range_q.children.append(('rank__gt', min_rank))
                     query_q = Q()
                     if len(time_img_type_q) > 0:
                         query_q.add(time_img_type_q, 'AND')
@@ -377,7 +395,9 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                         time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
                 rank_range_q = Q()
                 if rank_range != "":
+                    rank_range_q = 'AND'
                     rank_range_q.children.append(('rank__lte', rank_range))
+                    rank_range_q.children.append(('rank__gt', min_rank))
                 image_q = Q()
                 image_q.connector = "OR"
                 image_q.children.append(('image_name__contains', query))
@@ -400,12 +420,14 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if rank == 0.0:
                         rank = 5
                     if not img_t:
-                        data = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(is_ok=True)).all()
+                        data = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()
                         return data
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
+                        rank_q.connector = 'AND'
                         rank_q.children.append(('rank__lte', rank))
+                        rank_q.children.append(('rank__gt', min_rank))
                         degree_q = Q()
                         if len(img_t_list) > 0:
                             degree_q.connector = 'OR'
@@ -424,7 +446,9 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                             time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
                     rank_range_q = Q()
                     if rank_range != "":
+                        rank_range_q.connector = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
+                        rank_range_q.children.append(('rank__gt', min_rank))
                     query_q = Q()
                     if len(time_img_type_q) > 0:
                         query_q.add(time_img_type_q, 'AND')
@@ -446,6 +470,8 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                 image_info.image_name = ''
                 image_info.image_vul_name = ''
                 image_info.image_desc = ''
+        # pg = MyPageNumberPagination()
+        # pglist = pg.paginate_queryset(image_info_list,request=self.request,view=self) # 分页实例
         return image_info_list
 
     def destroy(self, request, *args, **kwargs):
@@ -472,6 +498,9 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
             except:
                 rank = 2.5
             image_info.rank = rank
+        if "is_flag" in data:
+            is_flag = data['is_flag']
+            image_info.is_flag = is_flag
         if "image_vul_name" in data:
             image_vul_name = data["image_vul_name"]
             image_vul_name = image_vul_name.strip()
@@ -486,6 +515,12 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                 dg = dg.strip()
                 degree.append(dg)
             image_info.degree = json.dumps(degree)
+        if "writeup_date" in data:
+            if data['writeup_date'] == "":
+                content = ""
+            else:
+                content = json.dumps(data['writeup_date'])
+            image_info.writeup_date = content
         image_info.update_date = django.utils.timezone.now()
         image_info.save()
         return JsonResponse(R.ok())
@@ -511,6 +546,13 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
             image_rank = float(image_rank)
         except:
             image_rank = 2.5
+        try:
+            writeup_date = request.POST.get("writeup_date", "")
+            if writeup_date:
+                writeup_date = json.dumps(writeup_date)
+        except:
+            writeup_date = ""
+        is_flag = request.POST.get("is_flag", True)
         image_file = request.FILES.get("file")
         image_info = None
         if image_name:
@@ -520,7 +562,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         if not image_info:
             image_info = ImageInfo(image_name=image_name, image_vul_name=image_vul_name, image_desc=image_desc,
                                    rank=image_rank, is_ok=False, create_date=timezone.now(), update_date=timezone.now(),
-                                   degree=degree)
+                                   degree=degree, writeup_date=writeup_date,is_flag=is_flag)
             if not image_file:
                 image_info.save()
         task_id = tasks.create_image_task(image_info=image_info, user_info=user, request_ip=get_request_ip(request),
@@ -739,7 +781,16 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         """
         user_info = request.user
         container_vul = self.get_object()
+        expire = request.GET.get('expire', "")
         task_id = tasks.stop_container_task(container_vul=container_vul, user_info=user_info,
+                                            request_ip=get_request_ip(request))
+        setting_config = get_setting_config()
+        del_container = setting_config['del_container']
+        if expire != "" and expire == "true":
+            if not del_container or del_container == 0 or del_container == '0':
+                pass
+            else:
+                tasks.delete_container_task(container_vul=container_vul, user_info=user_info,
                                             request_ip=get_request_ip(request))
         return JsonResponse(R.ok(task_id))
 
@@ -870,10 +921,15 @@ def update_setting(request):
         if not re.match(share_username_reg, share_username):
             return JsonResponse(R.build(msg="分享用户名不符合要求"))
     is_synchronization = request.POST.get("is_synchronization")
+    del_container = request.POST.get("del_container")
     if is_synchronization and 'true' == is_synchronization:
         is_synchronization = 1
     else:
         is_synchronization = 0
+    if del_container and 'true' == del_container:
+        del_container = 1
+    else:
+        del_container = 0
     try:
         time = int(time)
         if time != 0 and time < 60:
@@ -921,6 +977,14 @@ def update_setting(request):
             if is_synchronization_config.config_value != str(is_synchronization) or is_synchronization_config.config_value != is_synchronization:
                 is_synchronization_config.config_value = str(is_synchronization)
                 is_synchronization_config.save()
+        del_container_config = SysConfig.objects.filter(config_key="del_container").first()
+        if not del_container_config:
+            del_container_config = SysConfig(config_key="del_container", config_value=DEFAULT_CONFIG["time"])
+            del_container_config.save()
+        else:
+            if del_container_config.config_value != str(del_container) or del_container_config.config_value != del_container:
+                del_container_config.config_value = str(del_container)
+                del_container_config.save()
     rsp_data = get_setting_config()
     return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
 
@@ -929,13 +993,14 @@ def get_timing_imgs(request):
     """
     获取官网镜像信息
     """
-    # return JsonResponse({"code": 200, "data":"测试"})
     try:
         url = "http://vulfocus.fofa.so/api/imgs/info"
         res = requests.get(url, verify=False).content
         req = json.loads(res)
         image_names = list(ImageInfo.objects.all().values_list('image_name', flat=True))
         for item in req:
+            if item['image_name'] == "":
+                continue
             if item['image_name'] in image_names:
                 if item['image_name'] == "vulfocus/vulfocus:latest":
                     continue
@@ -948,16 +1013,22 @@ def get_timing_imgs(request):
                     single_img.rank = item['rank']
                 if single_img.degree != item['degree']:
                     single_img.degree = json.dumps(item['degree'])
+                if "writeup_date" in item and single_img.writeup_date != item['writeup_date']:
+                    single_img.writeup_date = item['writeup_date']
                 single_img.save()
             else:
+                if "writeup_date" in item:
+                    writeup_date = item['writeup_date']
+                else:
+                    writeup_date = ""
                 image_info = ImageInfo(image_name=item['image_name'], image_vul_name=item['image_vul_name'],
-                                       image_desc=item['image_desc'], rank=item['rank'], degree=item['degree'],
-                                       is_ok=False, create_date=timezone.now(), update_date=timezone.now())
+                                       image_desc=item['image_desc'], rank=item['rank'], degree=json.dumps(item['degree']),
+                                       is_ok=False, create_date=timezone.now(), writeup_date=writeup_date,
+                                       update_date=timezone.now())
                 image_info.save()
         return JsonResponse({"code": 200, "data": "成功"})
     except Exception as e:
         return JsonResponse({"code": 201, "data": e})
-
 
 class UserRank(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
@@ -981,5 +1052,3 @@ def get_local_ip():
     finally:
         s.close()
     return local_ip
-
-

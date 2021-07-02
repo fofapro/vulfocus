@@ -161,9 +161,16 @@ def create_container_task(container_vul, user_info, request_ip):
             run_container.delay(container_vul.container_id, user_id, task_id, countdown)
         elif countdown != 0 and countdown > 60:
             # run_container(container_vul.container_id, user_id, task_id, countdown)
-            add_chain_sig = chain(run_container.s(container_vul.container_id, user_id, task_id, countdown) |
-                                  stop_container.s().set(countdown=countdown))
-            add_chain_sig.apply_async()
+            setting_config = get_setting_config()
+            if 'del_container' in setting_config:
+                del_container = setting_config['del_container']
+                if not del_container or del_container == 0 or del_container == '0':
+                    add_chain_sig = chain(run_container.s(container_vul.container_id, user_id, task_id, countdown) |
+                                          stop_container.s().set(countdown=countdown))
+                else:
+                    add_chain_sig = chain(run_container.s(container_vul.container_id, user_id, task_id, countdown) |
+                                          delete_container.s().set(countdown=countdown))
+                add_chain_sig.apply_async()
         else:
             task_info = TaskInfo.objects.filter(task_id=task_id).first()
             task_info.task_msg = json.dumps(R.build(msg="停止时间最小为 1 分钟"))
@@ -321,8 +328,11 @@ def run_container(container_id, user_id, tmp_task_id, countdown):
             image_info.is_ok = False
             image_info.save()
             return str(task_info.task_id)
+        vul_flag = "flag-{bmh%s}" % (uuid.uuid4(),)
+        if container_vul.container_flag:
+            vul_flag = container_vul.container_flag
         try:
-            docker_container = client.containers.run(image_name, ports=port_dict, detach=True)
+            docker_container = client.containers.run(image_name, ports=port_dict, detach=True, environment={"vul_flag": vul_flag})
         except ImageNotFound:
             msg = R.build(msg="镜像不存在")
             task_info.task_msg = json.dumps(msg)
@@ -333,9 +343,7 @@ def run_container(container_id, user_id, tmp_task_id, countdown):
             image_info.is_ok = False
             image_info.save()
             return str(task_info.task_id)
-        vul_flag = "flag-{bmh%s}" % (uuid.uuid4(),)
-        if container_vul.container_flag:
-            vul_flag = container_vul.container_flag
+
         command = 'touch /tmp/%s' % (vul_flag,)
         vul_host = get_local_ip() + ":" + container_port
     task_start_date = timezone.now()

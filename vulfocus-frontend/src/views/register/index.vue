@@ -199,6 +199,7 @@
     background-color: $bg;
     overflow: hidden;
     background: url("../../assets/loginbackground.png") center no-repeat;
+    background-size: 100%;
     .login-form {
       position: relative;
       width: 400px;

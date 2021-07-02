@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.db.models import Sum
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 from rest_framework import viewsets,mixins
 from user.serializers import UserProfileSerializer, User, UserRegisterSerializer
 from rest_framework.views import APIView
@@ -9,6 +9,12 @@ from django.views.generic.base import View
 from user.models import UserProfile
 from dockerapi.common import R
 from dockerapi.models import ContainerVul
+from vulfocus.settings import REDIS_IMG as r_img
+from PIL import ImageDraw,ImageFont,Image
+import random
+import io
+import uuid
+
 
 
 class ListAndUpdateViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -31,10 +37,8 @@ class UserSet(ListAndUpdateViewSet):
         user = request.user
         if not user.is_superuser:
             return JsonResponse(R.build(msg="权限不足"))
-        print(self.get_object())
         new_pwd = request.data.get("pwd", "")
         new_pwd = new_pwd.strip()
-        print(new_pwd)
         if len(new_pwd) < 6:
             return JsonResponse(R.build(msg="密码格式不正确"))
         user_info = self.get_object()
@@ -86,3 +90,42 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_classes = []
     queryset = UserProfile.objects.all()
     serializer_class = UserRegisterSerializer
+
+
+
+# 定义一验证码
+class MyCode(View):
+
+    # 定义一个随机验证颜色
+    def get_random_color(self):
+        R = random.randrange(255)
+        G = random.randrange(255)
+        B = random.randrange(255)
+        return (R,G,B)
+    # 随机验证码
+    def get(self,request):
+        img_size = (110,50)
+        image = Image.new('RGB',img_size,'#27408B')
+        draw = ImageDraw.Draw(image,'RGB')
+        source = '0123456789abcdefghijklmnopqrstevwxyz'
+        code_str = ''
+        for i in range(4):
+            text_color = self.get_random_color()
+            tmp_num = random.randrange(len(source))
+            random_str = source[tmp_num]
+            code_str +=random_str
+            draw.text((10+30*i,20),random_str,text_color,)
+        buf = io.BytesIO()
+        image.save(buf, 'png')
+        data = buf.getvalue()
+        if "HTTP_X_REAL_IP" in request.META:
+            ip = request.META.get("HTTP_X_REAL_IP")
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+        if ip == "127.0.0.1":
+            return HttpResponse(data, 'image/png')
+        r_img.sadd(ip, code_str)
+        r_img.expire(ip, 60)
+        return HttpResponse(data, 'image/png')
+
+

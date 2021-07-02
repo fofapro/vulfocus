@@ -72,6 +72,8 @@ else:
     CELERY_BROKER_URL = 'redis://%s:%s/0' % (REDIS_HOST, str(REDIS_PORT))
     REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), decode_responses=True,db=1)
 
+REDIS_IMG = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), db=6, decode_responses=True)
+
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
 CELERY_ACCEPT_CONTENT = ['json']
@@ -98,7 +100,10 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated'
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer'
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
@@ -114,7 +119,6 @@ JWT_AUTH = {
     # 指明token的有效期
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
     'JWT_AUTH_HEADER_PREFIX': 'BMH',
-
 }
 
 

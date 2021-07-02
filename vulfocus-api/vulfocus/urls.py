@@ -15,10 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from rest_framework import routers
-from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet, get_timing_imgs
+from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs
 from user.views import UserRegView, UserSet, get_user_rank
 from rest_framework_jwt.views import obtain_jwt_token
-from user.views import get_user_info, LogoutView
+from user.views import get_user_info, LogoutView, MyCode
 from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
 from layout_image.views import LayoutViewSet, upload_img
@@ -47,5 +47,6 @@ urlpatterns = [
     url(r'setting/update', update_setting),
     url(r'img/upload', upload_img),
     url(r'get/website/imgs', get_timing_imgs),
+    url(r'^getcaptcha/', MyCode.as_view()),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

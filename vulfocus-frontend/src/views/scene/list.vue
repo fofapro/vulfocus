@@ -143,6 +143,7 @@ export default {
             info.image_name = '/images/'+ info.image_name
             this.timelist.push(info)
           })
+          this.page.total += data.count
         })
     },
     handleOk(titem){
@@ -191,7 +192,7 @@ export default {
       }).catch(() => {
         this.$message({
           type: 'info',
-          message: '已取挑战'
+          message: '已取消挑战'
         });
       });
     }},

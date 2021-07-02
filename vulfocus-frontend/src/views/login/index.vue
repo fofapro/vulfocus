@@ -73,6 +73,7 @@
 </template>
 
 <script>
+import { lininfo } from "@/api/docker"
 
 export default {
   name: 'Login',
@@ -126,6 +127,7 @@ export default {
           this.$store.dispatch('user/login', this.loginForm).then(() => {
             this.$router.push({ path: this.redirect || '/' })
             this.loading = false
+            lininfo()
           }).catch(() => {
             this.loading = false
           })
@@ -133,7 +135,10 @@ export default {
           return false
         }
       })
-    }
+    },
+
+
+
   }
 }
 </script>

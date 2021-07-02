@@ -79,7 +79,8 @@ class ImageInfoSerializer(serializers.ModelSerializer):
 
     status = serializers.SerializerMethodField('statusck')
     degree = serializers.SerializerMethodField('degreeck')
-
+    writeup_date = serializers.SerializerMethodField('contentck')
+    update_date = serializers.SerializerMethodField('transition_time')
 
     def statusck(self, obj):
         status = {}
@@ -172,6 +173,17 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         except Exception as e:
             return []
 
+    def contentck(self, obj):
+        content = obj.writeup_date
+        try:
+            return json.loads(content)
+        except Exception as e:
+            return ""
+
+    def transition_time(self,obj):
+        time = obj.update_date.strftime('%Y-%m-%d %H:%M:%S')
+        return time
+
     class Meta:
         model = ImageInfo
         fields = "__all__"
@@ -224,6 +236,8 @@ class ContainerVulSerializer(serializers.ModelSerializer):
 class SysLogSerializer(serializers.ModelSerializer):
 
     user_name = serializers.SerializerMethodField('get_user_name')
+    create_date = serializers.SerializerMethodField('transition_time')
+
 
     class Meta:
         model = SysLog
@@ -233,3 +247,7 @@ class SysLogSerializer(serializers.ModelSerializer):
         user_id = obj.user_id
         user_info = UserProfile.objects.get(id=user_id)
         return user_info.username
+
+    def transition_time(self,obj):
+        time = obj.create_date.strftime('%Y-%m-%d %H:%M:%S')
+        return time
