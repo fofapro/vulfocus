@@ -43,15 +43,23 @@
             </div>
             <div v-show="index===1" style="width: 800px">
               <el-row :gutter="10">
-                <el-col :span="10">
+                <el-col :span="8">
                   <span>漏洞类型</span>
                   <el-select v-model="form.time_img_type" @change="getselectdata" multiple filterable allow-create default-first-option placeholder="请选择漏洞类型" style="left: 5px">
                     <el-option v-for="item in degreeList" :key="item.value" :label="item.value" :value="item.value"></el-option>
                   </el-select>
                 </el-col>
-                <el-col :span="8">
-                  <span>Rank范围</span>
-                  <el-input-number  @change="getselectdata" style="left: 10px" v-model="form.rank_range" :precision="1" :step="0.5" :max="5" :min="0"></el-input-number>
+                <el-col :span=4>
+                  <ul style="width: 100%" >难易程度</ul>
+                </el-col>
+                <el-col :span=1.5 style="margin-left: 6px">
+                  <el-radio-group v-model="form.rank_range" size="medium" style="margin-top: 6px" @change="getselectdata">
+                    <el-radio-button label=0>全部</el-radio-button>
+                    <el-radio-button label=0.5>入门</el-radio-button>
+                    <el-radio-button label=2.0>初级</el-radio-button>
+                    <el-radio-button label=3.5>中级</el-radio-button>
+                    <el-radio-button label=5>高级</el-radio-button>
+                  </el-radio-group>
                 </el-col>
 <!--                <el-col :span="8">-->
 <!--                  <el-checkbox v-model="comp" :checked="list.length===listdata.length" type="checkbox" border @change="checkAll">全选</el-checkbox>-->
@@ -219,6 +227,18 @@
         })
       },
       getselectdata(){
+        ImgList(undefined,undefined,undefined,true,this.form.time_img_type,this.form.rank_range).then(response =>{
+            this.listdata = response.data.results
+            this.page.total = response.data.count
+            for (let i = 0; i <this.listdata.length ; i++) {
+            this.listdata[i].status.start_flag = false
+            this.listdata[i].status.stop_flag = false
+            this.listdata[i].status.delete_flag = false
+          }
+        }).catch((e)=>{})
+      },
+      getselectdata1(val){
+        this.form.rank_range = val
         ImgList(undefined,undefined,undefined,true,this.form.time_img_type,this.form.rank_range).then(response =>{
             this.listdata = response.data.results
             this.page.total = response.data.count

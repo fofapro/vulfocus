@@ -6,7 +6,7 @@
         查询
       </el-button>
     </div>
-    <el-table :data="tableData" border stripe style="width: 100%">
+    <el-table :data="tableData" border stripe style="width: 100%" v-loading="loading">
       <el-table-column type="index" width="50"></el-table-column>
       <el-table-column prop="user_name" width="150" :show-overflow-tooltip=true label="用户名"></el-table-column>
       <el-table-column :show-overflow-tooltip=true prop="operation_type" label="操作类型" width="130"></el-table-column>
@@ -44,7 +44,8 @@
           total: 0,
           size: 20,
         },
-        tableData: []
+        tableData: [],
+        loading:true
       }
     },
     created() {
@@ -57,6 +58,7 @@
           let data = response.data.results
           this.tableData = data
           this.page.total = response.data.count
+          this.loading = false
         })
       },
       handleQuery(){

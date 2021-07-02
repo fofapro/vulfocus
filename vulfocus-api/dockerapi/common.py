@@ -19,7 +19,8 @@ DEFAULT_CONFIG = {
     "username": "vulshare",
     "pwd": "2a295233-801b-4efb-9f78-916330b984f6",
     "time": 30 * 60,
-    "is_synchronization": 0
+    "is_synchronization": 0,
+    "del_container": 1
 }
 
 
@@ -45,6 +46,11 @@ def get_setting_config():
         config_key = config.config_key
         config_value = config.config_value
         if config_key == 'is_synchronization':
+            if config_value == 1 or config_value == '1':
+                config_value = True
+            else:
+                config_value = False
+        if config_key == 'del_container':
             if config_value == 1 or config_value == '1':
                 config_value = True
             else:

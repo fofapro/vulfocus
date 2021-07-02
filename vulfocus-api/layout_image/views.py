@@ -26,7 +26,7 @@ from tasks import tasks
 from rest_framework.decorators import action
 from user.models import UserProfile
 import shutil
-
+import docker
 
 # Create your views here.
 
@@ -367,6 +367,39 @@ class LayoutViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return JsonResponse(R.build(msg=str(e)))
         open_host_list = []
+        raw_con = json.loads(layout_info.raw_content)
+        network_list = client.networks.list()
+        net_list = []
+        network_names = [item['attrs']['name'] for item in raw_con['nodes'] if item['name'] == "Network"]
+        for i in network_list:
+            net_list.append(i.attrs['Name'])
+        for network_name in network_names:
+            if network_name in net_list:
+                pass
+            else:
+                try:
+                    network_det = NetWorkInfo.objects.filter(net_work_name=network_name).first()
+                    ipam_pool = docker.types.IPAMPool(
+                        subnet=network_det.net_work_subnet,
+                        gateway=network_det.net_work_gateway
+                    )
+                    ipam_config = docker.types.IPAMConfig(
+                        pool_configs=[ipam_pool]
+                    )
+                    net_work = client.networks.create(
+                        network_det.net_work_name,
+                        driver=network_det.net_work_driver,
+                        ipam=ipam_config,
+                        scope=network_det.net_work_scope
+                    )
+                    net_work_client_id = str(net_work.id)
+                    if not network_det.net_work_gateway:
+                        net_work_gateway = net_work.attrs['IPAM']['Config']['Gateway']
+                        network_det.net_work_gateway = net_work_gateway
+                    network_det.net_work_client_id = net_work_client_id
+                    network_det.save()
+                except Exception as e:
+                    return JsonResponse(R.build(msg=str(e)))
         try:
             with transaction.atomic():
                 _tmp_file_path = "docker-compose" + layout_path.replace(DOCKER_COMPOSE, "")

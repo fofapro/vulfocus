@@ -8,7 +8,7 @@
       </el-button>
     </div>
     <el-table
-      :data="tableData" border stripe style="width: 100%">
+      :data="tableData" border stripe style="width: 100%" v-loading="loading">
       <el-table-column type="index" width="50"></el-table-column>
       <el-table-column prop="vul_name" width="150" :show-overflow-tooltip=true label="漏洞名称"></el-table-column>
       <el-table-column :show-overflow-tooltip=true prop="user_name" width="100" label="用户名"></el-table-column>
@@ -25,7 +25,7 @@
                      @click="startContainer(row)" >启动</el-button>
           <el-button size="mini" type="primary" icon="el-icon-loading" v-if="row.container_status === 'running'"
                      @click="stopContainer(row)" >停止</el-button>
-          <el-button size="mini" type="danger" icon="el-icon-delete" v-if="row.container_status === 'running' || row.container_status === 'stop'"
+          <el-button size="mini" type="danger" icon="el-icon-delete" v-if="row.container_status === 'running' || row.container_status === 'stop' && row.vul_host!==''"
                      @click="delContainer(row)" >删除</el-button>
         </template>
       </el-table-column>
@@ -57,7 +57,8 @@
         searchImageId: null,
         searchImageName: null,
         imageList: [],
-        tableData: []
+        tableData: [],
+        loading:false,
       }
     },
     components: {
@@ -189,6 +190,7 @@
       search(id,page){
         containerList('list', page, id).then(response => {
           this.tableData = response.data.results
+          this.loading = false
           this.page.total = response.data.count
         })
       },

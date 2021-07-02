@@ -1,9 +1,9 @@
 <template>
-
   <div class="dashboard-container">
-    <el-dialog :visible.sync="centerDialogVisible" :before-close="handleDialogClose" title="镜像信息" >
-      <div class="text item" v-loading="startCon" element-loading-text="环境启动中">
-        <div class="text item" >
+    <el-dialog :visible.sync="centerDialogVisible" @close="handleDialogClose"  title="镜像信息">
+      <i  class="el-icon-reading"  v-model="drawer" @click="openDrawer" style="position:absolute;z-index: 9999;color: rgb(140, 197, 255);left:100px;top: 21px;font-size: 20px"></i>
+      <div class="text item" v-loading="startCon" element-loading-text="环境启动中" >
+        <div class="text item">
           访问地址: {{vul_host}}
         </div>
         <div class="text item">
@@ -18,38 +18,83 @@
         <div class="text item">
           描述: {{images_desc}}
         </div>
-        <el-form>
-          <el-form-item label="Flag">
-            <el-input v-model="input" placeholder="请输入Flag：格式flag-{xxxxxxxx}"></el-input>
+        <el-form v-if="is_flag===true">
+          <el-form-item label="Flag" >
+            <el-input v-model="input" placeholder="请输入Flag：格式flag-{xxxxxxxx}" ></el-input>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="subFlag(container_id,input.trim())" :disabled="cStatus">提 交</el-button>
-            <!--</div>-->
           </el-form-item>
         </el-form>
+        <div>
+          <el-drawer :title="images_name+'  writeup'"  :visible="drawer" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" >
+              <div>
+                <el-row>
+                  <el-col :span="1"></el-col>
+                  <el-col :span="22">
+                    <div class="container" v-if="drawerFlag===false && writeup_date !== ''">
+                      <ViewerEditor v-model="writeup_date" ref="myset" height="600px" ></ViewerEditor>
+                    </div>
+                    <div class="container" v-else-if="drawerFlag===false && writeup_date === ''">
+                      <ViewerEditor v-model="writeup_date" ref="myset" height="600px" ></ViewerEditor>
+                      <el-empty description="当前环境还没有writeup，赶紧去官网发表解题思路吧">
+                      </el-empty>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+          </el-drawer>
+        </div>
       </div>
     </el-dialog>
-    <el-row :gutter="6" >
-      <el-col :span="18" v-if="this.countlist.length===0">
-        <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
-        <el-select v-model="searchForm.time_img_type" @change="getselectdata" multiple filterable allow-create default-first-option placeholder="请选择漏洞类型" style="left: 5px">
-          <el-option v-for="item in degreeList" :key="item.value" :label="item.value" :value="item.value"></el-option>
-        </el-select>
-        <el-input-number @change="getselectdata" v-model="searchForm.rank_range" style="left: 10px" :precision="1" :step="0.5" :max="5" :min="0"></el-input-number>
+    <el-card class="box-card">
+      <el-row :gutter="6" v-if="this.countlist.length===0">
+      <el-col :span="2">
+          <ul style="width: 100%;color: #606266" >模糊查询</ul>
+      </el-col>
+      <el-col :span="22">
+        <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
         <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
           查询
         </el-button>
+        <el-button id="first-bmh" type="primary" style="left: 10px;" size="medium" @click="showTips" >新手引导</el-button>
       </el-col>
     </el-row>
-    <el-row :gutter="24" >
-      <el-col :span="6" v-for="(item,index) in listdata" :key="index"  style="padding-bottom: 18px;">
+      <el-row :gutter=6 style="margin-top: 6px" v-if="this.countlist.length===0">
+      <el-col :span=2>
+        <ul style="width: 100%;color: #606266" >难易程度</ul>
+      </el-col>
+      <el-col :span=1.5 style="margin-left: 6px">
+        <el-radio-group v-model="searchForm.rank_range" size="medium" style="margin-top: 6px" @change="getselectdata">
+          <el-radio-button label=0>全部</el-radio-button>
+          <el-radio-button label=0.5 id="first-bmh2" >入门</el-radio-button>
+          <el-radio-button label=2.0>初级</el-radio-button>
+          <el-radio-button label=3.5>中级</el-radio-button>
+          <el-radio-button label=5>高级</el-radio-button>
+        </el-radio-group>
+      </el-col>
+    </el-row>
+      <el-row :gutter=6 style="margin-top: 6px" v-if="this.countlist.length===0" >
+      <el-col :span=2>
+        <ul style="width: 100%;color: #606266" >漏洞类型</ul>
+      </el-col>
+      <el-col :span=21>
+        <el-select v-model="searchForm.time_img_type" @change="getselectdata" multiple filterable allow-create default-first-option placeholder="请选择漏洞类型" style="left: 5px;width: 40%;margin-top: 6px">
+          <el-option v-for="item in degreeList" :key="item.value" :label="item.value" :value="item.value"></el-option>
+        </el-select>
+      </el-col>
+    </el-row>
+    </el-card>
+    <el-divider style="margin-top: 1px"></el-divider>
+    <el-row :gutter="24" id="first-bmh3" v-loading="loading">
+      <el-col :span="6" v-for="(item,index) in listdata" :key="index" style="padding-bottom: 18px;">
         <el-card :body-style="{ padding: '8px' }" shadow="hover"
                  @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
-          <div class="clearfix" >
+          <div class="clearfix" style="position: relative" >
+            <div style=" position:absolute;right:0;top:0"><img v-if="item.status.is_check === true" style="width: 60%;height: 60%; float: right" src="../../assets/Customs.png" /></div>
             <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
               <svg-icon icon-class="bug"  style="font-size: 20px;"/>
               <el-tooltip v-if="(item.status.status === 'stop' || item.status.status === 'delete') && item.status.is_check === true" content="已通过" placement="top">
-                <i style="color: #20a0ff;" class="el-icon-check"></i>
               </el-tooltip>
               <el-tooltip v-else-if="item.status.status === 'running'" content="运行中" placement="top">
                 <i style="color: #20a0ff;" class="el-icon-loading"></i>
@@ -61,7 +106,7 @@
                 <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
                   <i class="el-icon-time"></i>
                 </el-tooltip>
-                <count-down style="display: inline-block;height: 20px;line-height: 20px;size: 20px;margin-block-start: 0em;margin-block-end: 0em;" v-on:end_callback="stop(item.status.container_id, item)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
+                <count-down style="display: inline-block;height: 20px;line-height: 20px;size: 20px;margin-block-start: 0em;margin-block-end: 0em;" v-on:end_callback="stop(item.status.container_id, item,expire)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
               </div>
               <div style="display: inline-block;" v-else-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date === 0">
                 <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
@@ -101,7 +146,6 @@
         :total="page.total">
       </el-pagination>
     </div>
-
   </div>
 </template>
 
@@ -112,11 +156,25 @@ import { getTask } from '@/api/tasks'
 import CountDown from 'vue2-countdown'
 import { Notification } from 'element-ui'
 import {stoptimetemp} from "@/api/timemoudel";
+import Driver from "driver.js"
+import "driver.js/dist/driver.min.css"
+import MarkdownEditor from '@/components/MarkdownEditor'
+import ViewerEditor from '@/components/ViewerEditor'
+import 'codemirror/lib/codemirror.css' // codemirror
+import 'tui-editor/dist/tui-editor.css' // editor ui
+import 'tui-editor/dist/tui-editor-contents.css' // editor content
+import codeSyntaxHighlight from "@toast-ui/editor-plugin-code-syntax-highlight";
+import hljs from "highlight.js";
+import Editor from 'tui-editor'
+import { Loading } from "element-ui"
+
 export default {
   inject: ['reload'],
   name: 'Dashboard',
   components: {
-    CountDown
+    CountDown,
+    MarkdownEditor,
+    ViewerEditor,
   },
   replace:true,
   data() {
@@ -125,8 +183,19 @@ export default {
         total: 0,
         size: 20,
       },
+      DifficultyList:[
+        {value:0, lable:"全部"},
+        {value:1, lable:"入门"},
+        {value:2.5, lable:"初级"},
+        {value:3.5, lable:"中级"},
+        {value:5, lable:"高级"},
+      ],
+      drawerFlag:false,
+      drawer:false,
+      derection:"btt",
       listdata: [],
       vul_host: "",
+      radioStatus:false,
       centerDialogVisible: false,
       startCon:false,
       startTime:(new Date()).getTime(),
@@ -135,6 +204,9 @@ export default {
       container_id: "",
       images_name: "",
       images_desc: "",
+      writeup_date:"",
+      is_flag:true,
+      expire:true,
       item_raw_data: "",
       cStatus: true,
       search: "",
@@ -168,6 +240,7 @@ export default {
           {value:"SSRF漏洞", lable:"SSRF漏洞"},
           {value:"CSRF漏洞", lable:"CSRF漏洞"},
         ],
+      loading:true
       };
     },
   created() {
@@ -177,6 +250,7 @@ export default {
   beforeDestroy(){
     Notification.closeAll()
   },
+
   methods:{
       timeData(){
         gettimetemp().then(response => {
@@ -204,10 +278,19 @@ export default {
               this.listdata[i].status.stop_flag = false
               this.listdata[i].status.delete_flag = false
             }
+            this.loading=false
           })
       },
       getselectdata(){
+        const loading = this.$loading({
+          lock: true,
+          text: "Loading",
+          // spinner: "el-icon-loading",
+          background: "rgba(255,255,255,0.4)",
+          target: document.querySelector("#first-bmh3")
+        });
         ImgList(undefined,undefined,undefined,true,this.searchForm.time_img_type,this.searchForm.rank_range).then(response =>{
+            loading.close()
             this.listdata = response.data.results
             this.page.total = response.data.count
             for (let i = 0; i <this.listdata.length ; i++) {
@@ -230,6 +313,8 @@ export default {
         this.images_id = id
         this.images_name = images_name
         this.images_desc = images_desc
+        this.is_flag = raw_data.is_flag
+        this.writeup_date = raw_data.writeup_date
         this.centerDialogVisible = true
         this.$set(raw_data.status, "start_flag", true)
         this.$forceUpdate();
@@ -246,6 +331,8 @@ export default {
           this.container_id = raw_data.status.container_id
           this.startCon = false
           this.cStatus = false
+          this.writeup_date = raw_data.writeup_date
+          this.is_flag = raw_data.is_flag
         }else{
           ContainerSTART(id).then(response=>{
           let taskId = response.data["data"]
@@ -303,7 +390,8 @@ export default {
                 message:  "恭喜！通过",
                 type: "success",
               })
-              this.listData(1)
+              this.reload()
+              this.centerDialogVisible = false
             }else if(responseData.status === 201){
               this.$message({
                 message: responseData["msg"],
@@ -315,18 +403,16 @@ export default {
                 type: "error",
               })
             }
-            this.centerDialogVisible = false
-            this.reload()
             this.item_raw_data.status.status = 'stop'
           })
       },
-      stop(container_id,raw) {
+      stop(container_id,raw,expire) {
         /**
          * 停止容器运行
          */
         this.$set(raw.status, "stop_flag", true)
         this.$forceUpdate();
-        ContainerStop(container_id).then(response=>{
+        ContainerStop(container_id,expire).then(response=>{
           let taskId = response.data["data"]
           let tmpStopContainerInterval = window.setInterval(() => {
             setTimeout(()=>{
@@ -345,6 +431,7 @@ export default {
                     raw.status.status = "stop"
                     raw.status.start_date = ""
                     raw.status.stop_flag = false
+                    this.listData(1)
                   }else{
                     this.$message({
                       message: responseData["msg"],
@@ -407,7 +494,15 @@ export default {
         })
     },
       handleQuery(page){
+        const loading = this.$loading({
+          lock: true,
+          text: "Loading",
+          // spinner: "el-icon-loading",
+          background: "rgba(255,255,255,255.4)",
+          target: document.querySelector("#first-bmh3")
+        });
         ImgList(this.search,false,page,true,this.searchForm.time_img_type,this.searchForm.rank_range).then(response => {
+          loading.close()
           this.listdata = response.data.results
           this.page.total = response.data.count
         })
@@ -430,8 +525,68 @@ export default {
         })
     },
       handleDialogClose(){
+        this.listData(1)
+      },
+      closeDrawer(done){
+        this.drawer=false
         this.reload()
-      }
+      },
+      openDrawer(){
+          this.drawer=true
+      },
+      editorButton(){
+        this.drawerFlag=true
+      },
+      closeEditorButton(){
+        this.drawerFlag=false
+      },
+      showTips(){
+        const driver = new Driver({
+          prevBtnText:"上一步",
+          nextBtnText:"下一步",
+          doneBtnText:"完成",
+          closeBtnText:"关闭",
+          // opacity:0,
+          allowClose:false,
+        });
+        const steps = [
+          {
+            element:"#first-bmh", // 这是点击触发的id
+            popover:{
+              title:"第一步",
+              description:"开始新手引导",
+              position: "bottom"
+            }
+          },
+          {
+            element:"#first-bmh2", // 这是点击触发的id
+            popover:{
+              title:"第二步",
+              description:"点击入门镜像",
+              position: "bottom"
+            }
+          },
+          {
+            element:"#first-bmh3", // 这是点击触发的id
+            popover:{
+              title:"第三步",
+              description:"启动入门镜像,启动后可以根据访问地址旁的 ! 了解漏洞镜像",
+              position: "top"
+            },
+          },
+        ];
+        driver.defineSteps(steps);
+        driver.start();
+      },
+      startloading(){
+        const loading = this.$loading({
+          lock: true,
+          text: "Loading",
+          // spinner: "el-icon-loading",
+          background: "rgba(0,0,0,0.7)",
+          target: document.querySelector("#first-bmh3")
+        });
+      },
   },
   mounted: function() {
       var _this = this;
@@ -523,4 +678,10 @@ export default {
 /*  height: 20px;*/
 /*  line-height: 20px;*/
 /*}*/
+</style>
+
+<style rel="stylesheet/scss" lang="scss">
+.el-drawer{
+  overflow: scroll
+}
 </style>

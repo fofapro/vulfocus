@@ -30,10 +30,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
     rank_count = serializers.SerializerMethodField('rankCount')
     status_moudel = serializers.SerializerMethodField('set_status_moudel')
     roles = serializers.SerializerMethodField("set_role")
+    date_joined = serializers.SerializerMethodField("transition_time")
 
     class Meta:
         model = User
-        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count",)
+        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count", "date_joined")
+
+    def transition_time(self,obj):
+        time = obj.date_joined.strftime('%Y-%m-%d %H:%M:%S')
+        return time
 
     def get_user_name(self, obj):
         return obj.username
@@ -59,3 +64,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
             return ["admin"]
         else:
             return ["member"]
+

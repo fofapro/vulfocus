@@ -1,12 +1,13 @@
 <template>
   <div class="app-container">
-    <el-table :data="tableData" border stripe style="width: 100%">
+    <el-table :data="tableData" border stripe style="width: 100%" v-loading="loading">
       <el-table-column type="index" width="50"></el-table-column>
       <el-table-column prop="name" label="用户名"></el-table-column>
       <el-table-column prop="email" label="邮箱"></el-table-column>
       <el-table-column prop="roles" label="权限"></el-table-column>
       <el-table-column prop="rank" label="Rank"></el-table-column>
       <el-table-column prop="rank_count" label="通过数量"></el-table-column>
+      <el-table-column prop="date_joined" label="注册时间"></el-table-column>
       <el-table-column prop="combination_desc" label="操作" :show-overflow-tooltip=true width="200">
         <template slot-scope="{row}">
           <el-button size="mini" type="primary" icon="el-icon-edit" @click="changePwd(row)" >修改密码</el-button>
@@ -36,7 +37,8 @@
           total: 0,
           size: 20,
         },
-        tableData: []
+        tableData: [],
+        loading:true
       }
     },
     created(){
@@ -48,7 +50,9 @@
           let data = response.data.results
           this.tableData = data
           this.page.total = response.data.count
+          this.loading=false
         })
+
       },
       changePwd(row){
         this.$prompt("请输入新密码","提示",{

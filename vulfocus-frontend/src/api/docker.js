@@ -30,13 +30,6 @@ export function ImgList(data,flag,page,temp,type,rank) {
   })
 }
 
-export function get_website_imgs() {
-  return request({
-    url: 'get/website/imgs',
-    method: 'post'
-  })
-}
-
 export function ContainerINFO(id) {
   return request({
     url: '/images/'+id,
@@ -50,6 +43,12 @@ export function ContainerSTATUS(id) {
   })
 }
 
+export function get_website_imgs() {
+  return request({
+    url: 'get/website/imgs',
+    method: 'post'
+  })
+}
 
 export function ContainerSTART(id) {
   return request({
@@ -75,9 +74,12 @@ export function ContainerDelete(id) {
   })
 }
 
-export function ContainerStop(id) {
+export function ContainerStop(id,expire) {
+  if(expire === undefined || expire == null){
+    expire = false
+  }
   return request({
-    url: '/container/'+id+'/stop/',
+    url: '/container/'+id+'/stop/?expire='+expire,
     method: 'get'
   })
 }

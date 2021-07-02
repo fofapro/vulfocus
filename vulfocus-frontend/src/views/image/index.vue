@@ -35,7 +35,6 @@
               </el-form-item>
               <el-form-item label="Rank">
                 <el-input-number v-model="vulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
-                &nbsp;&nbsp;&nbsp;
                 <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
                   <i class="el-icon-question"></i>
                 </el-tooltip>
@@ -43,8 +42,22 @@
               <el-form-item label="描述">
                 <el-input type="textarea" v-model="vulInfo.desc" size="medium"></el-input>
               </el-form-item>
+              <el-form-item label="flag">
+                <el-switch v-model="vulInfo.is_flag"></el-switch>
+                <el-tooltip content="是否开启flag" placement="top">
+                  <i class="el-icon-question"></i>
+                </el-tooltip>
+              </el-form-item>
               <el-form-item>
                 <el-button type="primary"  @click="uploadImg" size="medium">提 交</el-button>
+                <el-button type="primary" @click="handleMark" size="medium">编辑writeup</el-button>
+              </el-form-item>
+              <el-form-item v-if="markstatus === true">
+                <div class="container" >
+                  <markdown-editor ref="markdownEditor" v-model="vulInfo.writeup_date" :options="{hideModeSwitch:true, previewStyle:'tab'}" height="200px" />
+                </div>
+<!--                <el-button type="primary" @click="saveHandleMark" size="medium">保存</el-button>-->
+                <el-button type="primary" @click="closeHandleMark" size="medium">关闭</el-button>
               </el-form-item>
             </el-form>
           </el-tab-pane>
@@ -127,11 +140,25 @@
             <i class="el-icon-question"></i>
           </el-tooltip>
         </el-form-item>
+        <el-form-item label="flag">
+          <el-switch v-model="editVulInfo.is_flag"></el-switch>
+          <el-tooltip content="是否开启flag" placement="top">
+            <i class="el-icon-question"></i>
+          </el-tooltip>
+        </el-form-item>
         <el-form-item label="描述">
           <el-input type="textarea" v-model="editVulInfo.image_desc" size="medium"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary"  @click="handleEditImage" size="medium">提 交</el-button>
+          <el-button type="primary" @click="handleMark" size="medium">修改writeup</el-button>
+        </el-form-item>
+        <el-form-item v-if="markstatus === true">
+          <div class="container" >
+            <markdown-editor ref="markdownEditor" v-model="editVulInfo.writeup_date" :options="{hideModeSwitch:true, previewStyle:'tab'}" height="200px" />
+          </div>
+<!--          <el-button type="primary" @click="saveHandleMark" size="medium">保存</el-button>-->
+          <el-button type="primary" @click="closeHandleMark" size="medium">关闭</el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
@@ -148,7 +175,7 @@
       </el-button>
       <el-button v-else-if="loading===true" type="primary" :loading="true" style="float: right;margin-bottom: 10px" >同步中</el-button>
     </div>
-    <el-table :data="tableData" border stripe align = "center" style="width: 100%">
+    <el-table :data="tableData" border stripe align = "center" style="width: 100%" v-loading="tabLoading">
       <el-table-column type="index" width="50"> </el-table-column>
       <el-table-column prop="image_name" label="镜像名称" :show-overflow-tooltip=true ></el-table-column>
       <el-table-column prop="image_vul_name" label="漏洞名称" :show-overflow-tooltip=true></el-table-column>
@@ -160,6 +187,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="image_desc" :show-overflow-tooltip=true label="描述"> </el-table-column>
+      <el-table-column prop="update_date" :show-overflow-tooltip=true label="修改时间"> </el-table-column>
       <el-table-column fixed="right" label="操作" width="280">
         <template slot-scope="{row}">
           <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"
@@ -222,11 +250,15 @@
   import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageDownload,ImageEdit } from "@/api/image"
   import { containerDel } from '@/api/container'
   import { getTask,batchTask,progressTask } from '@/api/tasks'
-
+  import MarkdownEditor from '@/components/MarkdownEditor'
   export default {
     name: 'index',
+    components: {
+      MarkdownEditor
+    },
     data() {
       return {
+        markstatus: false,
         tableData: [],
         search: "",
         localSearch: "",
@@ -237,10 +269,13 @@
           name: "",
           vul_name: "",
           desc: "",
-          degree:[]
+          degree:[],
+          writeup_date: '',
+          is_flag: true
         },
         editShow: false,
         editLoding: false,
+        tabLoading: true,
         degreeList:[
           {value:"命令执行", lable:"命令执行"},
           {value:"代码执行", lable:"代码执行"},
@@ -270,7 +305,9 @@
           image_id: "",
           image_vul_name: "",
           image_desc: "",
-          degree:[]
+          degree:[],
+          writeup_date: '',
+          is_flag: true,
         },
         imgType: "text",
         imgTypeText: "切换为文件",
@@ -329,26 +366,32 @@
           })
         }
       },
+      handleMark(){
+        this.markstatus = true
+      },
+      closeHandleMark(){
+        this.markstatus = false
+      },
       getWebsiteData(){
-        this.loading=true
-        get_website_imgs().then(response=>{
-          let data = response.data
-          if (data.code===200){
-            this.$message(
-              {
-                message:"同步完成",
-                type:"success"
-              }
-            )
-          }else{
-            this.$message({
+         this.loading=true
+         get_website_imgs().then(response=>{
+           let data = response.data
+           if (data.code===200){
+             this.$message(
+             {
+              message:"同步完成",
+              type:"success"
+             }
+             )
+             }else{
+             this.$message({
               message:"同步失败",
               type:"error"
-            })
-          }
-          this.loading=false
-        })
-      },
+             })
+             }
+           this.loading=false
+         })
+       },
       searchSummariesList(keyword){
         this.summaries = []
         search(keyword).then(response => {
@@ -368,6 +411,7 @@
         clearInterval(this.taskCheckInterval)
         ImgList(undefined, true, 1).then(response => {
           this.tableData = response.data.results
+          this.tabLoading = false
           this.page.total = response.data.count
           this.tableData.forEach((item, index, arr) => {
             let image_name = item.image_name
@@ -394,6 +438,8 @@
         this.vulInfo.vul_name = ""
         this.vulInfo.desc = ""
         this.vulInfo.degree = []
+        this.vulInfo.writeup_date = []
+        this.vulInfo.is_flag = true
       },
       openProgress(row,flag){
         this.progress = {
@@ -486,6 +532,8 @@
         formData.set("image_vul_name", this.vulInfo.vul_name)
         formData.set("image_desc", this.vulInfo.desc)
         formData.set("degree", this.vulInfo.degree)
+        formData.set("is_flag", this.vulInfo.is_flag)
+        formData.set("writeup_date", this.vulInfo.writeup_date)
         this.loading = true
         ImageAdd(formData).then(response => {
           this.loading = false
