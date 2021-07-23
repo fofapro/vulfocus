@@ -228,3 +228,13 @@ DOCKER_COMPOSE = os.path.join(BASE_DIR, "docker-compose")
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+#邮箱配置
+EMAIL_HOST="smtp.sina.com"
+EMAIL_PORT=465
+EMAIL_HOST_USER="xu1580987871@sina.com"
+EMAIL_HOST_PASSWORD="3f72cabd88ac1e33"
+EMAIL_USE_SSL=True
+EMAIL_FROM="xu1580987871@sina.com"
+DEFAULT_FROM_EMAIL=EMAIL_HOST_USER
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
