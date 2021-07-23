@@ -146,6 +146,27 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 ## 镜像新增日志
 
+2021-07-24
+
+- vulfocus/atlassian-crowd-CVE-2019-11580
+- vulfocus/atlassian-confluence-CVE-2015-8399
+- vulfocus/apache-CVE-2018-11759
+- vulfocus/kylin-cve_2020_13925
+- vulfocus/solr-stream.url-ssrf
+- vulfocus/cobub-cve_2018_8057
+- vulfocus/ntopng-cve_2021_28073
+- vulfocus/webmin-cve_2021_31760
+- vulfocus/coldfusion-cve_2021_21087
+- vulfocus/opensns-sharebox-rce
+- vulfocus/oklite-CVE-2019-16131
+- vulfocus/thinkadmin-CVE-2020-25540
+- vulfocus/thinkcmf-x1.6.0-x2.2.3
+- vulfocus/showdoc-CNVD-2020-26585
+- vulfocus/spring-CVE-2020-5398
+- vulfocus/shopxo-CNVD-2021-15822
+- vulfocus/jupyter-notebook-CVE-2019-9644
+
+
 2021-06-11
 
 - vulfocus/junams-cnvd_2020_24741
