@@ -45,3 +45,35 @@ export function register(data) {
     data
   })
 }
+
+export function login_auth(data) {
+  return request({
+    url: '/login/',
+    method: 'post',
+    data
+  })
+}
+
+export function sendMail(data) {
+  return request({
+    url: '/send_email/',
+    method: 'post',
+    data
+  })
+}
+
+export function valMail(data) {
+  return request({
+    url: '/reset_password/1/',
+    method: 'patch',
+    data
+  })
+}
+
+export function updatePassword(data) {
+  return request({
+    url: '/changepassword/1/',
+    method: 'patch',
+    data
+  })
+}

@@ -17,10 +17,38 @@
             </el-dropdown-item>
           </router-link>
           <el-dropdown-item divided>
+            <span style="display:block;" @click="updatePwd">修改密码</span>
+          </el-dropdown-item>
+          <el-dropdown-item divided>
             <span style="display:block;" @click="logout">退出</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
+      <el-dialog :visible.sync="updateDialog" style="width: 26%;height: 45%;margin: auto" :modal="false" :fullscreen="true" title="修改密码">
+        <el-form :model="ruleForm"  class="confirm-from" status-icon :rules="rules" ref="ruleForm" auto-complete="on" label-position="left" >
+          <el-form-item prop="pass">
+            <el-input
+                placeholder="输入新密码"
+                v-model="ruleForm.pass"
+                type="password"
+                style="width:70%"
+                autocomplete="off"
+              />
+          </el-form-item>
+          <el-form-item prop="checkPass">
+            <el-input
+                placeholder="确认密码"
+                v-model="ruleForm.checkPass"
+                type="password"
+                style="width:70%"
+                autocomplete="off"
+              />
+          </el-form-item>
+          <el-form-item style="margin-top: 5px">
+            <el-button type="primary" @click="handleUpdatePwd">提交</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -29,8 +57,46 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
+import { lininfo } from "@/api/docker"
+import { updatePassword } from "@/api/user"
 
 export default {
+  data(){
+    const validatePass = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入密码'));
+        } else {
+          if (this.ruleForm.checkPass !== '') {
+            this.$refs.ruleForm.validateField('checkPass');
+          }
+          callback();
+        }
+      };
+    const validatePass2 = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'));
+      } else if (value !== this.ruleForm.pass) {
+        callback(new Error('两次输入密码不一致!'));
+      } else {
+        callback();
+      }
+    };
+    return {
+      ruleForm: {
+        pass:'',
+        checkPass:''
+      },
+      rules: {
+        pass: [
+          { validator: validatePass, trigger: 'blur' }
+        ],
+        checkPass: [
+          { validator: validatePass2, trigger: 'blur' }
+        ],
+      },
+      updateDialog:false
+    }
+  },
   components: {
     Breadcrumb,
     Hamburger
@@ -50,7 +116,33 @@ export default {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
     },
-  },
+    updatePwd() {
+      this.updateDialog = true
+    },
+    handleUpdatePwd() {
+      this.$refs.ruleForm.validate(valid => {
+        if (valid) {
+          updatePassword(this.ruleForm).then(response => {
+            let data = response.data
+            if (data.code === 200) {
+              this.$message({
+                message: '修改密码成功',
+                type: "success",
+              })
+              this.updateDialog = false
+            } else {
+              this.$message({
+                message: data.msg,
+                type: "error",
+              })
+            }
+          })
+        } else {
+          return false
+        }
+      })
+    }
+  }
 }
 </script>
 

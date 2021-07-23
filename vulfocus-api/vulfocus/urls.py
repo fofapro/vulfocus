@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import url, include
 from rest_framework import routers
 from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs
-from user.views import UserRegView, UserSet, get_user_rank
+from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView, MyCode
 from tasks.views import TaskSet
@@ -36,6 +36,11 @@ router.register('time', TimeMoudelSet, basename="time")
 router.register('timetemp', CreateTimeTemplate, basename="timetmep")
 router.register('userrank', UserRank, basename="user_rank")
 router.register('timerank', TimeRankSet, basename="time_rankset")
+router.register("changepassword",UpdatePassViewset,basename="changepassword")
+#自定义登录
+router.register("login",LoginViewset,basename="login")
+router.register("send_email",SendEmailViewset,basename="send_email")
+router.register("reset_password",ResetPasswordViewset,basename="reset_password")
 
 urlpatterns = [
     url(r'^', include(router.urls)),

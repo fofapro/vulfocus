@@ -1001,6 +1001,9 @@ def get_timing_imgs(request):
         for item in req:
             if item['image_name'] == "":
                 continue
+            if 'is_docker_compose' in item:
+                if item['is_docker_compose'] == True:
+                    continue
             if item['image_name'] in image_names:
                 if item['image_name'] == "vulfocus/vulfocus:latest":
                     continue

@@ -2,18 +2,31 @@ from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse,HttpResponse
 from rest_framework import viewsets,mixins
-from user.serializers import UserProfileSerializer, User, UserRegisterSerializer
+from user.serializers import UserProfileSerializer, User, UserRegisterSerializer,UpdatePassSerializer,LoginSerializer
+from user.serializers import SendEmailSerializer,ResetPasswordSerializer
 from rest_framework.views import APIView
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login, authenticate
+from user.permissions import IsOwner
 from django.views.generic.base import View
-from user.models import UserProfile
+from user.models import UserProfile, EmailCode
+from django.core.mail import send_mail
+from rest_framework import permissions
+from vulfocus.settings import EMAIL_FROM
 from dockerapi.common import R
 from dockerapi.models import ContainerVul
 from vulfocus.settings import REDIS_IMG as r_img
 from PIL import ImageDraw,ImageFont,Image
 import random
 import io
+import datetime
+from user.utils import generate_code
+from time import sleep
 import uuid
+from rest_framework_jwt.serializers import JSONWebTokenSerializer
+from rest_framework_jwt.utils import jwt_response_payload_handler
+from rest_framework.response import Response
+from datetime import datetime, timedelta
+from rest_framework_jwt.settings import  api_settings
 
 
 
@@ -92,7 +105,6 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = UserRegisterSerializer
 
 
-
 # 定义一验证码
 class MyCode(View):
 
@@ -129,3 +141,121 @@ class MyCode(View):
         return HttpResponse(data, 'image/png')
 
 
+class UpdatePassViewset(mixins.UpdateModelMixin,viewsets.GenericViewSet):
+    serializer_class = UpdatePassSerializer
+    permission_classes = [permissions.IsAuthenticated,IsOwner]
+
+    def get_object(self):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+
+        password = request.data["pass"]
+        checkPassword = request.data["checkPass"]
+        if password != checkPassword:
+            return JsonResponse({
+                "code": 401,
+                "msg": "两次密码不一致"
+            })
+        user = self.request.user
+        user.set_password(raw_password=checkPassword)
+        user.save()
+        return JsonResponse({"code": 200, "msg": "修改密码成功"})
+
+
+#自定义登录
+class LoginViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
+    serializer_class = LoginSerializer
+    queryset = User.objects.all()
+    permission_classes = []
+    authentication_classes = ()
+    def create(self, request, *args, **kwargs):
+        username = request.data["username"]
+        password = request.data["password"]
+        #code=request.data["code"]
+        user=User.objects.filter(username=username).first()
+        if not user:
+            return JsonResponse({"code": 400, "msg": "用户名错误"})
+        if not user.check_password(password):
+            return JsonResponse({"code": 400, "msg": "密码错误"})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user=authenticate(username=username,password=password)
+        login(request,user)
+        #采用jwt模式认证
+        serializer_instance=JSONWebTokenSerializer(data=request.data)
+        if serializer_instance.is_valid():
+            user = serializer_instance.object.get('user') or request.user
+            token = serializer_instance.object.get('token')
+            response_data = jwt_response_payload_handler(token, user, request)
+            response = Response(response_data)
+            if api_settings.JWT_AUTH_COOKIE:
+                expiration = (datetime.utcnow() +
+                              api_settings.JWT_EXPIRATION_DELTA)
+                response.set_cookie(api_settings.JWT_AUTH_COOKIE,
+                                    token,
+                                    expires=expiration,
+                                    httponly=True)
+            return response
+        return JsonResponse({"code": "400", "msg": "error"}, status=200)
+
+
+
+class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
+    serializer_class = SendEmailSerializer
+    permission_classes = []
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = request.data.get("username", None)
+        if not User.objects.filter(username=username).count():
+            return JsonResponse({"code": 400, "msg": "该用户不存在"})
+        user = User.objects.get(username=username)
+        one_minute_ago = datetime.now()-timedelta(minutes=1)
+        if EmailCode.objects.filter(user=user, add_time__gt=one_minute_ago).count():
+            return JsonResponse({"code": 400, "msg": "距离上次发送未超过一分钟"})
+        code = generate_code()
+        #判断数据库中是否有相同的验证码记录
+        while EmailCode.objects.filter(code=code).count():
+            code = generate_code()
+        email_instance = EmailCode(user=user, code=code, email=user.email)
+        send_mail(subject="找回密码", message="您的验证码是%s,有效期为2分钟"%(code), from_email=EMAIL_FROM, recipient_list=[user.email])
+        email_instance.save()
+        return JsonResponse({"code": 200, "msg": "ok"})
+
+
+
+#重置密码
+class ResetPasswordViewset(mixins.UpdateModelMixin,viewsets.GenericViewSet):
+    serializer_class = ResetPasswordSerializer
+    permission_classes = []
+
+    def get_object(self):
+        code = self.request.data["auth"]
+        try:
+            email_instance = EmailCode.objects.filter(code=code).first()
+            return email_instance.user
+        except:
+            return None
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        code = request.data["auth"]
+        if not EmailCode.objects.filter(code=code).count():
+            return JsonResponse({"code": "400", "msg": "验证码错误"})
+        email_instance = EmailCode.objects.get(code=code)
+        user=email_instance.user
+        two_minutes_ago = datetime.now() - timedelta(minutes=2)
+        if email_instance.add_time <= two_minutes_ago:
+            return JsonResponse({"code": 400, "msg": "验证码已过期"})
+        password = request.data['pass']
+        checkPassword = request.data['checkPass']
+        if password != checkPassword:
+            return JsonResponse({"code": 400, "msg": "两次输入的密码不一致"})
+        user.set_password(request.data["checkPass"])
+        user.save()
+        return JsonResponse({"code": 200, "msg": "找回成功"})
