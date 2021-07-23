@@ -166,6 +166,20 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 - vulfocus/shopxo-CNVD-2021-15822
 - vulfocus/jupyter-notebook-CVE-2019-9644
 
+## 集成环境
+- vulfocus/mutillidae
+- vulfocus/bodgeit
+- vulfocus/bwapp
+- vulfocus/xss-labs
+- vulfocus/sqli-labs
+
+2021-07-02
+
+- vulfocus/lanproxy-cve_2021_3019
+- vulfocus/opensmtpd-cve_2020_7247
+- vulfocus/ucms-cve_2020_25483
+- vulfocus/imcat-cnvd_2020_32339
+- vulfocus/rails-cve_2018_3760
 
 2021-06-11
 
