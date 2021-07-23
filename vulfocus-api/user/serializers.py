@@ -65,3 +65,35 @@ class UserProfileSerializer(serializers.ModelSerializer):
         else:
             return ["member"]
 
+#修改密码
+class UpdatePassSerializer(serializers.ModelSerializer):
+    new_password=serializers.CharField(style={"input_type":"password"},min_length=6,help_text="新密码",label="新密码",write_only=True)
+
+    class Meta:
+        model=User
+        fields=["new_password"]
+
+
+class LoginSerializer(serializers.ModelSerializer):
+    username=serializers.CharField(help_text="用户名",label="用户名",allow_blank=False,required=True,allow_null=False,write_only=True)
+    password=serializers.CharField(help_text="密码",label="密码",allow_blank=False,required=True,style={"input_type":"password"},allow_null=False,write_only=True)
+    # code=serializers.CharField(help_text="验证码",label="验证码",allow_blank=False,required=True,allow_null=False,write_only=True)
+
+    class Meta:
+        model=User
+        fields=["username","password"]
+
+
+
+class SendEmailSerializer(serializers.Serializer):
+    username=serializers.CharField(help_text="用户名",label="用户名",required=True)
+
+
+#重置密码
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    code=serializers.CharField(min_length=4,required=True,help_text="验证码",label="验证码",write_only=True)
+    password=serializers.CharField(style={"input_type":"password"},help_text="新密码",label="新密码",required=True)
+
+    class Meta:
+        model=User
+        fields=["code","password"]

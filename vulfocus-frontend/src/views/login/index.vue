@@ -67,17 +67,88 @@
           <el-button :loading="loading" type="primary" style="width:75%;margin-bottom:30px;margin-left: 10px" @click.native.prevent="handleLogin">登入</el-button>
           <el-button  style="width:75%;margin-bottom:30px;" @click="jumpreg" >注册</el-button>
         </div>
+        <div>
+          <el-button type="text" @click="findPassword" style="color: #009ad6;margin-left: 70%">忘记密码
+            <i class="el-icon-question"></i>
+          </el-button>
+        </div>
       </el-form>
+      <el-dialog :visible.sync="updateDialogVisible" style="width: 26%;height: 45%;margin: auto" :fullscreen="true" title="密码找回" :destroy-on-close="true" :close-on-click-modal="false" :close-on-press-escape="false">
+        <el-form :model="ruleForm" :inline="true"  class="confirm-from" status-icon :rules="rules" ref="ruleForm" auto-complete="on" label-position="left" >
+          <el-form-item>
+            <el-input
+                ref="username"
+                placeholder="请输入要找回的账号"
+                v-model="ruleForm.username"
+                name="username"
+                type="text"
+                style="width:70%"
+              />
+          </el-form-item>
+          <el-form-item style="margin-top: 5px">
+            <el-button @click="handleSendMail">发送邮件</el-button>
+          </el-form-item>
+          <el-form-item>
+            <el-input
+                placeholder="输入邮箱验证码"
+                v-model="ruleForm.auth"
+                type="text"
+                style="width:70%"
+              />
+          </el-form-item>
+          <el-form-item prop="pass">
+            <el-input
+                placeholder="输入新密码"
+                v-model="ruleForm.pass"
+                type="password"
+                style="width:70%"
+                autocomplete="off"
+              />
+          </el-form-item>
+          <el-form-item prop="checkPass">
+            <el-input
+                placeholder="确认密码"
+                v-model="ruleForm.checkPass"
+                type="password"
+                style="width:70%"
+                autocomplete="off"
+              />
+          </el-form-item>
+          <el-form-item style="margin-top: 5px">
+            <el-button type="primary" @click="handleConfirm">提交</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <script>
 import { lininfo } from "@/api/docker"
+import { sendMail,valMail } from "@/api/user"
 
 export default {
   name: 'Login',
   data() {
+    const validatePass = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入密码'));
+        } else {
+          if (this.ruleForm.checkPass !== '') {
+            this.$refs.ruleForm.validateField('checkPass');
+          }
+          callback();
+        }
+      };
+    const validatePass2 = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'));
+      } else if (value !== this.ruleForm.pass) {
+        callback(new Error('两次输入密码不一致!'));
+      } else {
+        callback();
+      }
+    };
     const validatePassword = (rule, value, callback) => {
       if (value.length < 1) {
         callback(new Error('The password can not be less than 6 digits'))
@@ -95,7 +166,23 @@ export default {
       },
       loading: false,
       passwordType: 'password',
-      redirect: undefined
+      redirect: undefined,
+      updateDialogVisible: false,
+      ruleForm: {
+        username: '',
+        auth: '',
+        pass:'',
+        checkPass:''
+      },
+      rules: {
+        pass: [
+          { validator: validatePass, trigger: 'blur' }
+        ],
+        checkPass: [
+          { validator: validatePass2, trigger: 'blur' }
+        ],
+      },
+      displayInput:false
     }
   },
   watch: {
@@ -118,6 +205,56 @@ export default {
       }
       this.$nextTick(() => {
         this.$refs.password.focus()
+      })
+    },
+    findPassword(){
+      this.updateDialogVisible = true
+    },
+    handleConfirm(){
+      let code = this.ruleForm.auth
+      this.$refs.ruleForm.validate(valid => {
+        if (valid){
+          if (code){
+            valMail(this.ruleForm).then(response=>{
+            let data = response.data
+            if (data.code===200){
+              this.$message({
+              message: '密码找回成功',
+              type: "success",
+              })
+              this.updateDialogVisible = false
+            }else {
+              this.$message({
+              message: data.msg,
+              type: "error",
+            })
+          }
+        })
+      }else {
+            this.$message({
+              message: "验证码不能为空",
+              type: "error",
+            })
+          }
+        }else {
+          return false
+        }
+      })
+    },
+    handleSendMail(){
+      sendMail(this.ruleForm).then(response =>{
+        let data = response.data
+        if (data.code===200){
+          this.$message({
+                message:  "成功发送",
+                type: "success",
+              })
+        } else {
+          this.$message({
+            message: data.msg,
+            type: "error",
+          })
+        }
       })
     },
     handleLogin() {
@@ -148,7 +285,7 @@ export default {
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
 
 $bg:#283443;
-$light_gray:#fff;
+$light_gray:#aaa;
 $cursor: #fff;
 
 @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
@@ -181,6 +318,12 @@ $cursor: #fff;
       }
     }
   }
+  /*.el-dialog__header{*/
+  /*  background-color: #3d7ed5;*/
+  /*}*/
+  /*.el-dialog__body{*/
+  /*  background-color: #3d7ed5;*/
+  /*}*/
 
   .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -209,6 +352,7 @@ $light_gray:#eee;
     background-image: url("../../assets/loginl.png");
     background-size: 100% 100%;
   }
+
   .tips {
     font-size: 14px;
     color: #fff;
@@ -261,4 +405,7 @@ $light_gray:#eee;
   background: url("../../assets/loginbackground.png") center no-repeat;
   background-size: 100%;
 }
+</style>
+<style>
+
 </style>
