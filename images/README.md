@@ -4,6 +4,28 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE-2019-11580|`docker pull vulfocus/atlassian-crowd-CVE-2019-11580`|CVE-2019-11580|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2015-8399|`docker pull vulfocus/atlassian-confluence-CVE-2015-8399`|CVE-2015-8399|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-11759|`docker pull vulfocus/apache-CVE-2018-11759`|CVE-2018-11759|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-13925|`docker pull vulfocus/kylin-cve_2020_13925`|CVE-2020-13925|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|solr-stream.url-ssrf|`docker pull vulfocus/solr-stream.url-ssrf`|solr-stream.url-ssrf|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-8057|`docker pull vulfocus/cobub-cve_2018_8057`|CVE-2018-8057|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-28073|`docker pull vulfocus/ntopng-cve_2021_28073`|CVE-2021-28073|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-31760|`docker pull vulfocus/webmin-cve_2021_31760`|CVE-2021-31760|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-21087|`docker pull vulfocus/coldfusion-cve_2021_21087`|CVE-2021-21087|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|opensns-sharebox-rce|`docker pull vulfocus/opensns-sharebox-rce`|opensns-sharebox-rce|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-16131|`docker pull vulfocus/oklite-CVE-2019-16131`|CVE-2019-16131|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-25540|`docker pull vulfocus/thinkadmin-CVE-2020-25540`|CVE-2020-25540|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|thinkcmf-x1.6.0-x2.2.3|`docker pull vulfocus/thinkcmf-x1.6.0-x2.2.3`|thinkcmf-x1.6.0-x2.2.3|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CNVD-2020-26585|`docker pull vulfocus/showdoc-CNVD-2020-26585`|CNVD-2020-26585|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-5398|`docker pull vulfocus/spring-CVE-2020-5398`|CVE-2020-5398|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CNVD-2021-15822|`docker pull vulfocus/shopxo-CNVD-2021-15822`|CNVD-2021-15822|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-9644|`docker pull vulfocus/jupyter-notebook-CVE-2019-9644`|CVE-2019-9644|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-3019|`docker pull vulfocus/lanproxy-cve_2021_3019`|CVE-2021-3019|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-7247|`docker pull vulfocus/opensmtpd-cve_2020_7247`|CVE-2020-7247|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-25483|`docker pull vulfocus/ucms-cve_2020_25483`|CVE-2020-25483|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CNVD-2020-32339|`docker pull vulfocus/imcat-cnvd_2020_32339`|CNVD-2020-32339|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-3760|`docker pull vulfocus/rails-cve_2018_3760`|CVE-2018-3760|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2018-19462|`docker pull vulfocus/empire-cve_2018_19462`|CVE-2018-19462|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2021-21315|`docker pull vulfocus/node.js-cve_2021_21315`|CVE-2021-21315|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |PHP 8.1.0-dev 后门|`docker pull vulfocus/php8.1.0-dev`|PHP 8.1.0-dev 后门|[Vulfocus](https://github.com/fofapro/vulfocus)|
