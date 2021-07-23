@@ -165,8 +165,6 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 - vulfocus/spring-CVE-2020-5398
 - vulfocus/shopxo-CNVD-2021-15822
 - vulfocus/jupyter-notebook-CVE-2019-9644
-
-### 集成环境
 - vulfocus/mutillidae
 - vulfocus/bodgeit
 - vulfocus/bwapp
