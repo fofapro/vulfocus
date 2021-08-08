@@ -7,9 +7,12 @@ from user.serializers import SendEmailSerializer,ResetPasswordSerializer
 from rest_framework.views import APIView
 from django.contrib.auth import logout, login, authenticate
 from user.permissions import IsOwner
+from django.db.models import Q
+from email.header import Header
+from rest_framework.decorators import action
 from django.views.generic.base import View
 from user.models import UserProfile, EmailCode
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from rest_framework import permissions
 from vulfocus.settings import EMAIL_FROM
 from dockerapi.common import R
@@ -19,7 +22,9 @@ from PIL import ImageDraw,ImageFont,Image
 import random
 import io
 import datetime
-from user.utils import generate_code
+from user.utils import generate_code, validate_email
+import smtplib
+from email.mime.text import MIMEText
 from time import sleep
 import uuid
 from rest_framework_jwt.serializers import JSONWebTokenSerializer
@@ -27,7 +32,8 @@ from rest_framework_jwt.utils import jwt_response_payload_handler
 from rest_framework.response import Response
 from datetime import datetime, timedelta
 from rest_framework_jwt.settings import  api_settings
-
+from rest_framework.views import View
+from dockerapi.views import get_local_ip
 
 
 class ListAndUpdateViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -42,22 +48,24 @@ class UserSet(ListAndUpdateViewSet):
 
     def get_queryset(self):
         if self.request.user.is_superuser:
-            return UserProfile.objects.all()
-        else:
-            return UserProfile.objects.all()
+            user_info = UserProfile.objects.all()
+            query = self.request.GET.get('query', '')
+            if query:
+                user_info = UserProfile.objects.filter(Q(username__contains=query) | Q(email__contains=query)).all()
+            return user_info
 
     def update(self, request, *args, **kwargs):
-        user = request.user
-        if not user.is_superuser:
-            return JsonResponse(R.build(msg="权限不足"))
-        new_pwd = request.data.get("pwd", "")
-        new_pwd = new_pwd.strip()
-        if len(new_pwd) < 6:
-            return JsonResponse(R.build(msg="密码格式不正确"))
-        user_info = self.get_object()
-        user_info.set_password(new_pwd)
-        user_info.save()
-        return JsonResponse(R.ok())
+            user = request.user
+            if not user.is_superuser:
+                return JsonResponse(R.build(msg="权限不足"))
+            new_pwd = request.data.get("pwd", "")
+            new_pwd = new_pwd.strip()
+            if len(new_pwd) < 6:
+                return JsonResponse(R.build(msg="密码格式不正确"))
+            user_info = self.get_object()
+            user_info.set_password(new_pwd)
+            user_info.save()
+            return JsonResponse(R.ok())
 
 
 class get_user_rank(APIView):
@@ -150,14 +158,18 @@ class UpdatePassViewset(mixins.UpdateModelMixin,viewsets.GenericViewSet):
 
     def update(self, request, *args, **kwargs):
 
-        password = request.data["pass"]
-        checkPassword = request.data["checkPass"]
+        oldPassword = request.data['oldPassword'].strip()
+        password = request.data["pass"].strip()
+        checkPassword = request.data["checkPass"].strip()
+        if not oldPassword:
+            return JsonResponse({"code": 401, "msg": "旧密码不能为空"})
+        if len(checkPassword) < 8:
+            return JsonResponse({"code": 401, "msg": "密码不得少于8位"})
         if password != checkPassword:
-            return JsonResponse({
-                "code": 401,
-                "msg": "两次密码不一致"
-            })
+            return JsonResponse({"code": 401, "msg": "两次密码不一致"})
         user = self.request.user
+        if not user.check_password(oldPassword):
+            return JsonResponse({"code": 401, "msg": "旧密码错误"})
         user.set_password(raw_password=checkPassword)
         user.save()
         return JsonResponse({"code": 200, "msg": "修改密码成功"})
@@ -220,7 +232,25 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
         while EmailCode.objects.filter(code=code).count():
             code = generate_code()
         email_instance = EmailCode(user=user, code=code, email=user.email)
-        send_mail(subject="找回密码", message="您的验证码是%s,有效期为2分钟"%(code), from_email=EMAIL_FROM, recipient_list=[user.email])
+        if "qq.com" in user.email:
+            try:
+                s = smtplib.SMTP("mx1.qq.com", timeout=10)
+                helo = s.docmd('HELO vulfocus.io')
+                send_from = s.docmd('MAIL FROM:{}'.format(EMAIL_FROM))
+                message = MIMEText('请点击该链接http://{}/#/updatepwd?code={}'.format(get_local_ip(), code) + '。有效期为5分钟', 'plain', 'utf-8')
+                message['Subject'] = Header(u'找回密码', 'utf-8').encode()
+                send_from = s.sendmail(from_addr="service@vulfocus.io", to_addrs=user.email, msg=message.as_string())
+                s.close()
+            except smtplib.SMTPDataError as e:
+                return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
+        else:
+            if not validate_email(user.email):
+                return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
+            try:
+                send_mail(subject="找回密码", message='请点击该链接http://{}/#/updatepwd?code={}'.format(get_local_ip(),code), from_email=EMAIL_FROM,
+                          recipient_list=[user.email])
+            except:
+                return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
         email_instance.save()
         return JsonResponse({"code": 200, "msg": "ok"})
 
@@ -231,31 +261,46 @@ class ResetPasswordViewset(mixins.UpdateModelMixin,viewsets.GenericViewSet):
     serializer_class = ResetPasswordSerializer
     permission_classes = []
 
-    def get_object(self):
-        code = self.request.data["auth"]
-        try:
-            email_instance = EmailCode.objects.filter(code=code).first()
-            return email_instance.user
-        except:
-            return None
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        code = request.data["auth"]
-        if not EmailCode.objects.filter(code=code).count():
-            return JsonResponse({"code": "400", "msg": "验证码错误"})
-        email_instance = EmailCode.objects.get(code=code)
-        user=email_instance.user
-        two_minutes_ago = datetime.now() - timedelta(minutes=2)
-        if email_instance.add_time <= two_minutes_ago:
+        code = request.data.get("code", "")
+        password = request.data.get("pass", "")
+        check_password = request.data.get("checkPass", "")
+        if not code:
+            return JsonResponse({"code": 400, "msg": "错误的请求"})
+        five_minutes_ago = datetime.now() - timedelta(minutes=5)
+        email_instance = EmailCode.objects.filter(code=code).first()
+        if not email_instance:
+            return JsonResponse({"code": 400, "msg": "链接失效"})
+        if email_instance.add_time <= five_minutes_ago:
             return JsonResponse({"code": 400, "msg": "验证码已过期"})
         password = request.data['pass']
-        checkPassword = request.data['checkPass']
-        if password != checkPassword:
-            return JsonResponse({"code": 400, "msg": "两次输入的密码不一致"})
-        user.set_password(request.data["checkPass"])
+        if not password or not check_password:
+            return JsonResponse({"code": 400, "msg": "密码不能为空"})
+        if len(password) < 8:
+            return JsonResponse({"code": 400, "msg": "密码长度不能小于8位"})
+        if password != check_password:
+            return JsonResponse({"code": 400, "msg": "两次输入密码不一致"})
+        user = email_instance.user
+        user.set_password(password)
         user.save()
-        return JsonResponse({"code": 200, "msg": "找回成功"})
+        email_instances = EmailCode.objects.filter(code=code).all()
+        for email_i in email_instances:
+            email_i.delete()
+        return JsonResponse({"code": 200, "msg": "密码找回成功"})
+
+
+class AccessLinkView(View):
+    def get(self,request):
+        '''
+        验证链接是否有效
+        '''
+        code=request.GET.get("code","")
+        if not EmailCode.objects.filter(code=code).count():
+            return JsonResponse({"code": 400, "msg": "该链接不存在或失效"})
+        email_instance = EmailCode.objects.get(code=code)
+        user = email_instance.user
+        five_minutes_ago = datetime.now() - timedelta(minutes=5)
+        if email_instance.add_time <= five_minutes_ago:
+            return JsonResponse({"code": 400, "msg": "链接已过期"})
+        return JsonResponse({"code": 200, "msg": "ok"})
