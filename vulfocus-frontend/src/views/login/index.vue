@@ -73,16 +73,81 @@
           </el-button>
         </div>
       </el-form>
+      <el-dialog :visible.sync="updateDialogVisible" style="width: 26%;height: 45%;margin: auto" :fullscreen="true" title="密码找回" :destroy-on-close="true" :close-on-click-modal="false" :close-on-press-escape="false">
+        <el-form :model="ruleForm" :inline="true"  class="confirm-from" status-icon :rules="rules" ref="ruleForm" auto-complete="on" label-position="left" >
+          <el-form-item>
+            <el-input
+                ref="username"
+                placeholder="请输入要找回的账号"
+                v-model="ruleForm.username"
+                name="username"
+                type="text"
+                style="width:70%"
+              />
+          </el-form-item>
+          <el-form-item style="margin-top: 5px">
+            <el-button @click="handleSendMail">发送邮件</el-button>
+          </el-form-item>
+          <el-form-item>
+            <el-input
+                placeholder="输入邮箱验证码"
+                v-model="ruleForm.auth"
+                type="text"
+                style="width:70%"
+              />
+          </el-form-item>
+          <el-form-item prop="pass">
+            <el-input
+                placeholder="输入新密码"
+                v-model="ruleForm.pass"
+                type="password"
+                style="width:70%"
+                autocomplete="off"
+              />
+          </el-form-item>
+          <el-form-item prop="checkPass">
+            <el-input
+                placeholder="确认密码"
+                v-model="ruleForm.checkPass"
+                type="password"
+                style="width:70%"
+                autocomplete="off"
+              />
+          </el-form-item>
+          <el-form-item style="margin-top: 5px">
+            <el-button type="primary" @click="handleConfirm">提交</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <script>
 import { lininfo } from "@/api/docker"
-
+import { sendMail,valMail } from "@/api/user"
 export default {
   name: 'Login',
   data() {
+    const validatePass = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入密码'));
+        } else {
+          if (this.ruleForm.checkPass !== '') {
+            this.$refs.ruleForm.validateField('checkPass');
+          }
+          callback();
+        }
+      };
+    const validatePass2 = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'));
+      } else if (value !== this.ruleForm.pass) {
+        callback(new Error('两次输入密码不一致!'));
+      } else {
+        callback();
+      }
+    };
     const validatePassword = (rule, value, callback) => {
       if (value.length < 1) {
         callback(new Error('The password can not be less than 6 digits'))
@@ -101,6 +166,21 @@ export default {
       loading: false,
       passwordType: 'password',
       redirect: undefined,
+      updateDialogVisible: false,
+      ruleForm: {
+        username: '',
+        auth: '',
+        pass:'',
+        checkPass:''
+      },
+      rules: {
+        pass: [
+          { validator: validatePass, trigger: 'blur' }
+        ],
+        checkPass: [
+          { validator: validatePass2, trigger: 'blur' }
+        ],
+      },
       displayInput:false
     }
   },
@@ -127,7 +207,54 @@ export default {
       })
     },
     findPassword(){
-      this.$router.push('/retrieve')
+      this.updateDialogVisible = true
+    },
+    handleConfirm(){
+      let code = this.ruleForm.auth
+      this.$refs.ruleForm.validate(valid => {
+        if (valid){
+          if (code){
+            valMail(this.ruleForm).then(response=>{
+            let data = response.data
+            if (data.code===200){
+              this.$message({
+              message: '密码找回成功',
+              type: "success",
+              })
+              this.updateDialogVisible = false
+            }else {
+              this.$message({
+              message: data.msg,
+              type: "error",
+            })
+          }
+        })
+      }else {
+            this.$message({
+              message: "验证码不能为空",
+              type: "error",
+            })
+          }
+        }else {
+          return false
+        }
+      })
+    },
+    handleSendMail(){
+      sendMail(this.ruleForm).then(response =>{
+        let data = response.data
+        if (data.code===200){
+          this.$message({
+                message:  "成功发送",
+                type: "success",
+              })
+        } else {
+          this.$message({
+            message: data.msg,
+            type: "error",
+          })
+        }
+      })
     },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
@@ -145,9 +272,6 @@ export default {
         }
       })
     },
-
-
-
   }
 }
 </script>
@@ -155,49 +279,20 @@ export default {
 <style lang="scss">
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
-
 $bg:#283443;
-$light_gray:#fff;
+$light_gray:#aaa;
 $cursor: #fff;
-
 @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
   .login-container .el-input input {
     color: $cursor;
   }
 }
-
 /* reset element-ui css */
 .login-container {
-  .confirm-from{
-    .el-input{
-      display: inline-block;
-    height: 48px;
-    width: 332px;
-
-    input {
-      background: transparent;
-      border: 0px;
-      -webkit-appearance: none;
-      border-radius: 0px;
-      padding: 12px 5px 12px 15px;
-      color: #2b2f3a;
-      height: 48px;
-      width: 332px;
-      caret-color: $cursor;
-
-      &:-webkit-autofill {
-        box-shadow: 0 0 0px 1000px $bg inset !important;
-        -webkit-text-fill-color: $cursor !important;
-      }
-    }
-    }
-  }
-
   .el-input {
     display: inline-block;
     height: 48px;
     width: 332px;
-
     input {
       background: transparent;
       border: 0px;
@@ -208,7 +303,6 @@ $cursor: #fff;
       height: 48px;
       width: 332px;
       caret-color: $cursor;
-
       &:-webkit-autofill {
         box-shadow: 0 0 0px 1000px $bg inset !important;
         -webkit-text-fill-color: $cursor !important;
@@ -221,7 +315,6 @@ $cursor: #fff;
   /*.el-dialog__body{*/
   /*  background-color: #3d7ed5;*/
   /*}*/
-
   .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.1);
@@ -232,7 +325,6 @@ $cursor: #fff;
 </style>
 
 <style lang="scss" scoped>
-
 $bg:#2d3a4b;
 $dark_gray:#889aa4;
 $light_gray:#eee;
@@ -249,20 +341,16 @@ $light_gray:#eee;
     background-image: url("../../assets/loginl.png");
     background-size: 100% 100%;
   }
-
   .tips {
     font-size: 14px;
     color: #fff;
     margin-bottom: 10px;
-
     span {
       &:first-of-type {
         margin-right: 16px;
-
       }
     }
   }
-
   .svg-container {
     padding: 6px 5px 6px 15px;
     color: $dark_gray;
@@ -270,10 +358,8 @@ $light_gray:#eee;
     width: 48px;
     display: inline-block;
   }
-
   .title-container {
     position: relative;
-
     .title {
       font-size: 26px;
       color: $light_gray;
@@ -282,7 +368,6 @@ $light_gray:#eee;
       font-weight: bold;
     }
   }
-
   .show-pwd {
     position: absolute;
     right: 10px;
@@ -304,5 +389,4 @@ $light_gray:#eee;
 }
 </style>
 <style>
-
 </style>

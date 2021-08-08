@@ -1,5 +1,4 @@
 """vulbox URL Configuration
-
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/2.2/topics/http/urls/
 Examples:
@@ -16,12 +15,12 @@ Including another URLconf
 from django.conf.urls import url, include
 from rest_framework import routers
 from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs
-from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset, AccessLinkView
+from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView, MyCode
 from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
-from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose
+from layout_image.views import LayoutViewSet, upload_img
 
 router = routers.DefaultRouter()
 router.register('images', ImageInfoViewSet, basename='Images')
@@ -53,11 +52,5 @@ urlpatterns = [
     url(r'img/upload', upload_img),
     url(r'get/website/imgs', get_timing_imgs),
     url(r'^getcaptcha/', MyCode.as_view()),
-    url(r'^build/compose/', build_compose),
-    url(r'^update/compose/', update_build_compose),
-    url(r'^show/compose/', show_compose),
-    url(r'^file/upload/', upload_file),
-    url(r'^file/delete/', delete_file),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r"accesslink",AccessLinkView.as_view()),
 ]

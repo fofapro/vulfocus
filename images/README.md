@@ -4,9 +4,6 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
-|CVE-2021-27905|`docker pull vulfocus/solr-cve_2021_27905`|CVE-2021-27905|[Vulfocus](https://github.com/fofapro/vulfocus)|
-|CVE-2018-15961|`docker pull vulfocus/coldfusion-cve_2018_15961`|CVE-2018-15961|[Vulfocus](https://github.com/fofapro/vulfocus)|
-|CVE-2020-28020|`docker pull vulfocus/exim4-cve_2020_28020`|CVE-2020-28020|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-11580|`docker pull vulfocus/atlassian-crowd-CVE-2019-11580`|CVE-2019-11580|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2015-8399|`docker pull vulfocus/atlassian-confluence-CVE-2015-8399`|CVE-2015-8399|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2018-11759|`docker pull vulfocus/apache-CVE-2018-11759`|CVE-2018-11759|[Vulfocus](https://github.com/fofapro/vulfocus)|
