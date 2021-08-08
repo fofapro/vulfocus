@@ -25,6 +25,9 @@ import requests
 from django.views.generic.base import View
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
+from tasks.tasks import start_docker_compose
+from layout_image.bridge import get_project
+
 
 
 def get_request_ip(request):
@@ -541,6 +544,14 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         image_vul_name = request.POST.get("image_vul_name", "")
         image_desc = request.POST.get("image_desc", "")
         degree = request.POST.get("degree", "")
+        is_list = isinstance(degree, list)
+        is_str = isinstance(degree, str)
+        if is_list == True:
+            pass
+        elif is_str == True and degree:
+            degree = degree.split(',')
+        else:
+            degree = ""
         try:
             image_rank = request.POST.get("rank", default=2.5)
             image_rank = float(image_rank)
@@ -553,6 +564,10 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         except:
             writeup_date = ""
         is_flag = request.POST.get("is_flag", True)
+        if is_flag == 'true':
+            is_flag = True
+        if is_flag == 'false':
+            is_flag = False
         image_file = request.FILES.get("file")
         image_info = None
         if image_name:
@@ -562,7 +577,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         if not image_info:
             image_info = ImageInfo(image_name=image_name, image_vul_name=image_vul_name, image_desc=image_desc,
                                    rank=image_rank, is_ok=False, create_date=timezone.now(), update_date=timezone.now(),
-                                   degree=degree, writeup_date=writeup_date,is_flag=is_flag)
+                                   degree=json.dumps(degree), writeup_date=writeup_date,is_flag=is_flag)
             if not image_file:
                 image_info.save()
         task_id = tasks.create_image_task(image_info=image_info, user_info=user, request_ip=get_request_ip(request),
@@ -585,6 +600,8 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         if not user.is_superuser:
             return JsonResponse(R.build(msg="权限不足"))
         image_info = ImageInfo.objects.filter(image_id=pk).first()
+        if image_info.is_docker_compose == True:
+            return JsonResponse(R.build(msg="该镜像为启动方式为docker-compose，不允许直接下载"))
         if not image_info:
             return JsonResponse(R.build(msg="镜像不存在"))
         task_id = tasks.create_image_task(image_info=image_info, user_info=user, request_ip=get_request_ip(request))
@@ -691,7 +708,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                          operation_value=operation_args["image_vul_name"], operation_args=json.dumps(operation_args), ip=request_ip)
         sys_log.save()
         image_id = img_info.image_id
-        container_vul = ContainerVul.objects.filter(image_id=image_id)
+        container_vul = ContainerVul.objects.filter(Q(image_id=image_id) & ~Q(container_status='delete'))
         data_json = ContainerVulSerializer(container_vul, many=True)
         if container_vul.count() == 0:
             img_info.delete()
@@ -717,17 +734,28 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         time_model_id = ''
         if time_moudel_data:
             time_model_id = time_moudel_data.time_id
+        image_info = ImageInfoSerializer(img_info).data
         container_vul = ContainerVul.objects.filter(user_id=user_id, image_id=image_id, time_model_id=time_model_id).first()
-        if not container_vul:
-            container_vul = ContainerVul(image_id=img_info, user_id=user_id, vul_host="", container_status="stop",
-                                         docker_container_id="",
-                                         vul_port="",
-                                         container_port="",
-                                         time_model_id=time_model_id,
-                                         create_date=django.utils.timezone.now(),
-                                         container_flag="")
-            container_vul.save()
-        task_id = tasks.create_container_task(container_vul, user, get_request_ip(request))
+        compose_container_vul = ContainerVul.objects.filter(Q(user_id=user_id) & Q(image_id=image_id) &
+                                                            Q(time_model_id=time_model_id) & Q(container_status='stop')
+                                                            & ~Q(docker_compose_path="")).first()
+        if not container_vul or image_info['is_docker_compose'] == True:
+            if compose_container_vul:
+                container_vul = compose_container_vul
+            else:
+                container_vul = ContainerVul(image_id=img_info, user_id=user_id, vul_host="", container_status="creat",
+                                             docker_container_id="",
+                                             vul_port="",
+                                             container_port="",
+                                             time_model_id=time_model_id,
+                                             create_date=django.utils.timezone.now(),
+                                             container_flag="")
+                container_vul.save()
+        if image_info['is_docker_compose'] == True:
+            task_id = tasks.start_docker_compose(request, image_id, container_vul, user, get_request_ip(request),
+                                           time_model_id)
+        else:
+            task_id = tasks.create_container_task(container_vul, user, get_request_ip(request))
         return JsonResponse(R.ok(task_id))
 
 
@@ -750,11 +778,11 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
             time_model_id = time_moudel_data.time_id
         if flag == 'list' and user.is_superuser:
             if image_id:
-                container_vul_list = ContainerVul.objects.filter(image_id=image_id).order_by('-create_date')
+                container_vul_list = ContainerVul.objects.filter(image_id=image_id,is_docker_compose_correlation=False).order_by('-create_date')
             else:
-                container_vul_list = ContainerVul.objects.all().order_by('-create_date')
+                container_vul_list = ContainerVul.objects.filter(is_docker_compose_correlation=False).all().order_by('-create_date')
         else:
-            container_vul_list = ContainerVul.objects.filter(user_id=user.id, time_model_id=time_model_id)
+            container_vul_list = ContainerVul.objects.filter(user_id=user.id, time_model_id=time_model_id, is_docker_compose_correlation=False)
         return container_vul_list
 
     @action(methods=["get"], detail=True, url_path='start')
@@ -782,6 +810,14 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         user_info = request.user
         container_vul = self.get_object()
         expire = request.GET.get('expire', "")
+        image_info = ImageInfo.objects.filter(image_id=container_vul.image_id_id).first()
+        if image_info.is_docker_compose == True:
+            original_container = ContainerVul.objects.filter(Q(user_id=user_info.id) & Q(image_id=image_info.image_id) &
+                                                             Q(container_status="running") & ~Q(
+                docker_compose_path="")).first()
+            task_id = tasks.stop_container_task(container_vul=original_container, user_info=user_info,
+                                                request_ip=get_request_ip(request))
+            return JsonResponse(R.ok(task_id))
         task_id = tasks.stop_container_task(container_vul=container_vul, user_info=user_info,
                                             request_ip=get_request_ip(request))
         setting_config = get_setting_config()
@@ -806,10 +842,20 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
             return JsonResponse(R.build(msg="id不能为空"))
         container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
                                                     container_id=pk).first()
-        if not container_vul:
+        user_id = request.user.id
+        original_container = ContainerVul.objects.filter(container_id=pk, user_id=user_id).first()
+        # original_container = ContainerVul.objects.filter(Q(user_id=user_id) & Q(container_id=pk)
+        #                                                  & ~Q(docker_compose_path="") & ~Q(
+        #     container_status='delete')).first()
+        image_info = ImageInfoSerializer(original_container.image_id).data
+        if not container_vul and not original_container:
             return JsonResponse(R.build(msg="环境不存在"))
         user_info = request.user
         # container_vul = self.get_object()
+        if image_info['is_docker_compose'] == True:
+            task_id = tasks.delete_container_task(container_vul=original_container, user_info=user_info,
+                                                  request_ip=get_request_ip(request))
+            return JsonResponse(R.ok(task_id))
         task_id = tasks.delete_container_task(container_vul=container_vul, user_info=user_info,
                                               request_ip=get_request_ip(request))
         return JsonResponse(R.ok(task_id))

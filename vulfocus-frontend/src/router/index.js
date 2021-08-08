@@ -42,6 +42,16 @@ export const constantRoutes = [
     hidden: false
   },
   {
+    path: '/updatepwd',
+    component: () => import('@/views/retrieve/update'),
+    hidden: false
+  },
+  {
+    path: '/retrieve',
+    component: () => import('@/views/retrieve/index'),
+    hidden: false
+  },
+  {
     path: '/404',
     component: () => import('@/views/404'),
     hidden: true
@@ -97,7 +107,7 @@ export const constantRoutes = [
     }]
   },
   {
-    path: '/',
+    path: '/compose',
     component: Layout,
     redirect: '/',
     children: [{
@@ -108,7 +118,7 @@ export const constantRoutes = [
     }]
   },
   {
-    path: '/',
+    path: '/scene',
     component: Layout,
     redirect: '/',
     meta: {title: "场景模式", icon: 'form'},
@@ -152,13 +162,22 @@ export const asyncRoutes = [
       name: 'image',
       component: () => import('@/views/image/index'),
       meta: { title: '镜像管理', icon: 'docker' , role: ['admin']}
-    },{
-        path: 'images',
-        affix: true,
-        name: 'images',
-        component: () => import("@/views/manager/images"),
-        meta: { title: '靶场管理', icon: 'bug' , role: ['admin']}
-      }]
+    },
+    // {
+    //  path: 'compose',
+    //  component: () => import('@/views/image/dockerCompose'),
+    //  name: 'compose',
+    //  affix: true,
+    //  meta: {'title': 'Custom-Docker', icon: 'docker', role: ['admin'] },
+    //  },
+    {
+      path: 'images',
+      affix: true,
+      name: 'images',
+      component: () => import("@/views/manager/images"),
+      meta: { title: '靶场管理', icon: 'bug' , role: ['admin']}
+      },
+    ]
   },
   {
     // 环境编排管理

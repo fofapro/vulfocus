@@ -7,6 +7,8 @@
         </el-tooltip>
       </div>
       <div class="svgHeadItemLst svgToolBarItem">
+<!--        <el-button size="small" style="margin: 3px;" type="primary" icon="el-icon-edit-outline" @click="viewYml"> Custom-->
+<!--        </el-button>-->
         <el-button size="small" style="margin: 3px;" type="primary" icon="fa fa-save" @click="saveTopoJson"> 保存
         </el-button>
       </div>
@@ -247,10 +249,49 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+    <el-dialog :visible.sync="ymlShow" width="60%">
+      <el-tabs value="dockerfile" ref="tab">
+        <el-tab-pane name="dockerfile">
+          <span slot="label"><i class="el-icon-edit"></i> DockerCompose.yml</span>
+          <div>
+            <el-form>
+              <el-form-item>
+                <el-input v-model="ymlContent" type="textarea" rows="10"
+                          placeholder="Define or paste the content of Your DockerCompose.yml here"></el-input>
+              </el-form-item>
+            </el-form>
+          </div>
+        </el-tab-pane>
+        <div>
+        <el-row>
+          <el-col :span="2">
+            <div class="action-group">
+              <el-button @click="show_compose" type="primary" size="mini">展示</el-button>
+            </div>
+            </el-col>
+            <el-col :span="22" style="margin-top: 1px">
+              <div>
+                <el-upload
+                  ref="upload"
+                  :http-request="upload1"
+                  :max-size="2048"
+                  action="/CombinationImage/"
+                  :before-upload="beforeAvatarUpload1"
+                  :on-remove="removeChange1"
+                  :on-change="handleChange1"
+                  :file-list="fileList">
+                  <el-button slot="trigger" style="margin-bottom: 20px" size="mini" type="primary">上传文件</el-button>
+                </el-upload>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+      </el-tabs>
+    </el-dialog>
   </div>
 </template>
 <script>
-import {layoutCreate,uploadImage} from '@/api/layout'
+import {layoutCreate,uploadImage,build_compose,show_build_status,uploadFile,deleteFile} from '@/api/layout'
 import connectorRules from '@/config/connectorRules' //连线包含关系规则
 import vTopoAttrPanel from './components/vTopoAttrPanel'
 import vShapebar from './components/vShapebar'
@@ -351,6 +392,9 @@ export default {
         desc: '',
         imageName: '',
       },
+      ymlContent:"",
+      ymlShow:false,
+      fileList:[],
       newFile: new FormData()
     }
   },
@@ -1315,7 +1359,98 @@ export default {
         this.svgAttr.minW = topoW
         this.svgAttr.minH = topoH
       })
-    }
+    },
+    // 文件上传1
+    viewYml(){
+      this.ymlShow = true
+    },
+    beforeAvatarUpload1(file){
+      if (file){
+        this.newFile.set("file", file)
+      }else{
+        return false;
+      }
+    },
+    removeChange1(file,fileList) {
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        let delFile = new FormData()
+        delFile.set("file", file.name)
+        deleteFile(delFile).then(response=>{
+          let data = response.data
+          if (data.status === 200){
+            for (let i=0; i<fileList.length; i++){
+              if (fileList[i] === file){
+                fileList.splice(i,1)
+              }
+            }
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            });
+          }else {
+            fileList.push(file)
+            this.$message({
+              type: 'error',
+              message: '删除失败!'
+            });
+          }
+        })
+      }).catch(() => {
+        fileList.push(file)
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        });
+      });
+    },
+    handleChange1(file,fileList){
+      this.fileList = fileList
+    },
+    upload1(file,fileList){
+      let size = file.file.size /1024 /1024
+      if (size>2){
+        this.$message({
+          message: "文件大小必须小于2M",
+          type: 'error'
+        })
+        this.fileList.pop()
+      }else{
+        let data = this.newFile
+        uploadFile(data).then(response => {
+          let rsp = response.data
+          if (rsp.data && rsp.status === 200){
+            for (let i=0; i<this.fileList.length; i++){
+                if (this.fileList[i].name.indexOf("../compose_file/")===-1){
+                  this.fileList[i].name = "../compose_file/" + this.fileList[i].name
+                }else {
+                }
+            }
+            this.$message({
+              message: '上传成功',
+              type: 'success'
+            })
+          }else{
+            this.fileList.pop()
+            this.$message({
+              message: rsp.msg,
+              type: 'error'
+            })
+          }
+        }).catch(err => {
+          this.fileList.pop()
+          this.$message({
+            message: "服务器内部错误",
+            type: 'error'
+          })
+        })
+      }
+    },
+    show_compose(){
+    },
   },
   mounted() {
     if (this.$route.query.layoutData !== null && this.$route.query.layoutData !== undefined && this.$route.query.layoutData.layout_id){
@@ -1324,6 +1459,7 @@ export default {
       this.layout.name = this.$route.query.layoutData.layout_name
       this.layout.desc = this.$route.query.layoutData.layout_desc
       this.layout.imageName = this.$route.query.layoutData.image_name
+      this.ymlContent = this.$route.query.layoutData.yml_content
     }else{
       this.layout = {
         id: '',

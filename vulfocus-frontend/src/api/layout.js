@@ -77,3 +77,54 @@ export function layoutRelease(layoutId){
     method: 'get'
   })
 }
+
+
+export function build_compose(data) {
+  return request({
+    url: 'build/compose/',
+    method: 'post',
+    data: data
+  })
+}
+
+
+export function update_build_compose(data) {
+  return request({
+    url: 'update/compose/',
+    method: 'post',
+    data: data
+  })
+}
+
+
+
+export function show_build_status() {
+  return request({
+    url: 'show/compose/',
+    method: 'get',
+  })
+}
+
+
+export function uploadFile(data) {
+  return request({
+    url: '/file/upload/',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data
+  })
+}
+
+
+export function deleteFile(data) {
+  return request({
+    url: '/file/delete/',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data
+  })
+}

@@ -10,18 +10,21 @@ docker pull vulfocus/vulfocus:latest
 ```
 运行 Vulfocus
 ```
-docker create -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=xxx.xxx.xxx.xxx vulfocus/vulfocus
+docker create -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=xxx.xxx.xxx.xxx -e EMAIL_HOST="xxx.xxx.xxx" -e EMAIL_HOST_USER="xxx@xxx.com" -e EMAIL_HOST_PASSWORD="xxxxxxxx" vulfocus/vulfocus
 docker start container id
 ```
 或者
 
 ```
-docker run -d -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=xxx.xxx.xxx.xxx vulfocus/vulfocus
+docker run -d -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=xxx.xxx.xxx.xxx -e EMAIL_HOST="xxx.xxx.xxx" -e EMAIL_HOST_USER="xxx@xxx.com" -e EMAIL_HOST_PASSWORD="xxxxxxxx" vulfocus/vulfocus
 ```
 - `-v /var/run/docker.sock:/var/run/docker.sock` 为 docker 交互连接。
 - `-e DOCKER_URL` 为 Docker 连接方式，默认通过 `unix://var/run/docker.sock` 进行连接，也可以通过 `tcp://xxx.xxx.xxx.xxx:2375` 进行连接（必须开放 2375 端口）。
 - `-v /vulfocus-api/db.sqlite3:db.sqlite3` 映射数据库为本地文件。
 - `-e VUL_IP=xxx.xxx.xxx.xxx` 为 **Docker** 服务器 IP ，不能为 127.0.0.1。
+- `-e EMAIL_HOST="xxx.xxx.xxx"`  为邮箱SMTP服务器
+- `-e EMAIL_HOST_USER="xxx@xxx.com"`  为邮箱账号
+- `-e EMAIL_HOST_PASSWORD="xxxxxxxx`  为邮箱密码
 - 默认账户密码为 `admin/admin`。
 
 ![](./imgs/1.png)
@@ -157,6 +160,7 @@ python manage.py createsuperuser
 
 3. 修改 CELERY_BROKER_URL（`vulfocus/settings.py`），修改为 Redis 连接地址。
 
+4. 配置 EMAIL_HOST;EMAIL_HOST_USER;EMAIL_HOST_PASSWORD,修改为自己的邮箱配置
 #### 启动 Celery(Celery不需要操做后面有自启)
 在 `vulfocus-api` 中启动 Celery：
 ```

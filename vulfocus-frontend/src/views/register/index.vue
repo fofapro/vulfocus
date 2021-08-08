@@ -26,7 +26,9 @@
       </a >
     </div>
     <el-form ref="ruleForm" :model="ruleForm" :rules="rules" class="login-form" auto-complete="on"  label-width="100px">
-
+      <div style="margin-right: 320px;margin-top: 10px">
+        <i class="el-icon-back" @click="toLogin" style="font-size: 30px;color: #d3dce6" ></i>
+      </div>
       <div class="title-container">
         <img src="../../assets/logintitle.png" style="margin-top: 30px;margin-left: 15%;margin-bottom: 10px;"/>
       </div>
@@ -53,6 +55,10 @@
       <el-button :loading="loading" type="primary" style="margin-bottom:30px;" @click.native.prevent="handleReg">注册</el-button>
       <el-button @click="resetForm('ruleForm')">重置</el-button>
       </div>
+      <div align="center" style="padding-top: 0px">
+       <el-link type="primary" @click="toLogin"> 已有账号？返回登录</el-link>
+      </div>
+
 
       <!--      <div class="tips">-->
       <!--        <span style="margin-right:20px;">username: admin</span>-->
@@ -112,6 +118,9 @@
     methods: {
       resetForm(formName) {
         this.$refs[formName].resetFields();
+      },
+      toLogin(){
+        this.$router.push('/login')
       },
       handleReg() {
         this.$refs.ruleForm.validate(valid => {
@@ -177,7 +186,9 @@
         }
       }
     }
-
+    .el-form-item__label{
+      color: #d3dce6;
+    }
     .el-form-item {
       border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(0, 0, 0, 0.1);
@@ -203,7 +214,7 @@
     .login-form {
       position: relative;
       width: 400px;
-      height: 470px;
+      height: 500px;
       max-width: 80%;
       margin: 180px;
       overflow: hidden;

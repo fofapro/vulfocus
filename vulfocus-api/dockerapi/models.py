@@ -69,7 +69,11 @@ class ImageInfo(models.Model):
     is_flag = models.BooleanField(verbose_name="是否展示flag输入框", default=True)
     create_date = models.DateTimeField(auto_now_add=True, verbose_name='Docker创建时间，默认为当前时间')
     update_date = models.DateTimeField(auto_now_add=True, verbose_name='Docker更新时间，默认为当前时间')
-
+    is_docker_compose = models.BooleanField(verbose_name="镜像启动方式", default=False)
+    docker_compose_yml = models.TextField(verbose_name="compose_yml", default="")
+    docker_compose_env = models.TextField(verbose_name="env_port", default="")
+    compose_env_port = models.TextField(verbose_name="env对应端口", default="")
+    original_yml = models.TextField(verbose_name="原生yml文件", default="")
     class Meta:
         db_table = 'image_info'
 
@@ -91,6 +95,8 @@ class ContainerVul(models.Model):
     is_check = models.BooleanField(default=False, verbose_name='Flag是否通过')
     is_check_date = models.DateTimeField(null=True, verbose_name='Flag提交时间')
     time_model_id = models.CharField(max_length=255, verbose_name='时间模式 ID')
+    docker_compose_path = models.TextField(verbose_name="docker_compose_path", default="")  # docker-compose 相关运行路径
+    is_docker_compose_correlation = models.BooleanField(verbose_name="docker-compose相关辅助镜像", default=False)
 
     class Meta:
         db_table = 'container_vul'
