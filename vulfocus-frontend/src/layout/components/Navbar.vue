@@ -17,6 +17,9 @@
             </el-dropdown-item>
           </router-link>
           <el-dropdown-item divided>
+            <span style="display:block;" @click="updatePwd">修改密码</span>
+          </el-dropdown-item>
+          <el-dropdown-item divided>
             <span style="display:block;" @click="logout">退出</span>
           </el-dropdown-item>
         </el-dropdown-menu>
@@ -29,8 +32,13 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
+import { lininfo } from "@/api/docker"
 
 export default {
+  data(){
+    return {
+    }
+  },
   components: {
     Breadcrumb,
     Hamburger
@@ -50,7 +58,10 @@ export default {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
     },
-  },
+    updatePwd() {
+      this.$router.push(`/profile/index`)
+    },
+  }
 }
 </script>
 

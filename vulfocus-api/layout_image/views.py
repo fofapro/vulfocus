@@ -27,7 +27,11 @@ from rest_framework.decorators import action
 from user.models import UserProfile
 import shutil
 import docker
-
+from tasks.models import TaskInfo
+from tasks import tasks
+from tasks.serializers import TaskSetSerializer
+import yaml
+from ruamel.yaml import YAML, YAMLContextManager
 # Create your views here.
 
 
@@ -54,6 +58,60 @@ def upload_img(request):
         for chunk in img.chunks():
             f.write(chunk)
         return JsonResponse(R.ok(data=image_name))
+
+
+@api_view(http_method_names=["POST"])
+def upload_file(request):
+    """
+    上传文件
+    """
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    file = request.data["file"]
+    if not file:
+        return JsonResponse(R.build(msg="请上传文件"))
+    file_name = file.name
+    compose_v = os.path.join(DOCKER_COMPOSE, 'compose_file')
+    if not os.path.exists(compose_v):
+        os.makedirs(compose_v)
+    files = []
+    for path, dirs, files in os.walk(compose_v):
+        files = files
+    if file_name in files:
+        return JsonResponse(R.build(msg="文件名重复，请更改！"))
+    try:
+        with open(os.path.join(DOCKER_COMPOSE, "compose_file", file_name), "wb") as f:
+            for chunk in file.chunks():
+                f.write(chunk)
+    except Exception as e:
+        return JsonResponse(R.build(msg="上传失败"))
+    data = {"data": file_name, 'filePath': compose_v}
+    return JsonResponse(R.ok(data=data))
+
+
+@api_view(http_method_names=["POST"])
+def delete_file(request):
+    """
+    删除文件
+    """
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    file = request.data["file"]
+    if not file:
+        return JsonResponse(R.build(msg="删除失败"))
+    file_name = file
+    if '../compose_file/' in file_name:
+        file_name = file_name.replace('../compose_file/','')
+    static_path = os.path.join(DOCKER_COMPOSE, "compose_file")
+    delete_name = static_path + '/' + file_name
+    try:
+        os.remove(delete_name)
+    except Exception as e:
+        return JsonResponse(R.build(msg="删除失败"))
+    return JsonResponse(R.ok(data='删除成功'))
+
 
 
 class LayoutViewSet(viewsets.ModelViewSet):
@@ -298,7 +356,8 @@ class LayoutViewSet(viewsets.ModelViewSet):
                 # 删除内容
                 layout.delete()
                 # 删除文件和文件夹
-                shutil.rmtree(layout_path)
+                if os.path.exists(layout_path) == True:
+                    shutil.rmtree(layout_path)
                 request_ip = get_request_ip(request)
                 sys_log = SysLog(user_id=user.id, operation_type="编排环境", operation_name="删除",
                                  operation_value=layout_name, operation_args=json.dumps(LayoutSerializer(layout).data),
@@ -367,6 +426,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return JsonResponse(R.build(msg=str(e)))
         open_host_list = []
+        # 启动网卡
         raw_con = json.loads(layout_info.raw_content)
         network_list = client.networks.list()
         net_list = []
@@ -737,3 +797,169 @@ def build_yml(container_list, network_dict, connector_list):
         "env": env_list,
     }
     return yml_content
+
+
+@api_view(http_method_names=["POST"])
+def build_compose(request):
+    '''
+    构建docker-compose相关镜像
+    '''
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    user_id = user.id
+    tag = request.data['tag']
+    args = request.data['compose_content']
+    try:
+        new_yaml = YAML(typ='safe')
+        new_yaml.allow_duplicate_keys = True
+        args_yaml = new_yaml.load(args)
+    except Exception as e:
+        return JsonResponse({"code": 2001, "message": "格式错误"})
+    env_list = []
+    vul_port = []
+    compose_env_port = []
+    image_infos = ImageInfo.objects.filter(image_name=tag).first()
+    user_info = UserProfile.objects.filter(id=user_id).first()
+    data = request.data
+    rank = 2.5
+    degree = ''
+    is_flag = True
+    if 'is_flag' in data:
+        is_flag = request.data['is_flag']
+    if "rank" in data:
+        rank = request.data['rank']
+        if rank == 0:
+            rank = 2.5
+        rank = float(rank)
+    if "degree" in data:
+        degree = request.data['degree']
+    if image_infos:
+        return JsonResponse({"code": 2001, "message": "{}镜像已存在".format(tag)})
+    if not tag:
+        return JsonResponse({"code": 2001, "message": "镜像名称不能为空"})
+    try:
+        for services_name in args_yaml['services']:
+            if "dockerfile" in args_yaml['services'][services_name]:
+                return JsonResponse({"code": 2001, "message": "yml文件不允许自定义dockerfile"})
+            if "container_name" in args_yaml['services'][services_name]:
+                return JsonResponse({"code": 2001, "message": "yml文件不允许自定义容器名"})
+            if "ports" in args_yaml['services'][services_name]:
+                _ports = args_yaml['services'][services_name]['ports']
+                yml_port_list = []
+                for por in _ports:
+                    port = por.split(':')[0]
+                    ids = uuid.uuid4()
+                    base_target_port = str(ids) + "-" + port
+                    encode_base_target_port = base64.b64encode(base_target_port.encode("utf-8"))
+                    encode_base_target_port = "VULFOCUS" + encode_base_target_port.hex().upper()
+                    port_str = "${" + encode_base_target_port + "}:" + por.split(':')[1] + ""  # yml 端口
+                    yml_port_list.append(port_str)
+                    vul_port.append(por)
+                    compose_env_port.append(port_str)
+                    env_list.append(encode_base_target_port)
+                args_yaml['services'][services_name]['ports'] = yml_port_list
+        if ':' in tag:
+            image_vul_name = tag.split(':')[0]
+        else:
+            image_vul_name = tag
+        image_info = ImageInfo(image_name=tag, image_vul_name=image_vul_name, image_desc="", is_flag=is_flag,
+                               rank=rank, degree=json.dumps(degree), is_ok=False, create_date=timezone.now()
+                               , update_date=timezone.now(), is_docker_compose=True, docker_compose_yml=json.dumps(args_yaml)
+                               , docker_compose_env=json.dumps(env_list), image_port=json.dumps(vul_port)
+                               , compose_env_port=json.dumps(compose_env_port), original_yml=json.dumps(args))
+
+        image_info.save()
+        image_list = tasks.create_compose_task(user_info, image_info, tag, get_request_ip(request))
+    except Exception as e:
+        return JsonResponse({"code": 2001, "message": "添加{}镜像构建任务失败".format(tag)})
+    sys_log = SysLog(user_id=user_id, operation_type="镜像", operation_name="构建docker-compose", ip=get_request_ip(request),
+                     operation_value=image_vul_name, operation_args="")
+    sys_log.save()
+    return JsonResponse({"code": 200, "message": "添加{}镜像构建任务成功".format(tag)})
+
+
+@api_view(http_method_names=["POST"])
+def update_build_compose(request):
+    '''
+    修改重新构建docker-compose相关镜像
+    '''
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    user_id = user.id
+    image_id = request.data['image_id']
+    args = request.data['compose_content']
+    if not image_id:
+        return JsonResponse({"code": 2001, "message": "错误的image_id"})
+    try:
+        new_yaml = YAML(typ='safe')
+        new_yaml.allow_duplicate_keys = True
+        args_yaml = new_yaml.load(args)
+    except Exception as e:
+        return JsonResponse({"code": 2001, "message": "格式错误"})
+    image_infos = ImageInfo.objects.filter(image_id=image_id).first()
+    user_info = UserProfile.objects.filter(id=user_id).first()
+    if not image_infos:
+        return JsonResponse({"code": 2001, "message": "镜像不存在"})
+    env_list = []
+    vul_port = []
+    compose_env_port = []
+    try:
+        for services_name in args_yaml['services']:
+            if "dockerfile" in args_yaml['services'][services_name]:
+                return JsonResponse({"code": 2001, "message": "yml文件不允许自定义dockerfile"})
+            if "container_name" in args_yaml['services'][services_name]:
+                return JsonResponse({"code": 2001, "message": "yml文件不允许自定义容器名"})
+            if "ports" in args_yaml['services'][services_name]:
+                _ports = args_yaml['services'][services_name]['ports']
+                yml_port_list = []
+                for por in _ports:
+                    port = por.split(':')[0]
+                    ids = uuid.uuid4()
+                    base_target_port = str(ids) + "-" + port
+                    encode_base_target_port = base64.b64encode(base_target_port.encode("utf-8"))
+                    encode_base_target_port = "VULFOCUS" + encode_base_target_port.hex().upper()
+                    port_str = "${" + encode_base_target_port + "}:" + por.split(':')[1] + ""  # yml 端口
+                    yml_port_list.append(port_str)
+                    vul_port.append(por)
+                    compose_env_port.append(port_str)
+                    env_list.append(encode_base_target_port)
+                args_yaml['services'][services_name]['ports'] = yml_port_list
+        image_infos.is_ok = False
+        image_infos.update_date = timezone.now()
+        image_infos.docker_compose_yml = json.dumps(args_yaml)
+        image_infos.docker_compose_env = json.dumps(env_list)
+        image_infos.image_port = json.dumps(vul_port)
+        image_infos.compose_env_port = json.dumps(compose_env_port)
+        image_infos.original_yml = json.dumps(args)
+        image_infos.save()
+        tag = image_infos.image_name
+        image_vul_name = image_infos.image_vul_name
+        image_list = tasks.create_compose_task(user_info, image_infos, tag, get_request_ip(request))
+    except Exception as e:
+        return JsonResponse({"code": 2001, "message": "修改docker-compose镜像构建任务失败"})
+    sys_log = SysLog(user_id=user_id, operation_type="镜像", operation_name="构建docker-compose", ip=get_request_ip(request),
+                     operation_value=image_vul_name, operation_args="")
+    sys_log.save()
+    return JsonResponse({"code": 200, "message": "修改{}镜像构建任务成功".format(tag)})
+
+
+
+@api_view(http_method_names=["GET"])
+def show_compose(request):
+    '''
+    获取docker-compose构建状态
+    '''
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    user_id = user.id
+    task_info = TaskInfo.objects.filter(operation_type=7, task_status=2, user_id=user_id).first()
+    if task_info:
+        data = json.loads(TaskSetSerializer(task_info).data['operation_args'])
+        tag = data['tag']
+        args_yaml = data['args_yaml']
+        return JsonResponse({"code": 200, "message": "正在构建相关镜像", "data": args_yaml, "img_name": tag})
+    else:
+        return JsonResponse({"code": 202, "message": ""})

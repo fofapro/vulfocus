@@ -67,6 +67,11 @@
           <el-button :loading="loading" type="primary" style="width:75%;margin-bottom:30px;margin-left: 10px" @click.native.prevent="handleLogin">登入</el-button>
           <el-button  style="width:75%;margin-bottom:30px;" @click="jumpreg" >注册</el-button>
         </div>
+        <div>
+          <el-button type="text" @click="findPassword" style="color: #009ad6;margin-left: 70%">忘记密码
+            <i class="el-icon-question"></i>
+          </el-button>
+        </div>
       </el-form>
     </div>
   </div>
@@ -95,7 +100,8 @@ export default {
       },
       loading: false,
       passwordType: 'password',
-      redirect: undefined
+      redirect: undefined,
+      displayInput:false
     }
   },
   watch: {
@@ -119,6 +125,9 @@ export default {
       this.$nextTick(() => {
         this.$refs.password.focus()
       })
+    },
+    findPassword(){
+      this.$router.push('/retrieve')
     },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
@@ -159,6 +168,31 @@ $cursor: #fff;
 
 /* reset element-ui css */
 .login-container {
+  .confirm-from{
+    .el-input{
+      display: inline-block;
+    height: 48px;
+    width: 332px;
+
+    input {
+      background: transparent;
+      border: 0px;
+      -webkit-appearance: none;
+      border-radius: 0px;
+      padding: 12px 5px 12px 15px;
+      color: #2b2f3a;
+      height: 48px;
+      width: 332px;
+      caret-color: $cursor;
+
+      &:-webkit-autofill {
+        box-shadow: 0 0 0px 1000px $bg inset !important;
+        -webkit-text-fill-color: $cursor !important;
+      }
+    }
+    }
+  }
+
   .el-input {
     display: inline-block;
     height: 48px;
@@ -181,6 +215,12 @@ $cursor: #fff;
       }
     }
   }
+  /*.el-dialog__header{*/
+  /*  background-color: #3d7ed5;*/
+  /*}*/
+  /*.el-dialog__body{*/
+  /*  background-color: #3d7ed5;*/
+  /*}*/
 
   .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -209,6 +249,7 @@ $light_gray:#eee;
     background-image: url("../../assets/loginl.png");
     background-size: 100% 100%;
   }
+
   .tips {
     font-size: 14px;
     color: #fff;
@@ -261,4 +302,7 @@ $light_gray:#eee;
   background: url("../../assets/loginbackground.png") center no-repeat;
   background-size: 100%;
 }
+</style>
+<style>
+
 </style>

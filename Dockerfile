@@ -1,10 +1,13 @@
 FROM python:3
-LABEL maintainer="Prometheus <992343696@qq.com>" version="0.3.2.2" description="Vulfocus for Docker"
+LABEL maintainer="Prometheus <992@qq.com>" version="0.3.2.6" description="Vulfocus for Docker"
 EXPOSE 80
 RUN mkdir /vulfocus-api/
 WORKDIR /vulfocus-api/
 ADD vulfocus-api/ /vulfocus-api/
 ENV VUL_IP=""
+ENV EMAIL_HOST=""
+ENV EMAIL_HOST_USER=""
+ENV EMAIL_HOST_PASSWORD=""
 ENV DOCKER_URL="unix://var/run/docker.sock"
 RUN mv /etc/apt/sources.list /etc/apt/sources.list.back && \
     cp /vulfocus-api/sources.list /etc/apt/sources.list && \

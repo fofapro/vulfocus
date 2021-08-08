@@ -207,6 +207,7 @@ export default {
       writeup_date:"",
       is_flag:true,
       expire:true,
+      is_docker_compose:false,
       item_raw_data: "",
       cStatus: true,
       search: "",
@@ -315,6 +316,7 @@ export default {
         this.images_desc = images_desc
         this.is_flag = raw_data.is_flag
         this.writeup_date = raw_data.writeup_date
+        this.is_docker_compose = raw_data.is_docker_compose
         this.centerDialogVisible = true
         this.$set(raw_data.status, "start_flag", true)
         this.$forceUpdate();
@@ -332,6 +334,7 @@ export default {
           this.startCon = false
           this.cStatus = false
           this.writeup_date = raw_data.writeup_date
+          this.is_docker_compose = raw_data.is_docker_compose
           this.is_flag = raw_data.is_flag
         }else{
           ContainerSTART(id).then(response=>{

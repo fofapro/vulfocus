@@ -83,6 +83,10 @@ class NetWorkInfoViewSet(viewsets.ModelViewSet):
                     enable_ipv6 = network.attrs["EnableIPv6"]
                     break
         else:
+            if net_work_subnet == "192.168.10.10/24":
+                return JsonResponse(R.err(msg="该网段已在服务器内部使用，请更换网段"))
+            if net_work_gateway == "192.168.10.10":
+                return JsonResponse(R.err(msg="该网关已在服务器内部使用，请更换网关"))
             try:
                 ipam_pool = docker.types.IPAMPool(
                     subnet=net_work_subnet,
@@ -91,12 +95,17 @@ class NetWorkInfoViewSet(viewsets.ModelViewSet):
                 ipam_config = docker.types.IPAMConfig(
                     pool_configs=[ipam_pool]
                 )
-                net_work = client.networks.create(
-                    net_work_name,
-                    driver=net_work_driver,
-                    ipam=ipam_config,
-                    scope=net_work_scope
-                )
+                if not net_work_name:
+                    return JsonResponse(R.err(msg="网卡名称不能为空"))
+                try:
+                    net_work = client.networks.create(
+                        net_work_name,
+                        driver=net_work_driver,
+                        ipam=ipam_config,
+                        scope=net_work_scope
+                    )
+                except Exception as e:
+                    return JsonResponse(R.err(msg="子网或者网关设置错误"))
                 net_work_client_id = str(net_work.id)
                 if not net_work_gateway:
                     net_work_gateway = net_work.attrs['IPAM']['Config']['Gateway']

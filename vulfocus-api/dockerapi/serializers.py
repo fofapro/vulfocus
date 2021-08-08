@@ -12,6 +12,7 @@ from dockerapi.common import get_setting_config
 import redis
 import time
 import datetime
+import yaml
 r = redis.Redis(connection_pool=REDIS_POOL)
 
 
@@ -81,6 +82,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
     degree = serializers.SerializerMethodField('degreeck')
     writeup_date = serializers.SerializerMethodField('contentck')
     update_date = serializers.SerializerMethodField('transition_time')
+    image_port = serializers.SerializerMethodField('image_port_ck')
 
     def statusck(self, obj):
         status = {}
@@ -98,6 +100,9 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             time_model_id = time_moudel_data.time_id
         # 排出已经删除数据 Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
         data = ContainerVul.objects.all().filter(user_id=id, image_id=obj.image_id, time_model_id=time_model_id).first()
+        if obj.is_docker_compose == True:
+            data = ContainerVul.objects.all().filter(
+                Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="")).first()
         status["status"] = ""
         status["is_check"] = False
         status["container_id"] = ""
@@ -110,7 +115,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         if data:
             status["start_date"] = ""
             status["end_date"] = ""
-            if not data.docker_container_id:
+            if not data.docker_container_id and obj.is_docker_compose == False:
                 data.container_status = "delete"
             if data.container_status == "running":
                 status["host"] = data.vul_host
@@ -135,10 +140,25 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         }
         task_info = TaskInfo.objects.filter(task_status=1, operation_type=1, operation_args=json.dumps(operation_args))\
             .order_by("-create_date").first()
+        compose_task_list = []
+        if obj.is_docker_compose == True:
+            compose_task_info = TaskInfo.objects.filter(task_status=2, operation_type=7).all()
+            if compose_task_info:
+                for compose_t in compose_task_info:
+                    if json.loads(compose_t.operation_args)['tag'] == obj.image_name:
+                        compose_task_list.append(compose_t)
         if task_info:
             status["task_id"] = str(task_info.task_id)
             try:
                 task_log = r.get(str(task_info.task_id))
+                task_log_json = json.loads(task_log)
+                status["progress"] = task_log_json["progress"]
+            except:
+                pass
+        elif compose_task_list:
+            status["task_id"] = str(compose_task_list[0].task_id)
+            try:
+                task_log = r.get(str(compose_task_list[0].task_id))
                 task_log_json = json.loads(task_log)
                 status["progress"] = task_log_json["progress"]
             except:
@@ -164,6 +184,11 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             except:
                 pass
         status["now"] = int(timezone.now().timestamp())
+        if obj.is_docker_compose == True:
+            if obj.original_yml:
+                status['json_yml'] = json.loads(obj.original_yml)
+            else:
+                status['json_yml'] = json.loads(obj.docker_compose_yml)
         return status
 
     def degreeck(self, obj):
@@ -184,6 +209,19 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         time = obj.update_date.strftime('%Y-%m-%d %H:%M:%S')
         return time
 
+    def image_port_ck(self, obj):
+        image_port = obj.image_port
+        try:
+            if image_port:
+                image_port = json.loads(image_port)
+                if isinstance(image_port,list) == True:
+                    image_port = str(image_port).strip('[').strip(']')
+                else:
+                    image_port = obj.image_port
+        except:
+            image_port = obj.image_port
+        return image_port
+
     class Meta:
         model = ImageInfo
         fields = "__all__"
@@ -201,7 +239,7 @@ class ContainerVulSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContainerVul
         fields = ['name', 'container_id', 'container_status', 'vul_host', 'create_date', 'is_check', 'is_check_date',
-                  'rank', 'user_name', 'vul_name', 'vul_desc', "image_id"]
+                  'rank', 'user_name', 'vul_name', 'vul_desc', "image_id", 'docker_compose_path', 'is_docker_compose_correlation']
 
     def get_vul_name(self,obj):
         return obj.image_id.image_vul_name
