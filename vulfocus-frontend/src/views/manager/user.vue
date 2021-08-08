@@ -1,5 +1,9 @@
 <template>
   <div class="app-container">
+    <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
+    <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="userHandleQuery">
+      查询
+    </el-button>
     <el-table :data="tableData" border stripe style="width: 100%" v-loading="loading">
       <el-table-column type="index" width="50"></el-table-column>
       <el-table-column prop="name" label="用户名"></el-table-column>
@@ -37,6 +41,7 @@
           total: 0,
           size: 20,
         },
+        search: "",
         tableData: [],
         loading:true
       }
@@ -46,13 +51,16 @@
     },
     methods:{
       initUserList(page){
-        userList(page).then(response => {
+        userList(page,this.search).then(response => {
           let data = response.data.results
           this.tableData = data
           this.page.total = response.data.count
           this.loading=false
         })
 
+      },
+      userHandleQuery(){
+        this.initUserList(1)
       },
       changePwd(row){
         this.$prompt("请输入新密码","提示",{

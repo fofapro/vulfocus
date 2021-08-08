@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-dialog :visible.sync="centerDialogVisible" title="添加" width="60%">
+    <el-dialog :visible.sync="centerDialogVisible" title="添加" width="65%">
         <el-tabs value="add" @tab-click="handleClick">
           <el-tab-pane name="add" label="添加">
             <el-form label-width="80px"
@@ -87,6 +87,9 @@
               </el-table-column>
             </el-table>
           </el-tab-pane>
+          <el-tab-pane name="addcompose" label="Compose编译">
+            <compose />
+          </el-tab-pane>
         </el-tabs>
     </el-dialog>
     <el-dialog :visible.sync="progressShow" :title=progress.title width="60%" :before-close="closeProgress">
@@ -121,46 +124,82 @@
         </el-table-column>
       </el-table>
     </el-dialog>
-    <el-dialog :visible.sync="editShow" title="修改">
-      <el-form label-width="80px" v-loading="editLoding" element-loading-text="修改中">
-        <el-form-item label="漏洞名称">
-          <el-input v-model="editVulInfo.image_vul_name" size="medium"></el-input>
-        </el-form-item>
-        <el-form-item label="镜像">
-          <el-input v-model="editVulInfo.image_name" disabled></el-input>
-        </el-form-item>
-        <el-form-item label="分类" >
-          <el-select v-model="editVulInfo.degree" multiple placeholder="请选择镜像标签" style="width: 100%">
-            <el-option v-for="item in degreeList" :key="item.value" :label="item.label" :value="item.value" > </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Rank">
-          <el-input-number v-model="editVulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
-          <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
-            <i class="el-icon-question"></i>
-          </el-tooltip>
-        </el-form-item>
-        <el-form-item label="flag">
-          <el-switch v-model="editVulInfo.is_flag"></el-switch>
-          <el-tooltip content="是否开启flag" placement="top">
-            <i class="el-icon-question"></i>
-          </el-tooltip>
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input type="textarea" v-model="editVulInfo.image_desc" size="medium"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary"  @click="handleEditImage" size="medium">提 交</el-button>
-          <el-button type="primary" @click="handleMark" size="medium">修改writeup</el-button>
-        </el-form-item>
-        <el-form-item v-if="markstatus === true">
-          <div class="container" >
-            <markdown-editor ref="markdownEditor" v-model="editVulInfo.writeup_date" :options="{hideModeSwitch:true, previewStyle:'tab'}" height="200px" />
+    <el-dialog :visible.sync="editShow">
+      <el-tabs>
+        <el-tab-pane label="修改">
+          <el-form label-width="80px" v-loading="editLoding" element-loading-text="修改中">
+          <el-form-item label="漏洞名称">
+            <el-input v-model="editVulInfo.image_vul_name" size="medium"></el-input>
+          </el-form-item>
+          <el-form-item label="镜像">
+            <el-input v-model="editVulInfo.image_name" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="分类" >
+            <el-select v-model="editVulInfo.degree" multiple placeholder="请选择镜像标签" style="width: 100%">
+              <el-option v-for="item in degreeList" :key="item.value" :label="item.label" :value="item.value" > </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Rank">
+            <el-input-number v-model="editVulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
+            <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
+              <i class="el-icon-question"></i>
+            </el-tooltip>
+          </el-form-item>
+          <el-form-item label="flag">
+            <el-switch v-model="editVulInfo.is_flag"></el-switch>
+            <el-tooltip content="是否开启flag" placement="top">
+              <i class="el-icon-question"></i>
+            </el-tooltip>
+          </el-form-item>
+          <el-form-item label="描述">
+            <el-input type="textarea" v-model="editVulInfo.image_desc" size="medium"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary"  @click="handleEditImage" size="medium">提 交</el-button>
+          </el-form-item>
+        </el-form>
+        </el-tab-pane>
+        <el-tab-pane id="compose-update" label="Compose修改" v-if="editVulInfo.is_docker_compose === true">
+          <span slot="label"><i class="el-icon-document"></i>DockerCompose修改</span>
+          <el-tabs value="dockerfile" ref="tab">
+            <el-tab-pane name="dockerfile">
+              <span slot="label"><i class="el-icon-edit"></i> DockerCompose.yml</span>
+              <div>
+                <el-form>
+                  <el-form-item>
+                    <el-input v-model="compose_content" type="textarea" rows="10"
+                              placeholder="Define or paste the content of Your DockerCompose.yml here"></el-input>
+                  </el-form-item>
+                </el-form>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
+          <div>
+            <el-row>
+              <el-col :span="2">
+                <div class="action-group">
+                  <el-button @click="update_compose_build" type="primary" size="mini">编译</el-button>
+                </div>
+              </el-col>
+              <el-col :span="22" style="margin-top: 0px">
+                <div>
+                  <el-upload
+                    ref="upload"
+                    :http-request="upload"
+                    :max-size="2048"
+                    action="/CombinationImage/"
+                    :before-upload="beforeAvatarUpload"
+                    :on-remove="removeChange"
+                    :on-change="handleChange"
+                    :file-list="fileList">
+                    <el-button slot="trigger" style="margin-bottom: 20px" size="mini" type="primary">上传文件</el-button>
+                  </el-upload>
+                </div>
+              </el-col>
+            </el-row>
           </div>
-<!--          <el-button type="primary" @click="saveHandleMark" size="medium">保存</el-button>-->
-          <el-button type="primary" @click="closeHandleMark" size="medium">关闭</el-button>
-        </el-form-item>
-      </el-form>
+        </el-tab-pane>
+      </el-tabs>
     </el-dialog>
     <div class="filter-container">
       <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
@@ -251,10 +290,14 @@
   import { containerDel } from '@/api/container'
   import { getTask,batchTask,progressTask } from '@/api/tasks'
   import MarkdownEditor from '@/components/MarkdownEditor'
+  import Compose from "./components/Compose";
+  import { build_compose,update_build_compose,uploadFile,deleteFile } from "@/api/layout"
   export default {
+    inject: ['reload'],
     name: 'index',
     components: {
-      MarkdownEditor
+      MarkdownEditor,
+      Compose
     },
     data() {
       return {
@@ -308,7 +351,10 @@
           degree:[],
           writeup_date: '',
           is_flag: true,
+          is_docker_compose:false,
+          docker_compose_yml:'',
         },
+        compose_content:"",
         imgType: "text",
         imgTypeText: "切换为文件",
         loading: false,
@@ -337,7 +383,9 @@
           total: 0,
           size: 20,
         },
-        value:[]
+        value:[],
+        newFile: new FormData(),
+        fileList:[]
       }
     },
     created() {
@@ -381,8 +429,8 @@
              {
               message:"同步完成",
               type:"success"
-             }
-             )
+             })
+             this.reload()
              }else{
              this.$message({
               message:"同步失败",
@@ -479,6 +527,7 @@
       openEdit(row){
         this.editShow = true
         this.editVulInfo = row
+        this.compose_content = row.status.json_yml
       },
       handleEditImage(){
         this.editLoding = true
@@ -682,7 +731,7 @@
             for(let key in data){
               let taskMsg = data[key]
               let status = taskMsg["status"]
-              if(status !== 1){
+              if(status !== 1 && status !== 2){
                 this.removeArray(this.taskList, key)
                 this.taskDict[key].is_ok = true
                 if(taskMsg["data"]["status"] === 200){
@@ -856,7 +905,114 @@
             },1)
           },1000)
         })
-      }
+      },
+      upload(file,fileList){
+        let size = file.file.size /1024 /1024
+        if (size>2){
+          this.$message({
+            message: "文件大小必须小于2M",
+            type: 'error'
+          })
+          this.fileList.pop()
+        }else{
+          let data = this.newFile
+          uploadFile(data).then(response => {
+            let rsp = response.data
+            if (rsp.data && rsp.status === 200){
+              for (let i=0; i<this.fileList.length; i++){
+                  if (this.fileList[i].name.indexOf("../compose_file/")===-1){
+                    this.fileList[i].name = "../compose_file/" + this.fileList[i].name
+                  }else {
+                  }
+              }
+              this.$message({
+                message: '上传成功',
+                type: 'success'
+              })
+            }else{
+              this.fileList.pop()
+              this.$message({
+                message: rsp.msg,
+                type: 'error'
+              })
+            }
+          }).catch(err => {
+            this.fileList.pop()
+            this.$message({
+              message: "服务器内部错误",
+              type: 'error'
+            })
+          })
+        }
+      },
+      removeChange(file,fileList) {
+          this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            let delFile = new FormData()
+            delFile.set("file", file.name)
+            deleteFile(delFile).then(response=>{
+              let data = response.data
+              if (data.status === 200){
+                for (let i=0; i<fileList.length; i++){
+                  if (fileList[i] === file){
+                    fileList.splice(i,1)
+                  }
+                }
+                this.$message({
+                  type: 'success',
+                  message: '删除成功!'
+                });
+              }else {
+                fileList.push(file)
+                this.$message({
+                  type: 'error',
+                  message: '删除失败!'
+                });
+              }
+            })
+          }).catch(() => {
+            fileList.push(file)
+            this.$message({
+              type: 'info',
+              message: '已取消删除'
+            });
+          });
+        },
+      update_compose_build(){
+        let data = {}
+        data.compose_content = this.compose_content
+        data.image_id = this.editVulInfo.image_id
+        update_build_compose(data).then(response=>{
+          if (response.data.code === 200){
+            this.$message({
+              title: '构建任务创建成功',
+              message: response.data.message,
+              type: 'success'
+            });
+            this.editShow = false
+            this.initTableData()
+          }else {
+            this.$message({
+              title: '构建任务创建失败',
+              message: response.data.message,
+              type: 'error'
+            });
+          }
+        })
+      },
+      beforeAvatarUpload(file){
+        if (file){
+          this.newFile.set("file", file)
+        }else{
+          return false;
+        }
+      },
+      handleChange(file,fileList){
+        this.fileList = fileList
+      },
     }
   }
 </script>

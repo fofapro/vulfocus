@@ -161,7 +161,9 @@ export default {
         let results = response.data.results
         if(results !== null){
           results.forEach((item, index, arr) => {
-            this.imageList.push({"value": item["image_name"], "data": item})
+            if (item.is_docker_compose === false){
+              this.imageList.push({"value": item["image_name"], "data": item})
+            }
           });
         }
         if(this.imageList.length > 0){

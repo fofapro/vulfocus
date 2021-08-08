@@ -17,11 +17,11 @@ import random
 from django.db.models import Q
 
 from layout_image.bridge import get_project
-from vulfocus.settings import client, api_docker_client, DOCKER_CONTAINER_TIME, VUL_IP, REDIS_POOL
+from vulfocus.settings import client, api_docker_client, DOCKER_CONTAINER_TIME, VUL_IP, REDIS_POOL, DOCKER_COMPOSE
 from dockerapi.common import DEFAULT_CONFIG
 from dockerapi.models import ContainerVul, ImageInfo
 from user.models import UserProfile
-from docker.errors import NotFound, ImageNotFound
+from docker.errors import NotFound, ImageNotFound, BuildError
 from .models import TaskInfo
 from dockerapi.common import R, HTTP_ERR
 from dockerapi.models import SysLog
@@ -30,9 +30,13 @@ from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer
 import redis
 import requests
 import os
+import yaml
 from layout_image.models import LayoutData, LayoutServiceContainer, LayoutService
 from dockerapi.common import get_setting_config
 r = redis.Redis(connection_pool=REDIS_POOL)
+from django.db import transaction
+import shutil
+from ruamel.yaml import YAML
 
 
 def create_image_task(image_info, user_info, request_ip, image_file=None):
@@ -119,6 +123,49 @@ def create_image_task(image_info, user_info, request_ip, image_file=None):
     return task_id
 
 
+def create_compose_task(user_info, image_info, tag, request_ip):
+    """
+    创建docker-compose镜像任务
+    """
+    image_list = []
+    local_images = [i.tags[0] for i in client.images.list() if i.tags]
+    user_id = user_info.id
+    task_id = create_create_image_task(image_info=image_info, user_info=user_info)
+    task_infos = TaskInfo.objects.filter(task_id=task_id).first()
+    if user_info.is_superuser:
+        new_yaml = YAML(typ='safe')
+        new_yaml.allow_duplicate_keys = True
+        args_yaml = new_yaml.load(json.loads(image_info.original_yml))
+        for services_name in args_yaml['services']:
+            if "image" in args_yaml['services'][services_name]:
+                image_name = args_yaml['services'][services_name]['image']
+                if ':' not in image_name:
+                    image_name = image_name + ":latest"
+                all_arg = {"img_name": image_name, "images_name": image_info.image_name, 'args_yaml': json.dumps(args_yaml), 'tag':tag}
+                if image_name:
+                    task_info = TaskInfo(task_name="docker-compose相关镜像：" + image_name,
+                                         user_id=user_id,
+                                         task_status=1,
+                                         task_msg=json.dumps({}),
+                                         task_start_date=timezone.now(),
+                                         operation_type=7,
+                                         operation_args=json.dumps(all_arg),
+                                         create_date=timezone.now(),
+                                         update_date=timezone.now())
+                    task_info.save()
+                    task_id = task_info.task_id
+                    image_list.append(image_name)
+                    compose.delay(task_id)
+    else:
+        task_infos = TaskInfo.objects.filter(task_id=task_id).first()
+        task_infos.task_msg = json.dumps(R.build(msg="权限不足"))
+        task_infos.task_status = 4
+        task_infos.update_date = timezone.now()
+        task_infos.save()
+    return image_list
+
+
+
 def share_image_task(image_info, user_info, request_ip):
     """
     共享镜像
@@ -129,6 +176,7 @@ def share_image_task(image_info, user_info, request_ip):
     """
     task_id = create_share_image_task(image_info=image_info, user_info=user_info)
     operation_args = ImageInfoSerializer(image_info).data
+
     sys_log = SysLog(user_id=user_info.id, operation_type="镜像", operation_name="分享", ip=request_ip,
                      operation_value=operation_args["image_vul_name"], operation_args=json.dumps(operation_args))
     sys_log.save()
@@ -186,6 +234,49 @@ def create_container_task(container_vul, user_info, request_ip):
     return task_id
 
 
+def start_docker_compose(request, image_id, container_vul, user_info, request_ip, time_model_id):
+    image_info = container_vul.image_id
+    user_id = user_info.id
+    task_id = create_run_container_task(container_vul, user_info)
+    if user_info.is_superuser or user_id == container_vul.user_id:
+        operation_args = ImageInfoSerializer(image_info).data
+
+        sys_log = SysLog(user_id=user_id, operation_type="容器", operation_name="启动", ip=request_ip,
+                         operation_value=operation_args["image_vul_name"], operation_args=json.dumps(operation_args))
+        sys_log.save()
+        setting_config = get_setting_config()
+        try:
+            countdown = int(setting_config["time"])
+        except:
+            countdown = int(DEFAULT_CONFIG["time"])
+        if countdown == 0:
+            run_docker_compose(container_vul.container_id, user_id, time_model_id, task_id, countdown)
+        elif countdown != 0 and countdown > 60:
+            setting_config = get_setting_config()
+            if 'del_container' in setting_config:
+                del_container = setting_config['del_container']
+                if not del_container or del_container == 0 or del_container == '0':
+                    add_chain_sig = chain(run_docker_compose.s(image_id, container_vul.container_id, user_id, time_model_id, task_id, countdown, ) |
+                                          stop_docker_compose.s().set(countdown=countdown))
+                else:
+                    add_chain_sig = chain(run_docker_compose.s(image_id, container_vul.container_id, user_id, time_model_id, task_id, countdown, ) |
+                                          stop_docker_compose.s().set(countdown=countdown))
+                add_chain_sig.apply_async()
+        else:
+            task_info = TaskInfo.objects.filter(task_id=task_id).first()
+            task_info.task_msg = json.dumps(R.build(msg="停止时间最小为 1 分钟"))
+            task_info.task_status = 4
+            task_info.update_date = timezone.now()
+            task_info.save()
+    else:
+        task_info = TaskInfo.objects.filter(task_id=task_id).first()
+        task_info.task_msg = json.dumps(R.build(msg="权限不足"))
+        task_info.task_status = 3
+        task_info.update_date = timezone.now()
+        task_info.save()
+    return task_id
+
+
 def stop_container_task(container_vul, user_info, request_ip):
     """
     停止漏洞容器
@@ -198,11 +289,15 @@ def stop_container_task(container_vul, user_info, request_ip):
     task_id = create_stop_container_task(container_vul=container_vul, user_info=user_info)
     if user_info.is_superuser or user_id == container_vul.user_id:
         operation_args = ContainerVulSerializer(container_vul).data
+        img_info = ImageInfo.objects.filter(image_id=operation_args['image_id']).first()
         sys_log = SysLog(user_id=user_id, operation_type="容器", operation_name="停止", ip=request_ip,
                          operation_value=operation_args["vul_name"], operation_args=json.dumps(operation_args))
         sys_log.save()
         # 下发停止容器任务
-        stop_container.delay(task_id)
+        if img_info.is_docker_compose == True:
+            stop_docker_compose.delay(task_id)
+        else:
+            stop_container.delay(task_id)
     else:
         task_info = TaskInfo.objects.filter(task_id=task_id).first()
         task_info.task_msg = json.dumps(R.build(msg="权限不足"))
@@ -224,11 +319,15 @@ def delete_container_task(container_vul, user_info, request_ip):
     task_id = create_delete_container_task(container_vul=container_vul, user_info=user_info)
     if user_info.is_superuser or user_id == container_vul.user_id:
         operation_args = ContainerVulSerializer(container_vul).data
+        img_info = ImageInfo.objects.filter(image_id=operation_args['image_id']).first()
         sys_log = SysLog(user_id=user_id, operation_type="容器", operation_name="删除", ip=request_ip,
                          operation_value=operation_args["vul_name"], operation_args=json.dumps(operation_args))
         sys_log.save()
         # 下发停止容器任务
-        delete_container.delay(task_id)
+        if img_info.is_docker_compose == True:
+            delete_docker_compose.delay(task_id)
+        else:
+            delete_container.delay(task_id)
     else:
         task_info = TaskInfo.objects.filter(task_id=task_id).first()
         task_info.task_msg = json.dumps(R.build(msg="权限不足"))
@@ -236,6 +335,347 @@ def delete_container_task(container_vul, user_info, request_ip):
         task_info.update_date = timezone.now()
         task_info.save()
     return task_id
+
+
+@shared_task(name="tasks.run_docker_compose")
+def run_docker_compose(image_id, container_id, user_id, time_model_id, task_id, countdown):
+    img_info = ImageInfo.objects.filter(image_id=image_id).first()
+    user_info = UserProfile.objects.filter(id=user_id).first()
+    container_vul = ContainerVul.objects.filter(container_id=container_id).first()
+    net_list = []
+    net_name = 'docker-compose-dedicated'
+    network_list = client.networks.list()
+    for i in network_list:
+        net_list.append(i.attrs['Name'])
+    if net_name in net_list:
+        pass
+    else:
+        ipam_pool = docker.types.IPAMPool(
+            subnet='192.168.10.10/24',
+            gateway='192.168.10.10'
+        )
+        ipam_config = docker.types.IPAMConfig(
+            pool_configs=[ipam_pool]
+        )
+        net_work = client.networks.create(
+            net_name,
+            driver='bridge',
+            ipam=ipam_config,
+            scope='local',
+        )
+        net_work_client_id = str(net_work.id)
+    if img_info.is_docker_compose == True:
+        if container_vul.container_status == 'stop':
+            container_vul.container_status = "running"
+            task_info = TaskInfo.objects.filter(task_id=task_id).first()
+            compose_path = os.path.join(DOCKER_COMPOSE, str(container_vul.container_id))
+            container_list = get_project(compose_path).up()
+            try:
+                with transaction.atomic():
+                    for container in container_list:
+                        docker_container_id = container.id
+                        docker_container = client.containers.get(container.id)
+                        container_vul_img = ContainerVul.objects.filter(docker_container_id=docker_container_id).first()
+                        container_vul_img.container_status = 'running'
+                        container_vul_img.save()
+                        args = {
+                            "image_name": img_info.image_name,
+                            "user_id": user_id,
+                            "image_port": img_info.image_port
+                        }
+                        task_start_date = timezone.now()
+                        if countdown != 0 and countdown >= 60:
+                            task_end_date = task_start_date + datetime.timedelta(seconds=countdown)
+                        elif countdown == 0:
+                            task_end_date = None
+                        else:
+                            countdown = int(DEFAULT_CONFIG["time"])
+                            task_end_date = task_start_date + datetime.timedelta(seconds=countdown)
+                        if "running" == docker_container.status:
+                            msg_data = R.ok(data={
+                                "host": container_vul.vul_host,
+                                "port": json.loads(container_vul.vul_port),
+                                "id": str(container_vul.container_id),
+                                "status": "running",
+                                "start_date": int(task_start_date.timestamp()),
+                                "end_date": 0 if not task_end_date else int(task_end_date.timestamp())
+                            })
+                            search_task = TaskInfo.objects.filter(user_id=user_id, task_msg=json.dumps(msg_data),
+                                                                  operation_type=2,
+                                                                  operation_args=json.dumps(args),
+                                                                  task_end_date=task_end_date,
+                                                                  task_name="运行容器：" + img_info.image_name).order_by(
+                                "-create_date").first()
+                            if not search_task:
+                                task_info.task_status = 3
+                                task_info.task_msg = json.dumps(msg_data)
+                                task_info.update_date = timezone.now()
+                                task_info.operation_args = json.dumps(args)
+                                task_info.save()
+                                task_id = str(task_info.task_id)
+                            else:
+                                task_info.delete()
+                                search_task.task_id = task_id
+                                search_task.task_status = 3
+                                search_task.update_date = timezone.now()
+                                search_task.save()
+                                task_id = str(search_task.task_id)
+                container_vul.save()
+            except Exception as e:
+                traceback.print_exc()
+        else:
+            vulport = {}
+            yml_c = json.loads(img_info.original_yml)
+            new_yaml = YAML(typ='safe')
+            new_yaml.allow_duplicate_keys = True
+            yml_c = new_yaml.load(yml_c)
+            yml_c['networks'] = {"default": {"external": {"name": "docker-compose-dedicated"}}}
+            yml_content = yaml.dump(yml_c)
+            env_content = json.loads(img_info.docker_compose_env)
+            random_list = []
+            result_port_list = []
+            container_flag = "flag-{bmh%s}" % (uuid.uuid4(),)
+            for _port in env_content:
+                random_port = ''
+                for i in range(20):
+                    random_port = str(random.randint(8000, 65536))
+                    if random_port in random_list or ContainerVul.objects.filter(container_port=random_port).first():
+                        continue
+                    break
+                if not random_port:
+                    raise Exception("无可用端口")
+                random_list.append(random_port)
+                result_port_list.append("%s=%s" % (_port, random_port,))
+                for one_port in json.loads(img_info.image_port):
+                    split_port = one_port.split(':')
+                    if _port in split_port[0]:
+                        vulport[random_port] = split_port[1]
+            vulport = json.dumps(vulport)
+            original_port = ""
+            for port_str in random_list:
+                if random_list[-1] == port_str:
+                    original_port = original_port + port_str
+                else:
+                    original_port = original_port + port_str + ","
+            compose_path = os.path.join(DOCKER_COMPOSE, str(container_vul.container_id))
+            original_ip = get_local_ip()
+            original_container_vul = container_vul
+            original_container_vul.docker_compose_path = compose_path
+            original_container_vul.container_status = "running"
+            original_container_vul.container_port = original_port
+            original_container_vul.container_flag = container_flag
+            original_container_vul.vul_port = vulport
+            original_container_vul.vul_host = original_ip + ":" + original_port
+            original_container_vul.is_docker_compose_correlation = False
+            original_container_vul.save()
+            if not os.path.exists(compose_path):
+                os.makedirs(compose_path)
+            docker_compose_file = os.path.join(compose_path, "docker-compose.yml")
+            with open(docker_compose_file, "w", encoding="utf-8") as f:
+                f.write(yml_content)
+            env_file = os.path.join(compose_path, ".env")
+            with open(env_file, "w", encoding="utf-8") as f:
+                f.write("\n".join(result_port_list))
+            try:
+                task_info = TaskInfo.objects.filter(task_id=task_id).first()
+                container_list = get_project(compose_path).up()
+                with transaction.atomic():
+                    for container in container_list:
+                        docker_container_id = container.id
+                        # service_id = container.service
+                        container_host = ""
+                        container_port = ""
+                        docker_container = client.containers.get(container.id)
+                        command = 'touch /tmp/%s' % (container_flag,)
+                        execute_result = docker_container_run(docker_container, command)
+                        if execute_result["status"] == 500:
+                            raise Exception(execute_result["msg"])
+                        container_ports = container.ports
+                        if len(container_ports) == 0:
+                            try:
+                                container_ports = docker_container.attrs["NetworkSettings"]["Ports"]
+                            except Exception as e:
+                                pass
+                        vul_host_list = []
+                        vul_ip = get_local_ip()
+                        port_dict = {
+                        }
+                        if len(container_ports) > 0:
+                            for _tmp_port in container_ports:
+                                source_port = str(_tmp_port).replace("/", "").replace("tcp", "").replace("udp", "")
+                                if container_ports[_tmp_port]:
+                                    target_port = container_ports[_tmp_port][0]["HostPort"]
+                                else:
+                                    target_port = source_port
+                                port_dict[source_port] = target_port
+                                vul_host_list.append(vul_ip + ":" + target_port)
+                        if len(port_dict) > 0:
+                            container_port = json.dumps(port_dict, ensure_ascii=False)
+                        container_status = execute_result["data"]["status"]
+                        if len(vul_host_list) > 0:
+                            container_host = ",".join(vul_host_list)
+                        container_vul_img = ContainerVul(image_id=img_info, user_id=user_info.id, vul_host=container_host,
+                                                         container_status=container_status,
+                                                         docker_container_id=docker_container_id,
+                                                         vul_port=container_port,
+                                                         container_port=container_port,
+                                                         time_model_id=time_model_id,
+                                                         create_date=timezone.now(),
+                                                         container_flag=container_flag,
+                                                         is_docker_compose_correlation=True)
+                        container_vul_img.save()
+                args = {
+                    "image_name": img_info.image_name,
+                    "user_id": user_id,
+                    "image_port": img_info.image_port
+                }
+                task_start_date = timezone.now()
+                if countdown != 0 and countdown >= 60:
+                    task_end_date = task_start_date + datetime.timedelta(seconds=countdown)
+                elif countdown == 0:
+                    task_end_date = None
+                else:
+                    countdown = int(DEFAULT_CONFIG["time"])
+                    task_end_date = task_start_date + datetime.timedelta(seconds=countdown)
+                if "running" == docker_container.status:
+                    msg_data = R.ok(data={
+                        "host": original_container_vul.vul_host,
+                        "port": json.loads(original_container_vul.vul_port),
+                        "id": str(original_container_vul.container_id),
+                        "status": "running",
+                        "start_date": int(task_start_date.timestamp()),
+                        "end_date": 0 if not task_end_date else int(task_end_date.timestamp())
+                    })
+                    search_task = TaskInfo.objects.filter(user_id=user_id, task_msg=json.dumps(msg_data), operation_type=2,
+                                                          operation_args=json.dumps(args), task_end_date=task_end_date,
+                                                          task_name="运行容器：" + img_info.image_name).order_by("-create_date").first()
+                    if not search_task:
+                        task_info.task_status = 3
+                        task_info.task_msg = json.dumps(msg_data)
+                        task_info.update_date = timezone.now()
+                        task_info.operation_args = json.dumps(args)
+                        task_info.save()
+                        task_id = str(task_info.task_id)
+                    else:
+                        task_info.delete()
+                        search_task.task_id = task_id
+                        search_task.task_status = 3
+                        search_task.update_date = timezone.now()
+                        search_task.save()
+                        task_id = str(search_task.task_id)
+            except Exception as e:
+                traceback.print_exc()
+        return create_stop_container_task(container_vul,user_info)
+
+
+@shared_task(name="tasks.stop_docker_compose")
+def stop_docker_compose(task_id):
+    task_info = TaskInfo.objects.filter(task_id=task_id, task_status=1).first()
+    if not task_info:
+        return
+    operation_args = task_info.operation_args
+    args = json.loads(operation_args)
+    container_id = args["container_id"]
+    user_id = args["user_id"]
+    image_name = args["image_name"]
+    image_info = ImageInfo.objects.filter(image_name=image_name).first()
+    container_vul = ContainerVul.objects.filter(container_id=container_id).first()
+    compose_path = container_vul.docker_compose_path
+    try:
+        with transaction.atomic():
+            container_list = get_project(compose_path).stop()
+            if container_list:
+                for container in container_list:
+                    container_id = container.id
+                    container = ContainerVul.objects.filter(docker_container_id=container_id).update(
+                        container_status="stop")
+                    container.save()
+            all_container = ContainerVul.objects.filter(
+                Q(user_id=user_id) & Q(image_id=image_info.image_id) &
+                Q(container_status="running")).all()
+            if all_container:
+                for corrtlation_container in all_container:
+                    corrtlation_container.container_status = 'stop'
+                    corrtlation_container.save()
+            container_vul.container_status = 'stop'
+            container_vul.save()
+            msg = R.ok(msg="停止成功")
+    except Exception:
+        msg = R.err(msg="停止失败，服务器内部错误")
+    task_info.task_status = 3
+    task_info.task_msg = json.dumps(msg)
+    task_info.update_date = timezone.now()
+    task_info.save()
+    print("停止漏洞容器成功，任务ID：%s" % (task_id,))
+
+
+@shared_task(name="tasks.delete_docker_compose")
+def delete_docker_compose(task_id):
+    task_info = TaskInfo.objects.filter(task_id=task_id, task_status=1).first()
+    if not task_info:
+        return
+    operation_args = task_info.operation_args
+    args = json.loads(operation_args)
+    user_id = args["user_id"]
+    container_id = args["container_id"]
+    image_name = args["image_name"]
+    user_info = UserProfile.objects.filter(id=user_id).first()
+    image_info = ImageInfo.objects.filter(image_name=image_name).first()
+    # 删除容器
+    container_vul = ContainerVul.objects.filter(Q(user_id=user_id) & Q(container_id=container_id)
+                                                     & ~Q(docker_compose_path="") & ~Q(container_status='delete')).first()
+    msg = R.ok(msg="删除成功")
+    compose_path = container_vul.docker_compose_path
+    if container_vul.container_status == 'running':
+        compose_path = container_vul.docker_compose_path
+        try:
+            with transaction.atomic():
+                container_list = get_project(compose_path).stop()
+                if container_list:
+                    for container in container_list:
+                        container_id = container.id
+                        container = ContainerVul.objects.filter(docker_container_id=container_id).update(
+                            container_status="stop")
+                        container.save()
+                all_container = ContainerVul.objects.filter(
+                    Q(user_id=user_id) & Q(image_id=image_info.image_id) &
+                    Q(container_status="running")).all()
+                if all_container:
+                    for corrtlation_container in all_container:
+                        corrtlation_container.container_status = 'stop'
+                        corrtlation_container.save()
+                container_vul.container_status = 'stop'
+                container_vul.save()
+        except Exception:
+            msg = R.err(msg="删除失败，服务器内部错误")
+    all_stop_container = ContainerVul.objects.filter(Q(user_id=user_id) & Q(image_id=image_info.image_id) &
+                    Q(container_status="stop") & Q(docker_compose_path="")).all()
+    if all_stop_container:
+        for corrtlation_container in all_stop_container:
+            docker_container_id = corrtlation_container.docker_container_id
+            try:
+                # 连接Docker容器
+                docker_container = client.containers.get(docker_container_id)
+                # 删除容器
+                docker_container.remove(force=True)
+            except Exception:
+                pass
+            finally:
+                corrtlation_container.container_status = "delete"
+                corrtlation_container.docker_container_id = ""
+                # 保存成功
+                corrtlation_container.save()
+        if os.path.exists(compose_path) == True:
+            shutil.rmtree(compose_path)
+    container_vul.container_status = "delete"
+    container_vul.save()
+    msg = R.ok(msg="删除成功")
+    task_info.task_status = 3
+    task_info.task_msg = json.dumps(msg)
+    task_info.update_date = timezone.now()
+    task_info.save()
+    print("删除漏洞容器成功，任务ID：%s" % (task_id,))
+
 
 
 @shared_task(name="tasks.run_container")
@@ -247,7 +687,6 @@ def run_container(container_id, user_id, tmp_task_id, countdown):
     :param tmp_task_id: 任务ID
     :param countdown 定时
     """
-    # docker container id
     container_vul = ContainerVul.objects.filter(container_id=container_id).first()
     user_info = UserProfile.objects.filter(id=user_id).first()
     container_id = container_vul.docker_container_id
@@ -486,7 +925,7 @@ def delete_container(task_id):
             # 停止容器运行
             docker_container.stop()
             # 删除容器
-            docker_container.remove()
+            docker_container.remove(force=True)
         except Exception:
             pass
         finally:
@@ -598,6 +1037,110 @@ def create_image(task_id):
     task_info.save()
 
 
+@shared_task(name="tasks.compose")
+def compose(task_id):
+    '''
+    compose 相关镜像下载
+    image_info docker-compose 镜像 非相关镜像
+    '''
+
+    task_info = TaskInfo.objects.filter(task_id=task_id, task_status=1).first()
+    operation_args = task_info.operation_args
+    args = json.loads(operation_args)
+    images_name = args['images_name']
+    yaml_args = json.loads(args['args_yaml'])
+    image_name = args['img_name']
+    img_list = []
+    image_info = ImageInfo.objects.filter(image_name=images_name).first()
+    img_name = image_info.image_name
+    for services_name in yaml_args['services']:
+        if "image" in yaml_args['services'][services_name]:
+            name = yaml_args['services'][services_name]['image']
+            img_list.append(name)
+    if not task_info:
+        return
+    task_info.task_msg = json.dumps(img_name)
+    task_info.task_status = 2
+    task_info.save()
+    image = None
+    msg = {}
+    try:
+        image = client.images.get(image_name)
+    except Exception as e:
+        try:
+            last_info = {}
+            progress_info = {
+                "total": 0,
+                "progress_count": 0,
+                "progress": round(0.0, 2),
+            }
+            black_list = ["total", "progress_count", "progress"]
+            for line in api_docker_client.pull(image_name, stream=True, decode=True):
+                print(line)
+                if "status" in line and "progressDetail" in line and "id" in line:
+                    id = line["id"]
+                    status = line["status"]
+                    if len(line["progressDetail"]) > 0:
+                        try:
+                            current = line["progressDetail"]["current"]
+                            total = line["progressDetail"]["total"]
+                            line["progress"] = round((current / total) * 100, 2)
+                            if (current / total) > 1:
+                                line["progress"] = round(0.99 * 100, 2)
+                        except:
+                            line["progress"] = round(1 * 100, 2)
+                    else:
+                        if (("Download" in status or "Pull" in status) and ("complete" in status)) or ("Verifying" in status) or \
+                                ("Layer" in status and "already" in status and "exists" in status):
+                            line["progress"] = round(100.00, 2)
+                        else:
+                            line["progress"] = round(0.00, 2)
+                    progress_info[id] = line
+                    progress_info["total"] = len(progress_info) - len(black_list)
+                    progress_count = 0
+                    for key in progress_info:
+                        if key in black_list:
+                            continue
+                        if 100.00 != progress_info[key]["progress"]:
+                            continue
+                        progress_count += 1
+                    progress_info["progress_count"] = progress_count
+                    progress_info["progress"] = round((progress_count/progress_info["total"])*100, 2)
+                    r.set(str(task_id), json.dumps(progress_info,ensure_ascii=False))
+                    print(json.dumps(progress_info, ensure_ascii=False))
+                last_info = line
+            if "status" in last_info and ("Downloaded newer image for" in last_info["status"] or "Image is up to date for" in last_info["status"]):
+                image = client.images.get(image_name)
+            else:
+                raise Exception
+        except ImageNotFound:
+            task_info.task_status = 4
+            traceback.print_exc()
+            msg = R.build(msg="%s 不存在" % (image_name,))
+        except Exception:
+            task_info.task_status = 4
+            traceback.print_exc()
+            msg = R.err(msg="%s 下载失败" % (image_name,))
+    if image:
+        try:
+            task_info.task_status = 3
+            task_info.save()
+        except Exception:
+            task_info.task_status = 4
+            task_info.save()
+            msg = R.err(msg="%s 下载失败" % (image_name,))
+    try:
+        for img in img_list:
+            image = client.images.get(img)
+        image_info.is_ok = True
+        image_info.save()
+    except Exception:
+        msg = R.err(msg="下载未完成" )
+    task_info.task_msg = json.dumps(msg)
+    task_info.save()
+
+
+
 @shared_task(name="tasks.share_image")
 def share_image(task_id):
     """
@@ -668,9 +1211,6 @@ def share_image(task_id):
                     r.set(str(task_id), json.dumps(progress_info,ensure_ascii=False))
                     print(json.dumps(progress_info, ensure_ascii=False))
                 last_info = line
-            # print("last_info")
-            # print("==========================")
-            # print(json.dumps(last_info, ensure_ascii=False))
             if "error" in last_info and last_info["error"]:
                 task_info.task_msg = R.build(msg="原%s构建新镜像%s失败，错误信息：%s" % (image_name, new_image_name, str(last_info["error"]),))
                 task_info.task_status = 4
@@ -759,17 +1299,41 @@ def check_images():
     定期检测镜像状态
     """
     image_info_list = ImageInfo.objects.all()
+    local_images = [i.tags[0] for i in client.images.list() if i.tags]
     for image_info in image_info_list:
         image_name = image_info.image_name
-        try:
-            client.images.get(image_name)
-            image_info.is_ok = True
-            image_info.save()
-            print("【检测镜像】%s 存在" % image_name,)
-        except Exception as e:
-            image_info.is_ok = False
-            image_info.save()
-            print("【检测镜像】%s 不存在" % image_name,)
+        if image_info.is_docker_compose == True:
+            compose_yml = json.loads(image_info.docker_compose_yml)
+            flag = True
+            for services_name in compose_yml['services']:
+                if "image" in compose_yml['services'][services_name]:
+                    image_name = compose_yml['services'][services_name]['image']
+                    image_name_tag = image_name
+                    if ':' not in image_name_tag:
+                        image_name_tag = image_name_tag + ":latest"
+                    if image_name in local_images or image_name_tag in local_images:
+                        continue
+                    else:
+                        flag = False
+                if flag == False:
+                    image_info.is_ok = False
+                    image_info.save()
+                    print("【检测镜像】%s 不存在" % image_name, )
+                    break
+            if flag == True:
+                image_info.is_ok = True
+                image_info.save()
+                print("【检测镜像】%s 存在" % image_name, )
+        else:
+            try:
+                client.images.get(image_name)
+                image_info.is_ok = True
+                image_info.save()
+                print("【检测镜像】%s 存在" % image_name, )
+            except Exception as e:
+                image_info.is_ok = False
+                image_info.save()
+                print("【检测镜像】%s 不存在" % image_name, )
 
 
 # @shared_task(name="tasks.check_layouts")
