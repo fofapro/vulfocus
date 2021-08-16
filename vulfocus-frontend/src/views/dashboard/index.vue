@@ -57,7 +57,7 @@
         <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
           查询
         </el-button>
-        <el-button id="first-bmh" type="primary" style="left: 10px;" size="medium" @click="showTips" >新手引导</el-button>
+        <el-button id="first-bmh" type="primary" style="left: 10px;" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
       </el-col>
     </el-row>
       <el-row :gutter=6 style="margin-top: 6px" v-if="this.countlist.length===0">
@@ -163,6 +163,7 @@ import ViewerEditor from '@/components/ViewerEditor'
 import 'codemirror/lib/codemirror.css' // codemirror
 import 'tui-editor/dist/tui-editor.css' // editor ui
 import 'tui-editor/dist/tui-editor-contents.css' // editor content
+import { mapGetters } from 'vuex'
 import codeSyntaxHighlight from "@toast-ui/editor-plugin-code-syntax-highlight";
 import hljs from "highlight.js";
 import Editor from 'tui-editor'
@@ -215,6 +216,9 @@ export default {
         time_img_type:"",
         rank_range:0
       },
+      user:{
+        greenhand:false
+      },
       vul_port:{},
       countlist:[],
       notifications: {},
@@ -241,17 +245,28 @@ export default {
           {value:"SSRF漏洞", lable:"SSRF漏洞"},
           {value:"CSRF漏洞", lable:"CSRF漏洞"},
         ],
-      loading:true
+      loading:true,
+      firstLogin:false,
       };
     },
   created() {
     this.listData(1)
     this.timeData()
+    this.getUser()
   },
   beforeDestroy(){
     Notification.closeAll()
   },
-
+  computed: {
+    ...mapGetters([
+      'name',
+      'avatar',
+      'roles',
+      'rank',
+      'email',
+      'greenhand',
+    ])
+  },
   methods:{
       timeData(){
         gettimetemp().then(response => {
@@ -280,6 +295,15 @@ export default {
               this.listdata[i].status.delete_flag = false
             }
             this.loading=false
+            if (this.user.greenhand === true){
+              // this.$refs.showTips.$emit('click')
+              if (this.loading === false && this.firstLogin === false){
+                this.$nextTick(() => {
+                  this.showTips()
+                  this.firstLogin = true
+               });
+              }
+            }
           })
       },
       getselectdata(){
@@ -336,6 +360,9 @@ export default {
           this.writeup_date = raw_data.writeup_date
           this.is_docker_compose = raw_data.is_docker_compose
           this.is_flag = raw_data.is_flag
+          if (this.user.greenhand === true){
+              this.drawer=true
+          }
         }else{
           ContainerSTART(id).then(response=>{
           let taskId = response.data["data"]
@@ -361,6 +388,9 @@ export default {
                     raw_data.status.container_id = container_id
                     this.startCon = false
                     this.cStatus = false
+                    if (this.user.greenhand === true){
+                        this.drawer=true
+                    }
                   }else if (responseStatus === 201){
                     this.$message({
                       message: response.data["msg"],
@@ -393,6 +423,7 @@ export default {
                 message:  "恭喜！通过",
                 type: "success",
               })
+              this.$store.state.user.greenhand = false
               this.reload()
               this.centerDialogVisible = false
             }else if(responseData.status === 201){
@@ -452,6 +483,7 @@ export default {
          * 删除容器
          */
         this.$set(raw.status, "delete_flag", true)
+        this.$set(raw.status, "stop_flag", true)
         this.$forceUpdate();
         ContainerDelete(container_id).then(response=>{
           let taskId = response.data["data"]
@@ -554,26 +586,10 @@ export default {
         });
         const steps = [
           {
-            element:"#first-bmh", // 这是点击触发的id
-            popover:{
-              title:"第一步",
-              description:"开始新手引导",
-              position: "bottom"
-            }
-          },
-          {
-            element:"#first-bmh2", // 这是点击触发的id
-            popover:{
-              title:"第二步",
-              description:"点击入门镜像",
-              position: "bottom"
-            }
-          },
-          {
             element:"#first-bmh3", // 这是点击触发的id
             popover:{
               title:"第三步",
-              description:"启动入门镜像,启动后可以根据访问地址旁的 ! 了解漏洞镜像",
+              description:"启动入门镜像,启动后可以点击镜像信息旁的<i  class=\"el-icon-reading\"  style=\"color: rgb(140, 197, 255);font-size: 20px\"></i>了解漏洞镜像！成功提交flag后可以解除新手模式，查看所有漏洞环境",
               position: "top"
             },
           },
@@ -590,6 +606,12 @@ export default {
           target: document.querySelector("#first-bmh3")
         });
       },
+      getUser() {
+        this.user = {
+          greenhand:this.greenhand
+        }
+      }
+
   },
   mounted: function() {
       var _this = this;

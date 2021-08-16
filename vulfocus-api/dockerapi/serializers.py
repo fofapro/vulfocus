@@ -100,9 +100,21 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             time_model_id = time_moudel_data.time_id
         # 排出已经删除数据 Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
         data = ContainerVul.objects.all().filter(user_id=id, image_id=obj.image_id, time_model_id=time_model_id).first()
+        run_data = ""
         if obj.is_docker_compose == True:
             data = ContainerVul.objects.all().filter(
-                Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="")).first()
+                Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="") &
+                Q(is_check=True) & Q(time_model_id=time_model_id)).first()
+            if data:
+                # 通过删除后再次启动的容器
+                run_data = ContainerVul.objects.all().filter(
+                    Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="") &
+                    Q(is_check=False) & Q(time_model_id=time_model_id) & ~Q(container_status__contains="delete") ).first()
+                if run_data:
+                    data = run_data
+            if not data:
+                data = ContainerVul.objects.all().filter(
+                    Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="")).first()
         status["status"] = ""
         status["is_check"] = False
         status["container_id"] = ""
@@ -132,7 +144,10 @@ class ImageInfoSerializer(serializers.ModelSerializer):
                         status["start_date"] = ""
                         status["end_date"] = ""
             status["status"] = data.container_status
-            status["is_check"] = data.is_check
+            if run_data != "" and data == run_data:
+                status["is_check"] = True
+            else:
+                status["is_check"] = data.is_check
             status["container_id"] = data.container_id
         # 查询正在拉取镜像的任务
         operation_args = {

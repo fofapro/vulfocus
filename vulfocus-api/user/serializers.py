@@ -1,31 +1,37 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from dockerapi.models import ContainerVul
+from dockerapi.models import ContainerVul,ImageInfo
+from dockerapi.serializers import ImageInfoSerializer
+from user.models import UserProfile, RegisterCode
 import datetime
 User = get_user_model()
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     # 利用drf中的validators验证username是否唯一
-    username = serializers.CharField(required=True, allow_blank=False,
+    username = serializers.CharField(required=True, allow_blank=False, max_length=20,
                                      validators=[UniqueValidator(queryset=User.objects.all(), message='用户已经存在')],
-                                     error_messages={"blank": "用户名不能为空", "required": "用户名不能为空"})
+                                     error_messages={"blank": "用户名不能为空", "required": "用户名不能为空",
+                                                     "max_length": "用户名不能超过20位"})
     password = serializers.CharField(
-         style={"input_type": "password"},help_text="密码", label="密码", write_only=True, error_messages={"blank": "密码不能为空", "required": "密码不能为空"}
-     )
-    email = serializers.EmailField(required=True, allow_blank=False,
-                                   validators=[UniqueValidator(queryset=User.objects.all(), message="该邮箱已经被注册")],
-                                   error_messages={"blank": "邮箱不能为空", "invalid": "邮箱格式错误", "required": "邮箱不能为空"})
+         style={"input_type": "password"}, help_text="密码", label="密码", write_only=True, error_messages={"blank": "密码不能为空", "required": "密码不能为空"})
+    checkpass = serializers.CharField(style={"input_type_password"}, allow_blank=False, write_only=True)
+    code = serializers.CharField(required=True, allow_blank=False, write_only=True)
     def create(self, validated_data):
-         user = super(UserRegisterSerializer, self).create(validated_data= validated_data)
-         user.set_password(validated_data["password"])
-         user.save()
-         return user
+        username = validated_data["username"]
+        password = validated_data["password"]
+        code = validated_data["code"]
+        register_code = RegisterCode.objects.filter(code=code).first()
+        user = UserProfile(username=username, email=register_code.email)
+        user.set_password(password)
+        user.save()
+        register_code.delete()
+        return user
 
     class Meta:
          model = User
-         fields = ("username","password","email")
+         fields = ("username", "password", "checkpass", "code")
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -38,7 +44,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count", "date_joined")
+        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count", "date_joined", 'greenhand')
 
     def transition_time(self,obj):
         time = obj.date_joined.strftime('%Y-%m-%d %H:%M:%S')
@@ -53,14 +59,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def rankAD(self, obj):
         rank = 0
         user_id = obj.id
-        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="")
-        for i in successful:
-            rank += i.image_id.rank
+        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="").values('image_id').distinct()
+        if successful:
+            img = ImageInfo.objects.filter(image_id=i['image_id']).first()
+            rank += img.rank
         return rank
 
     def rankCount(self, obj):
         user_id = obj.id
-        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="")
+        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="").values('image_id').distinct()
         return successful.count()
 
     def set_role(self, obj):

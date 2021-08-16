@@ -93,3 +93,12 @@ export function accessCode(code) {
     method: 'get',
   })
 }
+
+export function send_reg_mail(data) {
+  return request({
+    url: '/send_register_email/',
+    method: 'post',
+    data
+  })
+}
+

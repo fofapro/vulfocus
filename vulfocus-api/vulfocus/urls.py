@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import url, include
 from rest_framework import routers
 from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs
-from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset, AccessLinkView
+from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset, AccessLinkView, send_register_email
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView, MyCode
 from tasks.views import TaskSet
@@ -60,4 +60,5 @@ urlpatterns = [
     url(r'^file/delete/', delete_file),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r"accesslink",AccessLinkView.as_view()),
+    url(r'send_register_email', send_register_email),
 ]

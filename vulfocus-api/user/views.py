@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator
 from django.db.models import Sum
+from django.contrib.auth.models import AnonymousUser
 from django.http import JsonResponse,HttpResponse
 from rest_framework import viewsets,mixins
 from user.serializers import UserProfileSerializer, User, UserRegisterSerializer,UpdatePassSerializer,LoginSerializer
@@ -10,8 +11,9 @@ from user.permissions import IsOwner
 from django.db.models import Q
 from email.header import Header
 from rest_framework.decorators import action
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.views.generic.base import View
-from user.models import UserProfile, EmailCode
+from user.models import UserProfile, EmailCode,  RegisterCode
 from django.core.mail import send_mail, EmailMessage
 from rest_framework import permissions
 from vulfocus.settings import EMAIL_FROM
@@ -31,7 +33,7 @@ from rest_framework_jwt.serializers import JSONWebTokenSerializer
 from rest_framework_jwt.utils import jwt_response_payload_handler
 from rest_framework.response import Response
 from datetime import datetime, timedelta
-from rest_framework_jwt.settings import  api_settings
+from rest_framework_jwt.settings import api_settings
 from rest_framework.views import View
 from dockerapi.views import get_local_ip
 
@@ -72,7 +74,7 @@ class get_user_rank(APIView):
 
     def get(self, request):
         page_no = int(request.GET.get("page", 1))
-        score_list = ContainerVul.objects.filter(is_check=True, time_model_id='').values('user_id').annotate(
+        score_list = ContainerVul.objects.filter(is_check=True, time_model_id='').values('image_id').distinct().values('user_id').annotate(
             score=Sum("image_id__rank")).values('user_id', 'score').order_by("-score")
         try:
             pages = Paginator(score_list, 20)
@@ -111,6 +113,22 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_classes = []
     queryset = UserProfile.objects.all()
     serializer_class = UserRegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        password = request.data.get("password", "")
+        checkpass = request.data.get("checkpass", "")
+        code = request.data.get("code", "")
+        if password != checkpass:
+            return JsonResponse({"code": 400, "msg": "两次密码输入不一致"})
+        register_code = RegisterCode.objects.filter(code=code).first()
+        if not register_code:
+            return JsonResponse({"code": 400, "msg": "验证码错误"})
+        if register_code.add_time < datetime.now()-timedelta(minutes=3):
+            return JsonResponse({"code": 400, "msg": "验证码已过期"})
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return JsonResponse({"code": 200, "msg": "注册成功"})
 
 
 # 定义一验证码
@@ -304,3 +322,24 @@ class AccessLinkView(View):
         if email_instance.add_time <= five_minutes_ago:
             return JsonResponse({"code": 400, "msg": "链接已过期"})
         return JsonResponse({"code": 200, "msg": "ok"})
+
+@api_view(http_method_names=["POST"])
+@authentication_classes([])
+@permission_classes([])
+def send_register_email(request):
+    email = request.POST.get("email", "")
+    code = generate_code(6)
+    if not email:
+        return JsonResponse({"code": 400, "msg": "邮箱不能为空"})
+    if UserProfile.objects.filter(email=email).count():
+        return JsonResponse({"code": 400, "msg": "该邮箱已经被使用"})
+    if RegisterCode.objects.filter(email=email, add_time__gt=datetime.now()-timedelta(minutes=1)).count():
+        return JsonResponse({"code": 400, "msg": "距离上次发送未超过1分钟"})
+    try:
+        send_mail(subject="用户注册", from_email=EMAIL_FROM, message="您的验证码是{}，有效期为三分钟".format(code),
+                  recipient_list=[email])
+        register_code = RegisterCode(email=email, code=code)
+        register_code.save()
+        return JsonResponse({"code": 200, "msg": "邮件发送成功"})
+    except Exception as e:
+        return JsonResponse({"code": 400, "msg": "邮件发送失败"})

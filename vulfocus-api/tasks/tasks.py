@@ -622,10 +622,9 @@ def delete_docker_compose(task_id):
     user_info = UserProfile.objects.filter(id=user_id).first()
     image_info = ImageInfo.objects.filter(image_name=image_name).first()
     # 删除容器
-    container_vul = ContainerVul.objects.filter(Q(user_id=user_id) & Q(container_id=container_id)
+    container_vul = ContainerVul.objects.filter(Q(container_id=container_id)
                                                      & ~Q(docker_compose_path="") & ~Q(container_status='delete')).first()
-    msg = R.ok(msg="删除成功")
-    compose_path = container_vul.docker_compose_path
+    con_user_id = container_vul.user_id
     if container_vul.container_status == 'running':
         compose_path = container_vul.docker_compose_path
         try:
@@ -648,9 +647,10 @@ def delete_docker_compose(task_id):
                 container_vul.save()
         except Exception:
             msg = R.err(msg="删除失败，服务器内部错误")
-    all_stop_container = ContainerVul.objects.filter(Q(user_id=user_id) & Q(image_id=image_info.image_id) &
+    all_stop_container = ContainerVul.objects.filter(Q(user_id=con_user_id) & Q(image_id=image_info.image_id) &
                     Q(container_status="stop") & Q(docker_compose_path="")).all()
     if all_stop_container:
+        compose_path = container_vul.docker_compose_path
         for corrtlation_container in all_stop_container:
             docker_container_id = corrtlation_container.docker_container_id
             try:

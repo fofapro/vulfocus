@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div class="reg-container">
     <div class="icon-con" style="float: right;margin-top: 0px" >
       <a href="https://github.com/fofapro/vulfocus" target="_blank" class="github-corner" aria-label="View source on Github">
         <svg
@@ -25,14 +25,13 @@
         </svg>
       </a >
     </div>
-    <el-form ref="ruleForm" :model="ruleForm" :rules="rules" class="login-form" auto-complete="on"  label-width="100px">
+    <el-form ref="ruleForm" :model="ruleForm" :rules="rules" class="reg-form" auto-complete="on"  label-width="100px">
       <div style="margin-right: 320px;margin-top: 10px">
         <i class="el-icon-back" @click="toLogin" style="font-size: 30px;color: #d3dce6" ></i>
       </div>
       <div class="title-container">
         <img src="../../assets/logintitle.png" style="margin-top: 30px;margin-left: 15%;margin-bottom: 10px;"/>
       </div>
-
       <el-form-item prop="name" label="用户名" style="margin-left: 5px;margin-right: 20px">
         <el-input
           ref="name"
@@ -44,12 +43,16 @@
       </el-form-item>
       <el-form-item label="邮箱" prop="email" style="margin-left: 5px;margin-right: 20px">
         <el-input type="text" v-model="ruleForm.email" autocomplete="off"></el-input>
+        <el-button type="info" size="mini" :disabled="disabled" @click="sendcode" style="color: #d3dce6;background-color: #36a3f7;float: right;margin-top: 10px" round>{{btntxt}}</el-button>
       </el-form-item>
       <el-form-item label="密码" prop="pass" style="margin-left: 5px;margin-right: 20px">
         <el-input type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
       </el-form-item>
-      <el-form-item label="确认密码" prop="checkPass" style="margin-left: 5px;margin-right: 20px">
-        <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
+      <el-form-item label="确认密码" prop="checkpass" style="margin-left: 5px;margin-right: 20px">
+        <el-input type="password" v-model="ruleForm.checkpass" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="邮箱验证码" prop="code" style="margin-left: 5px;margin-right: 20px">
+        <el-input type="text" v-model="ruleForm.code" autocomplete="off"></el-input>
       </el-form-item>
       <div align="center" style="padding-top: 20px">
       <el-button :loading="loading" type="primary" style="margin-bottom:30px;" @click.native.prevent="handleReg">注册</el-button>
@@ -72,7 +75,7 @@
 <script>
   // import { validUsername } from '@/utils/validate'
   import Message from 'element-ui/packages/message/src/main'
-
+  import { send_reg_mail } from '@/api/user'
   export default {
     name: 'Register',
     data() {
@@ -80,7 +83,7 @@
         if (value === '') {
           callback(new Error('请输入密码'));
         } else {
-          if (this.ruleForm.checkPass !== '') {
+          if (this.ruleForm.checkpass !== '') {
             this.$refs.ruleForm.validateField('checkPass');
           }
           callback();
@@ -99,20 +102,24 @@
         ruleForm: {
           name:'',
           pass: '',
-          checkPass: '',
+          checkpass: '',
           email:'',
+          code:''
         },
         rules: {
           pass: [
             { validator: validatePass, trigger: 'blur' }
           ],
-          checkPass: [
+          checkpass: [
             { validator: validatePass2, trigger: 'blur' }
           ],
         },
         loading: false,
         passwordType: 'password',
-        redirect: undefined
+        redirect: undefined,
+        btntxt: "获取验证码",
+        time: 5,
+        disabled:false,
       }
     },
     methods: {
@@ -122,20 +129,58 @@
       toLogin(){
         this.$router.push('/login')
       },
+      sendcode(){
+        let fromDict = new FormData
+        fromDict.set("email", this.ruleForm.email)
+        send_reg_mail(fromDict).then(response => {
+          if (response.data.code === 200){
+            this.$message({
+              message: response.data.msg,
+              type:"success"
+            })
+            this.time = 60
+            this.timer()
+          } else {
+            this.$message({
+              message: response.data.msg,
+              type: "error",
+            })
+          }
+        })
+      },
+      timer(){
+       if (this.time > 0) {
+        this.disabled=true;
+        this.time--;
+        this.btntxt=this.time+"秒";
+        setTimeout(this.timer, 1000);
+       } else{
+        this.time=0;
+        this.btntxt="获取验证码";
+        this.disabled=false;
+       }
+      },
       handleReg() {
         this.$refs.ruleForm.validate(valid => {
           if (valid) {
             this.loading = true
             this.$store.dispatch('user/register', this.ruleForm).then(response => {
-              if (response.status === 201) {
+              if (response.status === 200) {
                 Message({
                   message:  '注册用户成功',
                   type: 'success',
                   duration: 5 * 1000
                 })
-              }
                 this.loading=false
                 this.$router.push({ path: '/login' })
+                }else {
+                Message({
+                  message: response.data.msg,
+                  type: 'error',
+                  duration: 5 * 1000
+                })
+                this.loading = false
+              }
             }).catch(() => {
               this.loading = false
             })
@@ -157,13 +202,13 @@
   $cursor: #fff;
 
   @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
-    .login-container .el-input input {
+    .reg-container .el-input input {
       color: #FFF;
     }
   }
 
   /* reset element-ui css */
-  .login-container {
+  .reg-container {
     .el-input {
       /*display: inline-block;*/
       height: 47px;
@@ -176,8 +221,8 @@
         border-radius: 0px;
         padding: 12px 5px 12px 15px;
         color: $light_gray;
-        height: 47px;
-        line-height: 47px;
+        height: 100%;
+        line-height: 50px;
         caret-color: $cursor;
 
         &:-webkit-autofill {
@@ -203,7 +248,7 @@
   $dark_gray:#889aa4;
   $light_gray:#eee;
 
-  .login-container {
+  .reg-container {
     min-height: 100%;
     width: 100%;
     height: 100%;
@@ -211,12 +256,12 @@
     overflow: hidden;
     background: url("../../assets/loginbackground.png") center no-repeat;
     background-size: 100%;
-    .login-form {
+    .reg-form {
       position: relative;
       width: 400px;
-      height: 500px;
+      height: 580px;
       max-width: 80%;
-      margin: 180px;
+      margin: 150px;
       overflow: hidden;
       float:right;
       background-image: url("../../assets/loginl.png");

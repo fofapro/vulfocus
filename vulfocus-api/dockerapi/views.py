@@ -288,6 +288,12 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         time_img_type = []
         rank_range = ""
         image_ids = ""
+        user_info = UserProfile.objects.filter(username=user.username).first()
+        if user_info.greenhand == True:
+            rank_range_greenhand = Q()
+            rank_range_greenhand.children.append(('rank__lte', 0.5))
+            rank_range_greenhand.children.append(('rank__gt', 0.0))
+            return ImageInfo.objects.filter(rank_range_greenhand).order_by('-create_date')
         data = TimeMoudel.objects.filter(user_id=self.request.user.id, end_time__gte=now_time).first()
         if data:
             data_temp = TimeTemp.objects.filter(temp_id=data.temp_time_id_id).first()
@@ -843,7 +849,7 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
                                                     container_id=pk).first()
         user_id = request.user.id
-        original_container = ContainerVul.objects.filter(container_id=pk, user_id=user_id).first()
+        original_container = ContainerVul.objects.filter(container_id=pk).first()
         # original_container = ContainerVul.objects.filter(Q(user_id=user_id) & Q(container_id=pk)
         #                                                  & ~Q(docker_compose_path="") & ~Q(
         #     container_status='delete')).first()
@@ -890,7 +896,13 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
             if not container_vul.is_check:
                 # 更新为通过
                 container_vul.is_check_date = timezone.now()
-                container_vul.is_check = True
+                is_compose_container = ContainerVul.objects.filter(user_id=user_id, is_check=True, time_model_id="",
+                                                                   image_id=operation_args['image_id']).first()
+                img = ImageInfo.objects.filter(image_id=operation_args['image_id']).first()
+                if is_compose_container and img.is_docker_compose == True:
+                    container_vul.is_check = False
+                else:
+                    container_vul.is_check = True
                 container_vul.save()
                 # 检测是否在时间模式中
                 now_time = datetime.datetime.now().timestamp()
@@ -898,17 +910,22 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
                 if time_moudel_data:
                     rank = 0
                     time_model_id = time_moudel_data.time_id
-                    successful = ContainerVul.objects.filter(is_check=True, user_id=user_id,
-                                                             time_model_id=time_model_id)
+                    successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id=time_model_id).values(
+                        'image_id').distinct()
                     rd = TimeRank.objects.filter(time_temp_id=time_moudel_data.temp_time_id_id, user_id=user_id).first()
                     for i in successful:
-                        rank += i.image_id.rank
+                        img = ImageInfo.objects.filter(image_id=i['image_id']).first()
+                        rank += img.rank
                     if rank >= rd.rank:
                         rd.rank = rank
                         rd.save()
                 # 停止 Docker
                 tasks.stop_container_task(container_vul=container_vul, user_info=user_info,
                                           request_ip=get_request_ip(request))
+            users = UserProfile.objects.filter(id=user_id).first()
+            if users.greenhand == True:
+                users.greenhand = False
+                users.save()
             return JsonResponse(R.ok())
 
 
