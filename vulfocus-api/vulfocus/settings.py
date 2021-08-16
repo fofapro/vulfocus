@@ -56,7 +56,8 @@ INSTALLED_APPS = [
     'dockerapi',
     'network',
     'tasks',
-    'layout_image'
+    'layout_image',
+    'captcha',
 ]
 
 # redis host

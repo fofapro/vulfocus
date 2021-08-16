@@ -215,6 +215,20 @@ $cursor: #fff;
       }
     }
   }
+  .captcha_code {
+    width: 252px;
+    float: left;
+    height: 48px;
+    input {
+      width: 252px;
+      height: 48px;
+    }
+  }
+  .captcha_img {
+    width: 80px;
+    height: 48px;
+    float: left;
+  }
   /*.el-dialog__header{*/
   /*  background-color: #3d7ed5;*/
   /*}*/

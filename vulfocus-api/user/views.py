@@ -36,6 +36,8 @@ from datetime import datetime, timedelta
 from rest_framework_jwt.settings import api_settings
 from rest_framework.views import View
 from dockerapi.views import get_local_ip
+from captcha.models import CaptchaStore
+from captcha.helpers import captcha_image_url
 
 
 class ListAndUpdateViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -237,8 +239,15 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         username = request.data.get("username", None)
+        hashkey = request.data.get("hashkey", "")
+        captcha_code = request.data.get("captcha_code", "")
+        if not hashkey:
+            return JsonResponse({"code": 400, "msg": "验证码哈希值不能为空"})
+        if not captcha_code:
+            return JsonResponse({"code": 400, "msg": "验证码不能为空"})
+        if not judge_captcha(captcha_code, hashkey):
+            return JsonResponse({"code": 400, "msg": "验证码输入错误"})
         if not User.objects.filter(username=username).count():
             return JsonResponse({"code": 400, "msg": "该用户不存在"})
         user = User.objects.get(username=username)
@@ -343,3 +352,33 @@ def send_register_email(request):
         return JsonResponse({"code": 200, "msg": "邮件发送成功"})
     except Exception as e:
         return JsonResponse({"code": 400, "msg": "邮件发送失败"})
+
+
+
+# 生成验证码
+def captcha():
+    hashkey = CaptchaStore.generate_key()
+    image_url = captcha_image_url(hashkey)
+    captcha_code = {"hashkey": hashkey, "image_url": image_url}
+    return captcha_code
+
+
+# 判断验证码是否有效
+def judge_captcha(captchastr, captchahashkey):
+    if captchastr and captchahashkey:
+        try:
+            captcha_instance = CaptchaStore.objects.get(hashkey=captchahashkey)
+            if captcha_instance.challenge == captchastr:
+                return True
+        except Exception as e:
+            return False
+    else:
+        return False
+
+
+# 刷新验证码
+@api_view(http_method_names=["GET"])
+@authentication_classes([])
+@permission_classes([])
+def refresh_captcha(request):
+    return JsonResponse(captcha())

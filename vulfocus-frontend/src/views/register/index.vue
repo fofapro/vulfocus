@@ -212,7 +212,7 @@
     .el-input {
       /*display: inline-block;*/
       height: 47px;
-      width: 85%;
+      width: 65%;
 
       input {
         background: transparent;

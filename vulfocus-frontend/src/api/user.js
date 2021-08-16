@@ -102,3 +102,9 @@ export function send_reg_mail(data) {
   })
 }
 
+export function get_captcha() {
+  return request({
+    url:'refresh_captcha/',
+    method:'get',
+  })
+}
