@@ -126,3 +126,4 @@
 
 [Laravel 远程代码执行漏洞（CVE-2021-3129）](./Laravel_Debug_mode远程代码执行_anxianglang/CVE-2021-3129.md) by [anxianglang](https://github.com/anxianglang)
 
+[zentaopms-9.1.2-sql SQL注入](./zentaopms_9.1.2_sql_SQL注入/zentaopms_9.1.2_sql_SQL注入.md) by [corp0ra1](https://github.com/corp0ra1)
