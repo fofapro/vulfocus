@@ -6,6 +6,7 @@ class UserProfile(AbstractUser):
     avatar = models.CharField(max_length=100, null=True, blank=True, verbose_name="头像", default="http://www.baimaohui.net/home/image/icon-anquan-logo.png")
     role = models.CharField(max_length=10, default="注册用户", verbose_name="角色")
     greenhand = models.BooleanField(verbose_name='用户是否首次登录', default=False)
+    has_active = models.BooleanField(verbose_name="用户是否激活", default=True)
     def __str__(self):
         return self.username
 

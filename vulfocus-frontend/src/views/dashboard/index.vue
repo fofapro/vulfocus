@@ -48,41 +48,65 @@
       </div>
     </el-dialog>
     <el-card class="box-card">
-      <el-row :gutter="6" v-if="this.countlist.length===0">
-      <el-col :span="2">
-          <ul style="width: 100%;color: #606266" >模糊查询</ul>
-      </el-col>
+    <el-row v-if="this.countlist.length===0">
+      <div style="margin-left: 10px">
       <el-col :span="22">
         <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
         <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
           查询
         </el-button>
-        <el-button id="first-bmh" type="primary" style="left: 10px;" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
-      </el-col>
+          <el-button  id="first-bmh" type="primary" style="left: 10px;display:none" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
+        </div>
+      </el-row>
+      <el-row v-if="this.countlist.length===0">
+        <div class="filter-line">
+          <div class="filter-name" style="width: 190px">
+            难易程度
+          </div>
+          <div class="filter-content">
+            <span :class="activeClass1 === index ? 'current':''" @click="selectDiff(index,item)" v-for="(item,index) in DifficultyList" >{{item.lable}}</span>
+          </div>
+        </div>
+      </el-row>
+      <el-row>
+        <div class="filter-line">
+          <div class="filter-name">
+            开发语言
+          </div>
+          <div class="filter-content">
+            <span :class="activeClass2 === index ? 'current':''" @click="selectLan(index,item)" v-for="(item,index) in languageList" >{{item.value}}</span>
+          </div>
+        </div>
+      </el-row>
+      <el-row>
+        <div class="filter-line">
+          <div class="filter-name">
+            漏洞类型
+          </div>
+          <div class="filter-content">
+            <span :class="activeClass3 === index ? 'current':''" @click="selectDeg(index,item)" v-for="(item,index) in degreeList" >{{item.value}}</span>
+          </div>
+        </div>
     </el-row>
-      <el-row :gutter=6 style="margin-top: 6px" v-if="this.countlist.length===0">
-      <el-col :span=2>
-        <ul style="width: 100%;color: #606266" >难易程度</ul>
-      </el-col>
-      <el-col :span=1.5 style="margin-left: 6px">
-        <el-radio-group v-model="searchForm.rank_range" size="medium" style="margin-top: 6px" @change="getselectdata">
-          <el-radio-button label=0>全部</el-radio-button>
-          <el-radio-button label=0.5 id="first-bmh2" >入门</el-radio-button>
-          <el-radio-button label=2.0>初级</el-radio-button>
-          <el-radio-button label=3.5>中级</el-radio-button>
-          <el-radio-button label=5>高级</el-radio-button>
-        </el-radio-group>
-      </el-col>
-    </el-row>
-      <el-row :gutter=6 style="margin-top: 6px" v-if="this.countlist.length===0" >
-      <el-col :span=2>
-        <ul style="width: 100%;color: #606266" >漏洞类型</ul>
-      </el-col>
-      <el-col :span=21>
-        <el-select v-model="searchForm.time_img_type" @change="getselectdata" multiple filterable allow-create default-first-option placeholder="请选择漏洞类型" style="left: 5px;width: 40%;margin-top: 6px">
-          <el-option v-for="item in degreeList" :key="item.value" :label="item.value" :value="item.value"></el-option>
-        </el-select>
-      </el-col>
+      <el-row>
+        <div class="filter-line">
+          <div class="filter-name">
+            开发框架
+          </div>
+          <div class="filter-content">
+            <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" >{{item.value}}</span>
+          </div>
+        </div>
+      </el-row>
+      <el-row>
+        <div class="filter-line">
+          <div class="filter-name">
+            数据库
+          </div>
+          <div class="filter-content">
+            <span :class="activeClass5 === index ? 'current':''" @click="selectSql(index,item)" v-for="(item,index) in databaseList" >{{item.value}}</span>
+          </div>
+        </div>
     </el-row>
     </el-card>
     <el-divider style="margin-top: 1px"></el-divider>
@@ -150,7 +174,7 @@
 </template>
 
 <script>
-import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop } from '@/api/docker'
+import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop,ImgDashboard,getWriteup } from '@/api/docker'
 import { publicMethod,gettimetemp } from '@/api/timemoudel'
 import { getTask } from '@/api/tasks'
 import CountDown from 'vue2-countdown'
@@ -184,10 +208,15 @@ export default {
         total: 0,
         size: 20,
       },
+      activeClass1: 0,
+      activeClass2: 0,
+      activeClass3: 0,
+      activeClass4: 0,
+      activeClass5: 0,
       DifficultyList:[
         {value:0, lable:"全部"},
-        {value:1, lable:"入门"},
-        {value:2.5, lable:"初级"},
+        {value:0.5, lable:"入门"},
+        {value:2.0, lable:"初级"},
         {value:3.5, lable:"中级"},
         {value:5, lable:"高级"},
       ],
@@ -223,6 +252,7 @@ export default {
       countlist:[],
       notifications: {},
       degreeList:[
+          {value:"全部", lable:"全部"},
           {value:"命令执行", lable:"命令执行"},
           {value:"代码执行", lable:"代码执行"},
           {value:"文件写入", lable:"文件写入"},
@@ -245,6 +275,64 @@ export default {
           {value:"SSRF漏洞", lable:"SSRF漏洞"},
           {value:"CSRF漏洞", lable:"CSRF漏洞"},
         ],
+      languageList:[
+          {value:"全部", lable:"全部"},
+          {value:"Java", lable:"Java"},
+          {value:"Python", lable:"Python"},
+          {value:"C++", lable:"C++"},
+          {value:"C#", lable:"C#"},
+          {value:"VisualBasic", lable:"VisualBasic"},
+          {value:"JavaScript", lable:"JavaScript"},
+          {value:"HTML", lable:"HTML"},
+          {value:"PHP", lable:"PHP"},
+          {value:"R", lable:"R"},
+          {value:"Swift", lable:"Swift"},
+          {value:"Go", lable:"Go"},
+          {value:"Ruby", lable:"Ruby"},
+          {value:"Perl", lable:"Perl"},
+          {value:"Asp", lable:"Asp"},
+          {value:".Net", lable:".Net"},
+        ],
+      databaseList:[
+        {value:"全部", lable:"全部"},
+        {value:"Oracle", lable:"Oracle"},
+        {value:"MySQL", lable:"MySQL"},
+        {value:"Microsoft SQL Server", lable:"Microsoft SQL Server"},
+        {value:"PostgreSQL", lable:"PostgreSQL"},
+        {value:"MongoDB", lable:"MongoDB"},
+        {value:"IBM Db2", lable:"IBM Db2"},
+        {value:"Elasticsearch", lable:"Elasticsearch"},
+        {value:"Redis", lable:"Redis"},
+        {value:"SQLite", lable:"SQLite"},
+        {value:"Cassandra", lable:"Cassandra"},
+        {value:"Microsoft Access", lable:"Microsoft Access"},
+        {value:"MariaDB Relational", lable:"MariaDB Relational"},
+        {value:"Splunk", lable:"Splunk"},
+        {value:"Hive", lable:"Hive"},
+        {value:"Teradata", lable:"Teradata"},
+      ],
+      classifyList:[
+        {value:"全部", lable:"全部"},
+        {value:"Bootstrap", lable:"Bootstrap"},
+        {value:"Angular", lable:"Angular"},
+        {value:"Jquery", lable:"Jquery"},
+        {value:"react", lable:"react"},
+        {value:"vue", lable:"vue"},
+        {value:"Zepto", lable:"Zepto"},
+        {value:"CakePHP", lable:"CakePHP"},
+        {value:"Django", lable:"Django"},
+        {value:"Ruby on Rails", lable:"Ruby on Rails"},
+        {value:"Flask", lable:"Flask"},
+        {value:"Phoenix", lable:"Phoenix"},
+        {value:"Spring Boot", lable:"Spring Boot"},
+        {value:"Laravel", lable:"Laravel"},
+      ],
+      allTag:[],
+      allTag2:[],
+      allTag3:[],
+      allTag4:[],
+      allTag5:[],
+      searchRank:0,
       loading:true,
       firstLogin:false,
       };
@@ -286,7 +374,7 @@ export default {
           }})
       },
       listData() {
-          ImgList().then(response => {
+          ImgDashboard().then(response => {
             this.listdata = response.data.results
             this.page.total = response.data.count
             for (let i = 0; i <this.listdata.length ; i++) {
@@ -296,7 +384,6 @@ export default {
             }
             this.loading=false
             if (this.user.greenhand === true){
-              // this.$refs.showTips.$emit('click')
               if (this.loading === false && this.firstLogin === false){
                 this.$nextTick(() => {
                   this.showTips()
@@ -314,7 +401,9 @@ export default {
           background: "rgba(255,255,255,0.4)",
           target: document.querySelector("#first-bmh3")
         });
-        ImgList(undefined,undefined,undefined,true,this.searchForm.time_img_type,this.searchForm.rank_range).then(response =>{
+        let allTag = []
+        allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
+        ImgDashboard(undefined,undefined,undefined,true,allTag,this.searchRank).then(response =>{
             loading.close()
             this.listdata = response.data.results
             this.page.total = response.data.count
@@ -339,7 +428,7 @@ export default {
         this.images_name = images_name
         this.images_desc = images_desc
         this.is_flag = raw_data.is_flag
-        this.writeup_date = raw_data.writeup_date
+        // this.writeup_date = raw_data.writeup_date
         this.is_docker_compose = raw_data.is_docker_compose
         this.centerDialogVisible = true
         this.$set(raw_data.status, "start_flag", true)
@@ -352,6 +441,7 @@ export default {
           // this.centerDialogVisible = false
         }
         if (raw_data.status.status === "running"){
+          this.images_id = raw_data.image_id
           this.vul_host = raw_data.status.host
           this.vul_port = JSON.parse(raw_data.status.port)
           this.container_id = raw_data.status.container_id
@@ -361,7 +451,9 @@ export default {
           this.is_docker_compose = raw_data.is_docker_compose
           this.is_flag = raw_data.is_flag
           if (this.user.greenhand === true){
-              this.drawer=true
+                this.$nextTick(() => {
+                  this.openDrawer()
+             })
           }
         }else{
           ContainerSTART(id).then(response=>{
@@ -388,9 +480,12 @@ export default {
                     raw_data.status.container_id = container_id
                     this.startCon = false
                     this.cStatus = false
+                    this.images_id = raw_data.image_id
                     if (this.user.greenhand === true){
-                        this.drawer=true
-                    }
+                        this.$nextTick(() => {
+                          this.openDrawer()
+                     })
+                  }
                   }else if (responseStatus === 201){
                     this.$message({
                       message: response.data["msg"],
@@ -536,7 +631,7 @@ export default {
           background: "rgba(255,255,255,255.4)",
           target: document.querySelector("#first-bmh3")
         });
-        ImgList(this.search,false,page,true,this.searchForm.time_img_type,this.searchForm.rank_range).then(response => {
+        ImgDashboard(this.search,false,page,true,this.allTag,this.searchRank).then(response => {
           loading.close()
           this.listdata = response.data.results
           this.page.total = response.data.count
@@ -567,7 +662,14 @@ export default {
         this.reload()
       },
       openDrawer(){
-          this.drawer=true
+        getWriteup(this.images_id).then(response => {
+          if (response.data.code === 200){
+            this.writeup_date = response.data.data.writeup_date
+            this.writeup_date_name = response.data.data.username
+            this.drawer=true
+          }else {
+          }
+        })
       },
       editorButton(){
         this.drawerFlag=true
@@ -588,7 +690,7 @@ export default {
           {
             element:"#first-bmh3", // 这是点击触发的id
             popover:{
-              title:"第三步",
+              title:"提示",
               description:"启动入门镜像,启动后可以点击镜像信息旁的<i  class=\"el-icon-reading\"  style=\"color: rgb(140, 197, 255);font-size: 20px\"></i>了解漏洞镜像！成功提交flag后可以解除新手模式，查看所有漏洞环境",
               position: "top"
             },
@@ -610,8 +712,48 @@ export default {
         this.user = {
           greenhand:this.greenhand
         }
-      }
-
+      },
+      selectLan(index,item){
+        this.activeClass2 = index
+        this.allTag2.splice(0,1)
+        if (item.value === "全部"){
+        }else {
+          this.allTag2.push(item.value)
+        }
+        this.getselectdata()
+      },
+      selectIfy(index,item){
+        this.activeClass4 = index
+        this.allTag4.splice(0,1)
+        if (item.value === "全部"){
+        }else {
+          this.allTag4.push(item.value)
+        }
+        this.getselectdata()
+      },
+      selectDiff(index,item){
+        this.activeClass1 = index
+        this.searchRank = item.value
+        this.getselectdata()
+      },
+      selectDeg(index,item){
+        this.activeClass3 = index
+        this.allTag3.splice(0,1)
+        if (item.value === "全部"){
+        }else {
+          this.allTag3.push(item.value)
+        }
+        this.getselectdata()
+      },
+      selectSql(index,item){
+        this.activeClass5 = index
+        this.allTag5.splice(0,1)
+        if (item.value === "全部"){
+        }else {
+          this.allTag5.push(item.value)
+        }
+        this.getselectdata()
+      },
   },
   mounted: function() {
       var _this = this;
@@ -706,6 +848,47 @@ export default {
 </style>
 
 <style rel="stylesheet/scss" lang="scss">
+.filter-line {
+  padding: 13px 16px;
+  box-sizing: border-box;
+  display: flex;
+  font-size: 14px;
+  border-bottom: 1px dashed #dde6f0;
+  background: #fff;
+
+  .filter-name {
+   width: 150px;
+   height: 24px;
+   text-align: center;
+   line-height: 24px;
+   color: #fff;
+   background: #36a3f7;
+   border-radius: 200px 0 200px 200px;
+   margin-right: 20px;
+  }
+  .filter-content {
+    display: flex;
+    flex-flow: wrap;
+    /*justify-content: space-between;*/
+    align-items: center;
+    flex-wrap: wrap;
+    color: #656666;
+    width: 90%;
+  }
+  span {
+    display: inline-block;
+    padding: 5px 20px;
+    box-sizing: border-box;
+    cursor: pointer;
+    flex-wrap: wrap;
+  }
+  span.current {
+   color: #126ef7;
+   background: #ebf5ff;
+   border-radius: 200px;
+  }
+}
+
 .el-drawer{
   overflow: scroll
 }

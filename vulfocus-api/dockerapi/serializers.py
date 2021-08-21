@@ -83,6 +83,10 @@ class ImageInfoSerializer(serializers.ModelSerializer):
     writeup_date = serializers.SerializerMethodField('contentck')
     update_date = serializers.SerializerMethodField('transition_time')
     image_port = serializers.SerializerMethodField('image_port_ck')
+    HoleType = serializers.SerializerMethodField('d_HoleType')
+    devLanguage = serializers.SerializerMethodField('d_devLanguage')
+    devDatabase = serializers.SerializerMethodField('d_devDatabase')
+    devClassify = serializers.SerializerMethodField('d_devClassify')
 
     def statusck(self, obj):
         status = {}
@@ -114,7 +118,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
                     data = run_data
             if not data:
                 data = ContainerVul.objects.all().filter(
-                    Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="")).first()
+                    Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & ~Q(docker_compose_path="")).first()
         status["status"] = ""
         status["is_check"] = False
         status["container_id"] = ""
@@ -208,8 +212,67 @@ class ImageInfoSerializer(serializers.ModelSerializer):
 
     def degreeck(self, obj):
         img_d = obj.degree
+        d_list = []
         try:
-            return json.loads(img_d)
+            if img_d:
+                img_ds = json.loads(img_d)
+                if img_ds['HoleType']:
+                    d_list += img_ds['HoleType']
+                if img_ds['devLanguage']:
+                    d_list += img_ds['devLanguage']
+                if img_ds['devDatabase']:
+                    d_list += img_ds['devDatabase']
+                if img_ds['devClassify']:
+                    d_list += img_ds['devClassify']
+            return d_list
+        except Exception as e:
+            return []
+
+    def d_HoleType(self, obj):
+        img_d = obj.degree
+        try:
+            if img_d:
+                img_d = json.loads(img_d)
+                if img_d['HoleType']:
+                    return img_d['HoleType']
+                else:
+                    return []
+        except Exception as e:
+            return []
+
+    def d_devLanguage(self, obj):
+        img_d = obj.degree
+        try:
+            if img_d:
+                img_d = json.loads(img_d)
+                if img_d['devLanguage']:
+                    return img_d['devLanguage']
+                else:
+                    return []
+        except Exception as e:
+            return []
+
+    def d_devClassify(self, obj):
+        img_d = obj.degree
+        try:
+            if img_d:
+                img_d = json.loads(img_d)
+                if img_d['devClassify']:
+                    return img_d['devClassify']
+                else:
+                    return []
+        except Exception as e:
+            return []
+
+    def d_devDatabase(self, obj):
+        img_d = obj.degree
+        try:
+            if img_d:
+                img_d = json.loads(img_d)
+                if img_d['devDatabase']:
+                    return img_d['devDatabase']
+                else:
+                    return []
         except Exception as e:
             return []
 

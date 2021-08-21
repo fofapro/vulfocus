@@ -79,7 +79,7 @@
 
 <script>
 import { lininfo } from "@/api/docker"
-
+import {login} from "@/api/user"
 export default {
   name: 'Login',
   data() {
@@ -215,13 +215,20 @@ $cursor: #fff;
       }
     }
   }
-  /*.el-dialog__header{*/
-  /*  background-color: #3d7ed5;*/
-  /*}*/
-  /*.el-dialog__body{*/
-  /*  background-color: #3d7ed5;*/
-  /*}*/
-
+  .captcha_code {
+    width: 252px;
+    float: left;
+    height: 48px;
+    input {
+      width: 252px;
+      height: 48px;
+    }
+  }
+  .captcha_img {
+    width: 80px;
+    height: 48px;
+    float: left;
+  }
   .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.1);

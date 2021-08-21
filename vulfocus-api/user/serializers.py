@@ -17,21 +17,23 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
          style={"input_type": "password"}, help_text="密码", label="密码", write_only=True, error_messages={"blank": "密码不能为空", "required": "密码不能为空"})
     checkpass = serializers.CharField(style={"input_type_password"}, allow_blank=False, write_only=True)
-    code = serializers.CharField(required=True, allow_blank=False, write_only=True)
+    captcha_code = serializers.CharField(required=True, allow_blank=False, write_only=True)
+    hashkey = serializers.CharField(required=True, allow_blank=False, write_only=True)
     def create(self, validated_data):
         username = validated_data["username"]
         password = validated_data["password"]
-        code = validated_data["code"]
-        register_code = RegisterCode.objects.filter(code=code).first()
-        user = UserProfile(username=username, email=register_code.email)
+        email = validated_data["email"]
+        user = UserProfile(username=username, email=email)
         user.set_password(password)
+        user.email = email
+        user.greenhand = True
+        user.has_active = False
         user.save()
-        register_code.delete()
         return user
 
     class Meta:
          model = User
-         fields = ("username", "password", "checkpass", "code")
+         fields = ("username", "password", "checkpass", "captcha_code", "hashkey", "email")
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

@@ -43,6 +43,10 @@
               style="width:100%"
             />
         </el-form-item>
+        <el-form-item>
+          <el-input ref="captcha_code" placeholder="请输入验证码" v-model="ruleForm.captcha_code" type="text" class="captcha_code"/>
+          <img v-bind:src=host+image_url class="captcha_img" @click="refresh_code">
+        </el-form-item>
         <div style="padding-top: 10px;margin-left: 225px">
           <el-button @click="handleSendMail">发送邮件</el-button>
         </div>
@@ -52,7 +56,7 @@
 </template>
 
 <script>
-import { sendMail,valMail } from "@/api/user"
+import { sendMail,valMail,get_captcha } from "@/api/user"
 
 export default {
   name: 'retrieve',
@@ -61,8 +65,12 @@ export default {
       loading: false,
       passwordType: 'password',
       redirect: undefined,
+      image_url: '',
+      host: 'http://127.0.0.1:8000',
       ruleForm: {
         username: '',
+        captcha_code:'',
+        hashkey:'',
       },
       displayInput:false
     }
@@ -75,11 +83,26 @@ export default {
       immediate: true
     }
   },
+  created:function get_captcha_code(){
+    get_captcha().then(response=>{
+      let data = response.data;
+      this.image_url = data.image_url;
+      this.ruleForm.hashkey = data.hashkey;
+    })
+  },
   methods: {
     toLogin(){
       this.$router.push('/login')
     },
+    refresh_code(){
+      get_captcha().then(response=>{
+        let data =response.data;
+        this.image_url = data.image_url;
+        this.ruleForm.hashkey = data.hashkey;
+      })
+    },
     handleSendMail(){
+      this.refresh_code();
       if (this.ruleForm.username){
         sendMail(this.ruleForm).then(response =>{
         let data = response.data
@@ -145,6 +168,20 @@ $cursor: #fff;
       }
     }
   }
+  .captcha_code {
+    width: 252px;
+    float: left;
+    height: 48px;
+    input {
+      width: 252px;
+      height: 48px;
+    }
+  }
+  .captcha_img {
+    width: 80px;
+    height: 48px;
+    float: left;
+  }
   .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.1);
@@ -171,6 +208,20 @@ $light_gray:#eee;
     float:right;
     background-image: url("../../assets/loginl.png");
     background-size: 100% 100%;
+    .captcha_code {
+      width: 252px;
+      float: left;
+      height: 48px;
+      input {
+        width: 252px;
+        height: 48px;
+      }
+  }
+    .captcha_img {
+      width: 80px;
+      height: 48px;
+      float: left;
+  }
   }
 
   .tips {

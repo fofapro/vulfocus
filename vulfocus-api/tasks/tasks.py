@@ -70,6 +70,8 @@ def create_image_task(image_info, user_info, request_ip, image_file=None):
                     port_list = []
                     if "ExposedPorts" in config:
                         port_list = config["ExposedPorts"]
+                    else:
+                        port_list = image.attrs['Config']['ExposedPorts']
                     ports = []
                     for port in port_list:
                         port = port.replace("/", "").replace("tcp", "").replace("udp", "")
@@ -667,6 +669,7 @@ def delete_docker_compose(task_id):
                 corrtlation_container.save()
         if os.path.exists(compose_path) == True:
             shutil.rmtree(compose_path)
+    container_vul.docker_compose_path = ""
     container_vul.container_status = "delete"
     container_vul.save()
     msg = R.ok(msg="删除成功")
@@ -1021,6 +1024,8 @@ def create_image(task_id):
         port_list = []
         if "ExposedPorts" in config:
             port_list = config["ExposedPorts"]
+        else:
+            port_list = image.attrs['Config']['ExposedPorts']
         ports = []
         for port in port_list:
             port = port.replace("/", "").replace("tcp", "").replace("udp", "")

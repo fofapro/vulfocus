@@ -14,8 +14,8 @@ from rest_framework.decorators import action
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.views.generic.base import View
 from user.models import UserProfile, EmailCode,  RegisterCode
-from django.core.mail import send_mail, EmailMessage
-from rest_framework import permissions
+from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
+from rest_framework import permissions, status
 from vulfocus.settings import EMAIL_FROM
 from dockerapi.common import R
 from dockerapi.models import ContainerVul
@@ -26,6 +26,7 @@ import io
 import datetime
 from user.utils import generate_code, validate_email
 import smtplib
+import os
 from email.mime.text import MIMEText
 from time import sleep
 import uuid
@@ -36,6 +37,11 @@ from datetime import datetime, timedelta
 from rest_framework_jwt.settings import api_settings
 from rest_framework.views import View
 from dockerapi.views import get_local_ip
+from captcha.models import CaptchaStore
+from captcha.helpers import captcha_image_url
+from vulfocus.settings import REDIS_USER_CACHE as red_user_cache
+from vulfocus.settings import ALLOWED_IMG_SUFFIX, BASE_DIR
+
 
 
 class ListAndUpdateViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -87,7 +93,10 @@ class get_user_rank(APIView):
             username = ""
             if user_info:
                 username = user_info.username
-            result.append({"rank": _data["score"], "name": username})
+                user_avatar = user_info.avatar
+                pass_container_vuls = ContainerVul.objects.filter(is_check=True, user_id=user_info.id, time_model_id='').values('image_id').distinct().count()
+            result.append({"rank": _data["score"], "name": username, "image_url": user_avatar,"pass_container_count": pass_container_vuls})
+
         data = {
             'results': result,
             'count': len(score_list)
@@ -115,19 +124,43 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = UserRegisterSerializer
 
     def create(self, request, *args, **kwargs):
+        username = request.data.get("username", "")
         password = request.data.get("password", "")
         checkpass = request.data.get("checkpass", "")
-        code = request.data.get("code", "")
+        email = request.data.get("email", "")
+        captcha_code = request.data.get("captcha_code", "")
+        hashkey = request.data.get("hashkey", "")
+        if not username:
+            return JsonResponse({"code": 400, "msg": "用户名不能为空"})
+        if UserProfile.objects.filter(username=username).count():
+            return JsonResponse({"code": 400, "msg": "该用户已被注册"})
+        if not email:
+            return JsonResponse({"code": 400, "msg": "邮箱不能为空"})
+        if UserProfile.objects.filter(email=email, has_active=True).count():
+            return JsonResponse({"code": 400, "msg": "该邮箱已被注册"})
+        if not captcha_code:
+            return JsonResponse({"code": 400, "msg": "验证码不能为空"})
+        if not judge_captcha(captcha_code, hashkey):
+            return JsonResponse({"code": 400, "msg": "验证码错误"})
         if password != checkpass:
             return JsonResponse({"code": 400, "msg": "两次密码输入不一致"})
-        register_code = RegisterCode.objects.filter(code=code).first()
-        if not register_code:
-            return JsonResponse({"code": 400, "msg": "验证码错误"})
-        if register_code.add_time < datetime.now()-timedelta(minutes=3):
-            return JsonResponse({"code": 400, "msg": "验证码已过期"})
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        code = generate_code(6)
+        keys = red_user_cache.keys()
+        for single_key in keys:
+            try:
+                single_user_info = red_user_cache.get(single_key)
+                redis_username, redis_password, redis_email = single_user_info.split("-")
+                if username == redis_username:
+                    return JsonResponse({"code": 400, "msg": "该用户已被注册"})
+                if redis_email == email:
+                    return JsonResponse({"code": 400, "msg": "该邮箱已被注册"})
+            except Exception as e:
+                return JsonResponse({"code": 400, "msg": "用户注册失败"})
+        # serializer = self.get_serializer(data=request.data)
+        #         # serializer.is_valid(raise_exception=True)
+        #         # self.perform_create(serializer)
+        red_user_cache.set(code, username+"-"+password+"-"+email, ex=300)
+        send_activate_email(receiver_email=email, code=code)
         return JsonResponse({"code": 200, "msg": "注册成功"})
 
 
@@ -202,18 +235,23 @@ class LoginViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
     def create(self, request, *args, **kwargs):
         username = request.data["username"]
         password = request.data["password"]
-        #code=request.data["code"]
-        user=User.objects.filter(username=username).first()
+        keys = red_user_cache.keys()
+        for single_key in keys:
+            user_info = red_user_cache.get(single_key)
+            redis_username, redis_password, redis_email = user_info.split("-")
+            if redis_username == username:
+                return Response({"non_field_errors": ["账号未激活，请先激活账号"]}, status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.filter(username=username).first()
         if not user:
-            return JsonResponse({"code": 400, "msg": "用户名错误"})
+            return Response({"non_field_errors": ["账号或者密码错误"]}, status=status.HTTP_400_BAD_REQUEST)
         if not user.check_password(password):
-            return JsonResponse({"code": 400, "msg": "密码错误"})
+            return Response({"non_field_errors": ["账号或者密码错误"]}, status=status.HTTP_400_BAD_REQUEST)
+        if not user.has_active:
+            return Response({"non_field_errors": ["账号未激活，请先激活账号"]}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user=authenticate(username=username,password=password)
-        login(request,user)
         #采用jwt模式认证
-        serializer_instance=JSONWebTokenSerializer(data=request.data)
+        serializer_instance = JSONWebTokenSerializer(data=request.data)
         if serializer_instance.is_valid():
             user = serializer_instance.object.get('user') or request.user
             token = serializer_instance.object.get('token')
@@ -227,7 +265,7 @@ class LoginViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
                                     expires=expiration,
                                     httponly=True)
             return response
-        return JsonResponse({"code": "400", "msg": "error"}, status=200)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -237,8 +275,15 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         username = request.data.get("username", None)
+        hashkey = request.data.get("hashkey", "")
+        captcha_code = request.data.get("captcha_code", "")
+        if not hashkey:
+            return JsonResponse({"code": 400, "msg": "验证码哈希值不能为空"})
+        if not captcha_code:
+            return JsonResponse({"code": 400, "msg": "验证码不能为空"})
+        if not judge_captcha(captcha_code, hashkey):
+            return JsonResponse({"code": 400, "msg": "验证码输入错误"})
         if not User.objects.filter(username=username).count():
             return JsonResponse({"code": 400, "msg": "该用户不存在"})
         user = User.objects.get(username=username)
@@ -314,13 +359,17 @@ class AccessLinkView(View):
         验证链接是否有效
         '''
         code=request.GET.get("code","")
-        if not EmailCode.objects.filter(code=code).count():
-            return JsonResponse({"code": 400, "msg": "该链接不存在或失效"})
-        email_instance = EmailCode.objects.get(code=code)
-        user = email_instance.user
-        five_minutes_ago = datetime.now() - timedelta(minutes=5)
-        if email_instance.add_time <= five_minutes_ago:
-            return JsonResponse({"code": 400, "msg": "链接已过期"})
+        try:
+            user_info = red_user_cache.get(code)
+            redis_username, redis_password, redis_email = user_info.split("-")
+            user = UserProfile(username=redis_username, email=redis_email)
+            user.set_password(redis_password)
+            user.has_active = True
+            user.greenhand = True
+            user.save()
+            red_user_cache.delete(code)
+        except Exception as e:
+            return JsonResponse({"code": 400, "msg": "链接不存在或已失效"})
         return JsonResponse({"code": 200, "msg": "ok"})
 
 @api_view(http_method_names=["POST"])
@@ -343,3 +392,96 @@ def send_register_email(request):
         return JsonResponse({"code": 200, "msg": "邮件发送成功"})
     except Exception as e:
         return JsonResponse({"code": 400, "msg": "邮件发送失败"})
+
+# 生成验证码
+def captcha():
+    hashkey = CaptchaStore.generate_key()
+    image_url = captcha_image_url(hashkey)
+    captcha_code = {"hashkey": hashkey, "image_url": image_url}
+    return captcha_code
+
+
+# 判断验证码是否有效
+def judge_captcha(captchastr, captchahashkey):
+    if captchastr and captchahashkey:
+        try:
+            captcha_instance = CaptchaStore.objects.get(hashkey=captchahashkey)
+            if captcha_instance.challenge == captchastr.upper():
+                return True
+        except Exception as e:
+            return False
+    else:
+        return False
+
+
+# 刷新验证码
+@api_view(http_method_names=["GET"])
+@authentication_classes([])
+@permission_classes([])
+def refresh_captcha(request):
+    return JsonResponse(captcha())
+
+def send_activate_email(receiver_email, code):
+    subject, from_email, to = "用户注册", EMAIL_FROM, receiver_email
+    msg = EmailMultiAlternatives(subject, '', from_email, [to])
+    html_content ="""<div><table cellpadding="0" align="center" width="600" style="background:#fff;width:600px;margin:0 auto;text-align:left;position:relative;font-size:14px; font-family:'lucida Grande',Verdana;line-height:1.5;box-shadow:0 0 5px #999999;border-collapse:collapse;">
+    <tbody><tr><th valign="middle" style="height:12px;color:#fff; font-size:14px;font-weight:bold;text-align:left;border-bottom:1px solid #467ec3;background:#2196f3;">
+    </th></tr><tr><td><div style="padding:30px  40px;"><img style="float:left;" src="http://www.baimaohui.net/home/image/icon-anquan-logo.png?imageView2">
+    <br><br><br><br><h2 style="font-weight:bold; font-size:14px;margin:5px 0;font-family:PingFang-SC-Regular">您好：</h2>
+    <p style="color:#31424e;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">您正在注册vulfocus，请在5分钟之内点击下方的按钮激活您的账号。</p>
+    <a href="http://10.10.11.20:8080/#/activate?code={code}" style="color: #e21c23;text-decoration: underline;text-decoration: none;">
+    <div style="height: 36px;line-height:36px;width:160px;border-radius:2px;margin:0 auto;margin-top: 30px;font-size: 16px;background:#2196f3;text-align: center;color: #FFF;">激活账户</div></a>
+    <p style="color:#31424e;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">如果上方按钮不起作用，请复制到您的浏览器中打开。</p>
+    <p style="color:#2196f3;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">http://10.10.11.20:8080/#/activate?code={code}</p>
+    </div><div style="background: #f1f1f1;padding: 30px 40px;"><p style="color:#798d99; font-size:12px;padding: 0;margin: 0;">
+    Vulfocus 漏洞平台：<a href="http://vulfocus.fofa.so/#/" target="_blank" style="color:#999;text-decoration: none;">http://vulfocus.fofa.so/#/</a><br>
+    <span style="background:#ddd;height:1px;width:100%;overflow:hidden;display:block;margin:8px 0;"></span>
+    Vulfocus 是一个漏洞集成平台，将漏洞环境 docker 镜像，放入即可使用，开箱即用。<br></p><div class="cons_list" style="text-align: center; margin: 48px 0;">
+    <a href="http://vulfocus.fofa.so/#/" style="text-decoration: none;"><img src="http://www.baimaohui.net/home/image/icon-anquan-logo.png" style="width:42px; height:42px; display: inline-block;">
+    <p style="width:100%;text-align: center;margin: 20px 0 0 0;"><a href="http://vulfocus.fofa.so/#/" style="border-right: 1px solid #ccc;  font-size:14px;margin: 0; font-weight:500; color:rgba(180,189,194,1); padding: 0 10px;text-decoration: none;">vulfocus首页</a>
+    </p></div></div></td></tr></tbody></table>
+    </div>""" .format(code=code)
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
+
+
+class AccessUpdataLinkView(View):
+    def get(self,request):
+        '''
+        验证链接是否有效
+        '''
+        code=request.GET.get("code","")
+        if not EmailCode.objects.filter(code=code).count():
+            return JsonResponse({"code": 400, "msg": "该链接不存在或失效"})
+        email_instance = EmailCode.objects.get(code=code)
+        user = email_instance.user
+        five_minutes_ago = datetime.now() - timedelta(minutes=5)
+        if email_instance.add_time <= five_minutes_ago:
+            return JsonResponse({"code": 400, "msg": "链接已过期"})
+        return JsonResponse({"code": 200, "msg": "ok"})
+
+
+@api_view(http_method_names=["POST"])
+def upload_user_img(request):
+    user = request.user
+    img = request.data.get("img")
+    if not img:
+        return JsonResponse({"code": 400, "msg": "请上传图片"})
+    img_name = img.name
+    img_suffix = img_name.split(".")[-1]
+    if img_suffix not in ALLOWED_IMG_SUFFIX:
+        return JsonResponse({"code": 400, "msg": "不支持此格式图片，请上传%s格式图片" % ("、".join(ALLOWED_IMG_SUFFIX))})
+    img_name = str(uuid.uuid4()).replace("-", "")+"."+img_suffix
+    static_path = os.path.join(BASE_DIR, "static", "user")
+    if not os.path.exists(static_path):
+        os.mkdir(static_path)
+    #  判断用户是否更新过头像
+    if user.avatar != "http://www.baimaohui.net/home/image/icon-anquan-logo.png":
+        origin_img_path = user.avatar.split("user")[-1]
+        os.remove(static_path+origin_img_path)
+    with open(os.path.join(static_path, img_name), "wb") as f:
+        for chunk in img.chunks():
+            f.write(chunk)
+    user.avatar = "http://10.10.11.20:8003/static/user/" + img_name
+    user.save()
+    return JsonResponse({"code": 200, "msg": "上传成功", "image_path": img_name})

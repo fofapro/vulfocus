@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function login(data) {
   return request({
-    url: '/user/login',
+    url: '/login/',
     method: 'post',
     data
   })
@@ -101,4 +101,34 @@ export function send_reg_mail(data) {
     data
   })
 }
+
+export function get_captcha() {
+  return request({
+    url:'refresh_captcha/',
+    method:'get',
+  })
+}
+
+
+export function accessUpdateCode(code) {
+  if(code === undefined || code == null){
+    code = "";
+  }
+  return request({
+    url: '/accessupdatelink?'+"code="+code,
+    method: 'get',
+  })
+}
+
+export function uploaduserimgae(data) {
+  return request({
+    url: '/uploaduserimg/',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data
+  })
+}
+
 

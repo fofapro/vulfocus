@@ -15,13 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from rest_framework import routers
-from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs
+from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs, DashboardView, get_writeup_info
 from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset, AccessLinkView, send_register_email
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView, MyCode
 from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
 from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose
+from user.views import refresh_captcha, AccessUpdataLinkView, upload_user_img
 
 router = routers.DefaultRouter()
 router.register('images', ImageInfoViewSet, basename='Images')
@@ -46,6 +47,7 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^user/login', obtain_jwt_token),
     url(r'^user/logout', LogoutView.as_view(), name="logout"),
+    url(r'^img/dashboard', DashboardView.as_view()),
     url(r'^user/info', get_user_info.as_view()),
     url(r'^rank/user', get_user_rank.as_view()),
     url(r'setting/get', get_setting),
@@ -61,4 +63,9 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r"accesslink",AccessLinkView.as_view()),
     url(r'send_register_email', send_register_email),
+    url(r'captcha/', include("captcha.urls")),
+    url(r'refresh_captcha/', refresh_captcha),
+    url(r"accessupdatelink",AccessUpdataLinkView.as_view()),
+    url(r'uploaduserimg',upload_user_img),
+    url(r'get_writeup', get_writeup_info),
 ]

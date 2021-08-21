@@ -53,9 +53,9 @@ const actions = {
     })
   },
   register({ commit }, userInfo) {
-    const { name,pass,checkpass,email,code} = userInfo
+    const { name,pass,checkpass,email,captcha_code,hashkey} = userInfo
     return new Promise((resolve, reject) => {
-      register({ username: name.trim(), password: pass ,email:email, checkpass:checkpass, code:code}).then(response => {
+      register({ username: name.trim(), password: pass ,email:email, checkpass:checkpass, captcha_code:captcha_code, hashkey:hashkey }).then(response => {
         resolve(response)
       }).catch(error => {
         reject(error)

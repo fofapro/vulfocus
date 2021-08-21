@@ -10,11 +10,11 @@
             <el-form-item label="名称" prop="tag1">
               <el-input v-model="composeForm.tag1" placeholder="eg. redis:latest"></el-input>
             </el-form-item>
-            <el-form-item label="分类">
-              <el-select v-model="composeForm.degree" style="width: 300px" multiple filterable allow-create default-first-option placeholder="请选择镜像标签" >
-                <el-option v-for="item in degreeList" :key="item.value" :label="item.label" :value="item.value"> </el-option>
-              </el-select>
-            </el-form-item>
+<!--            <el-form-item label="分类">-->
+<!--              <el-select v-model="composeForm.degree" style="width: 300px" multiple filterable allow-create default-first-option placeholder="请选择镜像标签" >-->
+<!--                <el-option v-for="item in degreeList" :key="item.value" :label="item.label" :value="item.value"> </el-option>-->
+<!--              </el-select>-->
+<!--            </el-form-item>-->
             <el-form-item label="Rank">
               <el-input-number v-model="composeForm.rank" :min="0.0" :max="5.0" :precision="1" :step="0.5" size="mini"></el-input-number>
               <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
