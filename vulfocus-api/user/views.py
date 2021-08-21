@@ -483,6 +483,6 @@ def upload_user_img(request):
     with open(os.path.join(static_path, img_name), "wb") as f:
         for chunk in img.chunks():
             f.write(chunk)
-    user.avatar = "http://10.10.11.20:8003/static/user/" + img_name
+    user.avatar = "http://127.0.0.1:8000/static/user/" + img_name
     user.save()
     return JsonResponse({"code": 200, "msg": "上传成功", "image_path": img_name})

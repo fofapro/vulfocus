@@ -108,7 +108,6 @@ export function get_captcha() {
     method:'get',
   })
 }
-<<<<<<< HEAD
 
 
 export function accessUpdateCode(code) {
@@ -132,6 +131,3 @@ export function uploaduserimgae(data) {
   })
 }
 
-
-=======
->>>>>>> 6df3867c52ce6dba46b5270aab94198c7f78c1d9

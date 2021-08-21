@@ -1391,7 +1391,7 @@
       handleInputConfirm2(tag) {
         let inputValue = this.inputValue2;
         if (tag === 'newtag'){
-          this.vulInfo.HoleType.push(inputValue);
+          this.vulInfo.devLanguage.push(inputValue);
         }else {
           this.editVulInfo.devLanguage.push(inputValue);
         }
@@ -1401,7 +1401,7 @@
       handleInputConfirm3(tag) {
         let inputValue = this.inputValue3;
         if (tag === 'newtag'){
-          this.vulInfo.HoleType.push(inputValue);
+          this.vulInfo.devDatabase.push(inputValue);
         }else {
           this.editVulInfo.devDatabase.push(inputValue);
         }
@@ -1411,7 +1411,7 @@
       handleInputConfirm4(tag) {
         let inputValue = this.inputValue4;
         if (tag === 'newtag'){
-          this.vulInfo.HoleType.push(inputValue);
+          this.vulInfo.devClassify.push(inputValue);
         }else {
           this.editVulInfo.devClassify.push(inputValue);
         }

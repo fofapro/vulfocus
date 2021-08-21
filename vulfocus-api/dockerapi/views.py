@@ -1005,7 +1005,6 @@ class DashboardView(APIView):
             img = ImageInfoSerializer(imgs, context={'request': self.request}).data
             if user_info.greenhand != True:
                 del img['writeup_date']
-                del img['writeup_date_name']
                 del img['HoleType']
                 del img['devLanguage']
                 del img['devDatabase']
