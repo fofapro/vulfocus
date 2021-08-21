@@ -52,7 +52,7 @@
       </el-form-item>
       <el-form-item label="验证码" prop="captcha_code" style="margin-left: 12px;margin-right: 13px">
         <el-input type="text" v-model="ruleForm.captcha_code" autocomplete="off" class="captcha_code"></el-input>
-        <img v-bind:src=this.host+this.image_url style="height: 47px;width: 80px" class="captcha_img" @click="refresh_code">
+        <img v-bind:src=this.image_url style="height: 47px;width: 80px" class="captcha_img" @click="refresh_code">
       </el-form-item>
       <div align="center" style="padding-top: 20px">
       <el-button :loading="loading" type="primary" style="margin-bottom:30px;" @click.native.prevent="handleReg">注册</el-button>
@@ -97,7 +97,6 @@
       };
       return {
         image_url:'',
-        host:'http://localhost:8000',
         ruleForm: {
           name:'',
           pass: '',

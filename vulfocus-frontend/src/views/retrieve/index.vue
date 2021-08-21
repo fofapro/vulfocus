@@ -45,7 +45,7 @@
         </el-form-item>
         <el-form-item>
           <el-input ref="captcha_code" placeholder="请输入验证码" v-model="ruleForm.captcha_code" type="text" class="captcha_code"/>
-          <img v-bind:src=host+image_url class="captcha_img" @click="refresh_code">
+          <img v-bind:src=image_url class="captcha_img" @click="refresh_code">
         </el-form-item>
         <div style="padding-top: 10px;margin-left: 225px">
           <el-button @click="handleSendMail">发送邮件</el-button>
@@ -66,7 +66,6 @@ export default {
       passwordType: 'password',
       redirect: undefined,
       image_url: '',
-      host: 'http://localhost:8000',
       ruleForm: {
         username: '',
         captcha_code:'',
