@@ -127,6 +127,13 @@ export default {
         return false
       }
     },
+    refresh_code(){
+      get_captcha().then(response=>{
+        let data =response.data;
+        this.image_url = data.image_url;
+        this.ruleForm.hashkey = data.hashkey;
+      })
+    }
   }
 }
 </script>
@@ -216,11 +223,21 @@ $light_gray:#eee;
         width: 252px;
         height: 48px;
       }
-  }
+    }
     .captcha_img {
       width: 80px;
       height: 48px;
       float: left;
+    input {
+      width: 252px;
+      height: 48px;
+    }
+  }
+    .captcha_img {
+    width: 80px;
+    height: 48px;
+    float: left;
+>>>>>>> 6df3867c52ce6dba46b5270aab94198c7f78c1d9
   }
   }
 

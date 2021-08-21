@@ -393,6 +393,7 @@ def send_register_email(request):
     except Exception as e:
         return JsonResponse({"code": 400, "msg": "邮件发送失败"})
 
+
 # 生成验证码
 def captcha():
     hashkey = CaptchaStore.generate_key()

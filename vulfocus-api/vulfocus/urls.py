@@ -18,7 +18,7 @@ from rest_framework import routers
 from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs, DashboardView, get_writeup_info
 from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset, AccessLinkView, send_register_email
 from rest_framework_jwt.views import obtain_jwt_token
-from user.views import get_user_info, LogoutView, MyCode
+from user.views import get_user_info, LogoutView, MyCode, refresh_captcha
 from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
 from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose
