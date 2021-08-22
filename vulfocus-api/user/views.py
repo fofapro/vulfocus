@@ -16,7 +16,7 @@ from django.views.generic.base import View
 from user.models import UserProfile, EmailCode,  RegisterCode
 from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from rest_framework import permissions, status
-from vulfocus.settings import EMAIL_FROM
+from vulfocus.settings import EMAIL_FROM, EMAIL_HOST, EMAIL_HOST_USER
 from dockerapi.common import R
 from dockerapi.models import ContainerVul
 from vulfocus.settings import REDIS_IMG as r_img
@@ -121,46 +121,6 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_classes = []
     queryset = UserProfile.objects.all()
     serializer_class = UserRegisterSerializer
-
-    def create(self, request, *args, **kwargs):
-        username = request.data.get("username", "")
-        password = request.data.get("password", "")
-        checkpass = request.data.get("checkpass", "")
-        email = request.data.get("email", "")
-        captcha_code = request.data.get("captcha_code", "")
-        hashkey = request.data.get("hashkey", "")
-        if not username:
-            return JsonResponse({"code": 400, "msg": "用户名不能为空"})
-        if UserProfile.objects.filter(username=username).count():
-            return JsonResponse({"code": 400, "msg": "该用户已被注册"})
-        if not email:
-            return JsonResponse({"code": 400, "msg": "邮箱不能为空"})
-        if UserProfile.objects.filter(email=email, has_active=True).count():
-            return JsonResponse({"code": 400, "msg": "该邮箱已被注册"})
-        if not captcha_code:
-            return JsonResponse({"code": 400, "msg": "验证码不能为空"})
-        if not judge_captcha(captcha_code, hashkey):
-            return JsonResponse({"code": 400, "msg": "验证码错误"})
-        if password != checkpass:
-            return JsonResponse({"code": 400, "msg": "两次密码输入不一致"})
-        code = generate_code(6)
-        keys = red_user_cache.keys()
-        for single_key in keys:
-            try:
-                single_user_info = red_user_cache.get(single_key)
-                redis_username, redis_password, redis_email = single_user_info.split("-")
-                if username == redis_username:
-                    return JsonResponse({"code": 400, "msg": "该用户已被注册"})
-                if redis_email == email:
-                    return JsonResponse({"code": 400, "msg": "该邮箱已被注册"})
-            except Exception as e:
-                return JsonResponse({"code": 400, "msg": "用户注册失败"})
-        # serializer = self.get_serializer(data=request.data)
-        #         # serializer.is_valid(raise_exception=True)
-        #         # self.perform_create(serializer)
-        red_user_cache.set(code, username+"-"+password+"-"+email, ex=300)
-        send_activate_email(receiver_email=email, code=code, request=request)
-        return JsonResponse({"code": 200, "msg": "注册成功"})
 
 
 # 定义一验证码
@@ -273,17 +233,11 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
     permission_classes = []
 
     def create(self, request, *args, **kwargs):
-        from_url = request.META.get('HTTP_REFERER')
+        print(request.META)
+        from_origin = request.META.get('HTTP_REFERER')
         serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         username = request.data.get("username", None)
-        hashkey = request.data.get("hashkey", "")
-        captcha_code = request.data.get("captcha_code", "")
-        if not hashkey:
-            return JsonResponse({"code": 400, "msg": "验证码哈希值不能为空"})
-        if not captcha_code:
-            return JsonResponse({"code": 400, "msg": "验证码不能为空"})
-        if not judge_captcha(captcha_code, hashkey):
-            return JsonResponse({"code": 400, "msg": "验证码输入错误"})
         if not User.objects.filter(username=username).count():
             return JsonResponse({"code": 400, "msg": "该用户不存在"})
         user = User.objects.get(username=username)
@@ -298,11 +252,11 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
         if "qq.com" in user.email:
             try:
                 s = smtplib.SMTP("mx1.qq.com", timeout=10)
-                helo = s.docmd('HELO vulfocus.io')
+                helo = s.docmd('HELO {}'.format(EMAIL_HOST))
                 send_from = s.docmd('MAIL FROM:{}'.format(EMAIL_FROM))
-                message = MIMEText('请点击该链接{}#/updatepwd?code={}'.format(from_url, code) + '。有效期为5分钟', 'plain', 'utf-8')
+                message = MIMEText('请点击该链接{}#/updatepwd?code={}'.format(from_origin, code) + '。有效期为5分钟', 'plain', 'utf-8')
                 message['Subject'] = Header(u'找回密码', 'utf-8').encode()
-                send_from = s.sendmail(from_addr="service@vulfocus.io", to_addrs=user.email, msg=message.as_string())
+                send_from = s.sendmail(from_addr="{}".format(EMAIL_FROM), to_addrs=user.email, msg=message.as_string())
                 s.close()
             except smtplib.SMTPDataError as e:
                 return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
@@ -310,7 +264,7 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
             if not validate_email(user.email):
                 return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
             try:
-                send_mail(subject="找回密码", message='请点击该链接{}#/updatepwd?code={}'.format(from_url, code), from_email=EMAIL_FROM,
+                send_mail(subject="找回密码", message='请点击该链接{}#/updatepwd?code={}'.format(from_origin, code), from_email=EMAIL_FROM,
                           recipient_list=[user.email])
             except:
                 return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})

@@ -43,10 +43,6 @@
               style="width:100%"
             />
         </el-form-item>
-        <el-form-item>
-          <el-input ref="captcha_code" placeholder="请输入验证码" v-model="ruleForm.captcha_code" type="text" class="captcha_code"/>
-          <img v-bind:src=image_url class="captcha_img" @click="refresh_code">
-        </el-form-item>
         <div style="padding-top: 10px;margin-left: 225px">
           <el-button @click="handleSendMail">发送邮件</el-button>
         </div>
@@ -56,8 +52,7 @@
 </template>
 
 <script>
-import { sendMail,valMail,get_captcha } from "@/api/user"
-
+import { sendMail,valMail } from "@/api/user"
 export default {
   name: 'retrieve',
   data() {
@@ -65,11 +60,8 @@ export default {
       loading: false,
       passwordType: 'password',
       redirect: undefined,
-      image_url: '',
       ruleForm: {
         username: '',
-        captcha_code:'',
-        hashkey:'',
       },
       displayInput:false
     }
@@ -82,26 +74,11 @@ export default {
       immediate: true
     }
   },
-  created:function get_captcha_code(){
-    get_captcha().then(response=>{
-      let data = response.data;
-      this.image_url = data.image_url;
-      this.ruleForm.hashkey = data.hashkey;
-    })
-  },
   methods: {
     toLogin(){
       this.$router.push('/login')
     },
-    refresh_code(){
-      get_captcha().then(response=>{
-        let data =response.data;
-        this.image_url = data.image_url;
-        this.ruleForm.hashkey = data.hashkey;
-      })
-    },
     handleSendMail(){
-      this.refresh_code();
       if (this.ruleForm.username){
         sendMail(this.ruleForm).then(response =>{
         let data = response.data
@@ -133,17 +110,14 @@ export default {
 <style lang="scss">
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
-
 $bg:#283443;
 $light_gray:#fff;
 $cursor: #fff;
-
 @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
   .login-container .el-input input {
     color: $cursor;
   }
 }
-
 /* reset element-ui css */
 .login-container {
   .el-input {
@@ -160,26 +134,11 @@ $cursor: #fff;
       height: 48px;
       width: 332px;
       caret-color: $cursor;
-
       &:-webkit-autofill {
         box-shadow: 0 0 0px 1000px $bg inset !important;
         -webkit-text-fill-color: $cursor !important;
       }
     }
-  }
-  .captcha_code {
-    width: 252px;
-    float: left;
-    height: 48px;
-    input {
-      width: 252px;
-      height: 48px;
-    }
-  }
-  .captcha_img {
-    width: 80px;
-    height: 48px;
-    float: left;
   }
   .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -191,7 +150,6 @@ $cursor: #fff;
 </style>
 
 <style lang="scss" scoped>
-
 $bg:#2d3a4b;
 $dark_gray:#889aa4;
 $light_gray:#eee;
@@ -207,39 +165,17 @@ $light_gray:#eee;
     float:right;
     background-image: url("../../assets/loginl.png");
     background-size: 100% 100%;
-    .captcha_code {
-      width: 252px;
-      float: left;
-      height: 48px;
-      input {
-        width: 252px;
-        height: 48px;
-      }
-    }
-    .captcha_img {
-      width: 80px;
-      height: 48px;
-      float: left;
-    input {
-      width: 252px;
-      height: 48px;
-    }
   }
-  }
-
   .tips {
     font-size: 14px;
     color: #fff;
     margin-bottom: 10px;
-
     span {
       &:first-of-type {
         margin-right: 16px;
-
       }
     }
   }
-
   .svg-container {
     padding: 6px 5px 6px 15px;
     color: $dark_gray;
@@ -247,10 +183,8 @@ $light_gray:#eee;
     width: 48px;
     display: inline-block;
   }
-
   .title-container {
     position: relative;
-
     .title {
       font-size: 26px;
       color: $light_gray;
@@ -259,7 +193,6 @@ $light_gray:#eee;
       font-weight: bold;
     }
   }
-
   .show-pwd {
     position: absolute;
     right: 10px;

@@ -10,30 +10,24 @@ User = get_user_model()
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     # 利用drf中的validators验证username是否唯一
-    username = serializers.CharField(required=True, allow_blank=False, max_length=20,
+    username = serializers.CharField(required=True, allow_blank=False,
                                      validators=[UniqueValidator(queryset=User.objects.all(), message='用户已经存在')],
-                                     error_messages={"blank": "用户名不能为空", "required": "用户名不能为空",
-                                                     "max_length": "用户名不能超过20位"})
+                                     error_messages={"blank": "用户名不能为空", "required": "用户名不能为空"})
     password = serializers.CharField(
-         style={"input_type": "password"}, help_text="密码", label="密码", write_only=True, error_messages={"blank": "密码不能为空", "required": "密码不能为空"})
-    checkpass = serializers.CharField(style={"input_type_password"}, allow_blank=False, write_only=True)
-    captcha_code = serializers.CharField(required=True, allow_blank=False, write_only=True)
-    hashkey = serializers.CharField(required=True, allow_blank=False, write_only=True)
+         style={"input_type": "password"},help_text="密码", label="密码", write_only=True, error_messages={"blank": "密码不能为空", "required": "密码不能为空"}
+     )
+    email = serializers.EmailField(required=True, allow_blank=False,
+                                   validators=[UniqueValidator(queryset=User.objects.all(), message="该邮箱已经被注册")],
+                                   error_messages={"blank": "邮箱不能为空", "invalid": "邮箱格式错误", "required": "邮箱不能为空"})
     def create(self, validated_data):
-        username = validated_data["username"]
-        password = validated_data["password"]
-        email = validated_data["email"]
-        user = UserProfile(username=username, email=email)
-        user.set_password(password)
-        user.email = email
-        user.greenhand = True
-        user.has_active = False
-        user.save()
-        return user
+         user = super(UserRegisterSerializer, self).create(validated_data= validated_data)
+         user.set_password(validated_data["password"])
+         user.save()
+         return user
 
     class Meta:
          model = User
-         fields = ("username", "password", "checkpass", "captcha_code", "hashkey", "email")
+         fields = ("username","password","email")
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
