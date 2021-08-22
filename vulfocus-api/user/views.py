@@ -420,12 +420,8 @@ def judge_captcha(captchastr, captchahashkey):
 @authentication_classes([])
 @permission_classes([])
 def refresh_captcha(request):
-    from_ip = get_request_ip(request)
-    if from_ip == "127.0.0.1":
-        ip, port = request.get_host().split(":")
-    else:
-        port = request.get_host().split(":")[-1]
-        ip = get_local_ip()
+    port = request.get_host().split(":")[-1]
+    ip = get_local_ip()
     return JsonResponse(captcha(ip, port))
 
 def send_activate_email(receiver_email, code, request):
@@ -475,12 +471,8 @@ def upload_user_img(request):
     img = request.data.get("img")
     if not img:
         return JsonResponse({"code": 400, "msg": "请上传图片"})
-    from_ip = get_request_ip(request)
-    if from_ip == "127.0.0.1":
-        ip, port = request.get_host().split(":")
-    else:
-        port = request.get_host().split(":")[-1]
-        ip = get_local_ip()
+    port = request.get_host().split(":")[-1]
+    ip = get_local_ip()
     img_name = img.name
     img_suffix = img_name.split(".")[-1]
     if img_suffix not in ALLOWED_IMG_SUFFIX:
