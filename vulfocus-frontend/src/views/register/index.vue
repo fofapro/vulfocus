@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div class="reg-container">
     <div class="icon-con" style="float: right;margin-top: 0px" >
       <a href="https://github.com/fofapro/vulfocus" target="_blank" class="github-corner" aria-label="View source on Github">
         <svg
@@ -25,7 +25,7 @@
         </svg>
       </a >
     </div>
-    <el-form ref="ruleForm" :model="ruleForm" :rules="rules" class="login-form" auto-complete="on"  label-width="100px">
+    <el-form ref="ruleForm" :model="ruleForm" :rules="rules" class="reg-form" auto-complete="on"  label-width="100px">
       <div style="margin-right: 320px;margin-top: 10px">
         <i class="el-icon-back" @click="toLogin" style="font-size: 30px;color: #d3dce6" ></i>
       </div>
@@ -154,12 +154,12 @@
   $light_gray:#fff;
   $cursor: #fff;
   @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
-    .login-container .el-input input {
+    .reg-container .el-input input {
       color: #FFF;
     }
   }
   /* reset element-ui css */
-  .login-container {
+  .reg-container {
     .el-input {
       /*display: inline-block;*/
       height: 47px;
@@ -196,7 +196,7 @@
   $bg:#2d3a4b;
   $dark_gray:#889aa4;
   $light_gray:#eee;
-  .login-container {
+  .reg-container {
     min-height: 100%;
     width: 100%;
     height: 100%;
@@ -204,7 +204,7 @@
     overflow: hidden;
     background: url("../../assets/loginbackground.png") center no-repeat;
     background-size: 100%;
-    .login-form {
+    .reg-form {
       position: relative;
       width: 400px;
       height: 500px;
