@@ -143,7 +143,7 @@
           if (valid) {
             this.loading = true
             this.$store.dispatch('user/register', this.ruleForm).then(response => {
-              if (response.status === 200) {
+              if (response.data.code === 200) {
                 Message({
                   message:  '注册用户成功，请到邮箱激活您的账号',
                   type: 'success',

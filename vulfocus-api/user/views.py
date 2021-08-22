@@ -159,7 +159,7 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
         #         # serializer.is_valid(raise_exception=True)
         #         # self.perform_create(serializer)
         red_user_cache.set(code, username+"-"+password+"-"+email, ex=300)
-        send_activate_email(receiver_email=email, code=code)
+        send_activate_email(receiver_email=email, code=code, request=request)
         return JsonResponse({"code": 200, "msg": "注册成功"})
 
 
@@ -273,6 +273,7 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
     permission_classes = []
 
     def create(self, request, *args, **kwargs):
+        from_url = request.META.get('HTTP_REFERER')
         serializer = self.get_serializer(data=request.data)
         username = request.data.get("username", None)
         hashkey = request.data.get("hashkey", "")
@@ -299,7 +300,7 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
                 s = smtplib.SMTP("mx1.qq.com", timeout=10)
                 helo = s.docmd('HELO vulfocus.io')
                 send_from = s.docmd('MAIL FROM:{}'.format(EMAIL_FROM))
-                message = MIMEText('请点击该链接http://vulfocus.fofa.so/#/updatepwd?code={}'.format(code) + '。有效期为5分钟', 'plain', 'utf-8')
+                message = MIMEText('请点击该链接{}#/updatepwd?code={}'.format(from_url, code) + '。有效期为5分钟', 'plain', 'utf-8')
                 message['Subject'] = Header(u'找回密码', 'utf-8').encode()
                 send_from = s.sendmail(from_addr="service@vulfocus.io", to_addrs=user.email, msg=message.as_string())
                 s.close()
@@ -309,7 +310,7 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
             if not validate_email(user.email):
                 return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
             try:
-                send_mail(subject="找回密码", message='请点击该链接http://vulfocus.fofa.so/#/updatepwd?code={}'.format(code), from_email=EMAIL_FROM,
+                send_mail(subject="找回密码", message='请点击该链接{}#/updatepwd?code={}'.format(from_url, code), from_email=EMAIL_FROM,
                           recipient_list=[user.email])
             except:
                 return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
@@ -427,7 +428,8 @@ def refresh_captcha(request):
         ip = get_local_ip()
     return JsonResponse(captcha(ip, port))
 
-def send_activate_email(receiver_email, code):
+def send_activate_email(receiver_email, code, request):
+    from_url = request.META.get('HTTP_REFERER')
     subject, from_email, to = "用户注册", EMAIL_FROM, receiver_email
     msg = EmailMultiAlternatives(subject, '', from_email, [to])
     html_content ="""<div><table cellpadding="0" align="center" width="600" style="background:#fff;width:600px;margin:0 auto;text-align:left;position:relative;font-size:14px; font-family:'lucida Grande',Verdana;line-height:1.5;box-shadow:0 0 5px #999999;border-collapse:collapse;">
@@ -435,10 +437,10 @@ def send_activate_email(receiver_email, code):
     </th></tr><tr><td><div style="padding:30px  40px;"><img style="float:left;" src="http://www.baimaohui.net/home/image/icon-anquan-logo.png?imageView2">
     <br><br><br><br><h2 style="font-weight:bold; font-size:14px;margin:5px 0;font-family:PingFang-SC-Regular">您好：</h2>
     <p style="color:#31424e;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">您正在注册vulfocus，请在5分钟之内点击下方的按钮激活您的账号。</p>
-    <a href="http://vulfocus.fofa.so//#/activate?code={code}" style="color: #e21c23;text-decoration: underline;text-decoration: none;">
+    <a href="{from_url}#/activate?code={code}" style="color: #e21c23;text-decoration: underline;text-decoration: none;">
     <div style="height: 36px;line-height:36px;width:160px;border-radius:2px;margin:0 auto;margin-top: 30px;font-size: 16px;background:#2196f3;text-align: center;color: #FFF;">激活账户</div></a>
     <p style="color:#31424e;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">如果上方按钮不起作用，请复制到您的浏览器中打开。</p>
-    <p style="color:#2196f3;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">http://vulfocus.fofa.so/#/activate?code={code}</p>
+    <p style="color:#2196f3;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">{from_url}#/activate?code={code}</p>
     </div><div style="background: #f1f1f1;padding: 30px 40px;"><p style="color:#798d99; font-size:12px;padding: 0;margin: 0;">
     Vulfocus 漏洞平台：<a href="http://vulfocus.fofa.so/#/" target="_blank" style="color:#999;text-decoration: none;">http://vulfocus.fofa.so/#/</a><br>
     <span style="background:#ddd;height:1px;width:100%;overflow:hidden;display:block;margin:8px 0;"></span>
@@ -446,7 +448,7 @@ def send_activate_email(receiver_email, code):
     <a href="http://vulfocus.fofa.so/#/" style="text-decoration: none;"><img src="http://www.baimaohui.net/home/image/icon-anquan-logo.png" style="width:42px; height:42px; display: inline-block;">
     <p style="width:100%;text-align: center;margin: 20px 0 0 0;"><a href="http://vulfocus.fofa.so/#/" style="border-right: 1px solid #ccc;  font-size:14px;margin: 0; font-weight:500; color:rgba(180,189,194,1); padding: 0 10px;text-decoration: none;">vulfocus首页</a>
     </p></div></div></td></tr></tbody></table>
-    </div>""" .format(code=code)
+    </div>""" .format(from_url=from_url, code=code)
     msg.attach_alternative(html_content, "text/html")
     msg.send()
 
