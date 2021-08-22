@@ -36,7 +36,7 @@
             <el-menu-item class="nest-menu" >
               <div style="margin-left: 15%">
                 <i class="el-icon-collection-tag" style="color: rgb(191, 203, 217);"></i>
-                <span slot="title" style="color: rgb(191, 203, 217); ">  v3.2.6</span>
+                <span slot="title" style="color: rgb(191, 203, 217); ">  v3.2.7</span>
               </div>
             </el-menu-item>
           </el-menu>

@@ -658,7 +658,6 @@ export default {
       },
       closeDrawer(done){
         this.drawer=false
-        this.reload()
       },
       openDrawer(){
         getWriteup(this.images_id).then(response => {
