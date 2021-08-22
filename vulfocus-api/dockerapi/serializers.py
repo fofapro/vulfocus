@@ -14,7 +14,7 @@ import time
 import datetime
 import yaml
 r = redis.Redis(connection_pool=REDIS_POOL)
-
+from user.models import UserProfile
 
 class TimeTempSerializer(serializers.ModelSerializer):
     time_img_type = serializers.SerializerMethodField('typeck')
@@ -43,6 +43,7 @@ class TimeTempSerializer(serializers.ModelSerializer):
 class TimeRankSerializer(serializers.ModelSerializer):
     flag_s = serializers.SerializerMethodField('flag_status')
     name = serializers.SerializerMethodField("a_user_name")
+    image_url = serializers.SerializerMethodField('get_user_avatar')
 
     class Meta:
         model = TimeRank
@@ -55,6 +56,10 @@ class TimeRankSerializer(serializers.ModelSerializer):
     def a_user_name(self, obj):
         name = obj.user_name
         return name
+
+    def get_user_avatar(self, obj):
+        user = UserProfile.objects.filter(username=obj.user_name).first()
+        return user.avatar
 
 class TimeMoudelSerializer(serializers.ModelSerializer):
 
