@@ -20,7 +20,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="rank" label="积分"></el-table-column>
-      <el-table-column prop="pass_container_count" label="通过数量"></el-table-column>
+      <el-table-column prop="pass_container_count" label="通过数量" v-if="pass_vul_show"></el-table-column>
     </el-table>
     <div style="margin-top: 20px">
       <el-pagination
@@ -51,7 +51,8 @@
         status:"all",
         value: "",
         selectState:"",
-        test:[]
+        test:[],
+        pass_vul_show:true
       }
     },
     created(){
@@ -67,6 +68,7 @@
           timeranklist(this.value).then(response => {
             this.tableData = response.data.results
             this.page.total = response.data.count
+            this.pass_vul_show=false
           })
         }
       },
@@ -82,7 +84,7 @@
           this.page.total = response.data.data.count
           this.page.currentPageNum = page
         })
-      }
+      },
     }
   }
 </script>
