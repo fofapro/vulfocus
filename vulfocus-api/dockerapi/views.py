@@ -28,7 +28,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from tasks.tasks import start_docker_compose
 from layout_image.bridge import get_project
-
+from django.core.paginator import Paginator
 
 
 def get_request_ip(request):
@@ -118,14 +118,28 @@ class CreateTimeTemplate(viewsets.ModelViewSet):
         return JsonResponse({"code": 200, "message": "删除成功"})
 
 
-class TimeRankSet(viewsets.ModelViewSet):
+class TimeRankSet(APIView):
     serializer_class = TimeRankSerializer
 
-    def get_queryset(self):
+    def get(self, request):
         value = self.request.GET.get("value")
+        page = self.request.GET.get("page", 1)
+        if page:
+            min_size = (int(page) - 1) * 20
+            max_size = int(page) * 20
+        else:
+            min_size = 0
+            max_size = 20
         time_data = TimeTemp.objects.all().filter(name=value).first()
-        temp_data = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank")
-        return temp_data
+        if not time_data:
+            time_data = TimeTemp.objects.all().filter(time_desc=value).first()
+        count = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank").count()
+        temp_data = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank")[min_size:max_size]
+        temp_list = []
+        for tmp in temp_data:
+            temp = TimeRankSerializer(tmp).data
+            temp_list.append(temp)
+        return JsonResponse({'results': temp_list, 'count': count})
 
 
 class TimeMoudelSet(viewsets.ModelViewSet):

@@ -19,6 +19,7 @@ from user.models import UserProfile
 class TimeTempSerializer(serializers.ModelSerializer):
     time_img_type = serializers.SerializerMethodField('typeck')
     rank_range = serializers.SerializerMethodField('rankck')
+    name = serializers.SerializerMethodField('name_ck')
 
     def typeck(self, obj):
         img_d = obj.time_img_type
@@ -34,6 +35,15 @@ class TimeTempSerializer(serializers.ModelSerializer):
                 return float(obj.rank_range)
             except Exception as e:
                 return 0.0
+
+    def name_ck(self, obj):
+        name = obj.name.rstrip()
+        try:
+            if not name:
+                name = obj.time_desc
+            return name
+        except:
+            return name
 
     class Meta:
         model = TimeTemp

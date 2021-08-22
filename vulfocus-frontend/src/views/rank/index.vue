@@ -56,7 +56,8 @@
       }
     },
     created(){
-      this.initUserList(1)
+      // this.initUserList(1)
+      this.getUserlist(1)
       this.templist()
     },
     methods:{
@@ -68,9 +69,18 @@
           timeranklist(this.value).then(response => {
             this.tableData = response.data.results
             this.page.total = response.data.count
+            this.page.currentPageNum = 1
             this.pass_vul_show=false
           })
         }
+      },
+      getUserlist(page){
+        this.value = "总榜"
+        userranklist(page).then(response => {
+          this.tableData = response.data.data.results
+          this.page.total = response.data.data.count
+          this.page.currentPageNum = page
+        })
       },
       templist(){
         timetemplist(true).then(response =>{
@@ -78,12 +88,19 @@
           })
       },
       initUserList(page){
-        this.value ='总榜'
+        if (this.value === '总榜'){
         userranklist(page).then(response => {
           this.tableData = response.data.data.results
           this.page.total = response.data.data.count
           this.page.currentPageNum = page
-        })
+        })}else {
+          timeranklist(this.value,page).then(response => {
+            this.tableData = response.data.results
+            this.page.total = response.data.count
+            this.page.currentPageNum = page
+            this.pass_vul_show=false
+          })
+        }
       },
     }
   }

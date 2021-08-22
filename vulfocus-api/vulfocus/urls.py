@@ -36,7 +36,6 @@ router.register('layout', LayoutViewSet, basename="layout")
 router.register('time', TimeMoudelSet, basename="time")
 router.register('timetemp', CreateTimeTemplate, basename="timetmep")
 router.register('userrank', UserRank, basename="user_rank")
-router.register('timerank', TimeRankSet, basename="time_rankset")
 router.register("changepassword",UpdatePassViewset,basename="changepassword")
 #自定义登录
 router.register("login",LoginViewset,basename="login")
@@ -68,4 +67,5 @@ urlpatterns = [
     url(r"accessupdatelink",AccessUpdataLinkView.as_view()),
     url(r'uploaduserimg',upload_user_img),
     url(r'get_writeup', get_writeup_info),
+    url(r'timerank', TimeRankSet.as_view())
 ]
