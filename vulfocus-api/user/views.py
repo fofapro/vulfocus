@@ -41,7 +41,7 @@ from captcha.models import CaptchaStore
 from captcha.helpers import captcha_image_url
 from vulfocus.settings import REDIS_USER_CACHE as red_user_cache
 from vulfocus.settings import ALLOWED_IMG_SUFFIX, BASE_DIR
-
+from dockerapi.views import get_local_ip, get_request_ip
 
 class ListAndUpdateViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
@@ -419,7 +419,12 @@ def judge_captcha(captchastr, captchahashkey):
 @authentication_classes([])
 @permission_classes([])
 def refresh_captcha(request):
-    ip, port = request.get_host().split(":")
+    from_ip = get_request_ip(request)
+    if from_ip == "127.0.0.1":
+        ip, port = request.get_host().split(":")
+    else:
+        port = request.get_host().split(":")[-1]
+        ip = get_local_ip()
     return JsonResponse(captcha(ip, port))
 
 def send_activate_email(receiver_email, code):
@@ -468,7 +473,12 @@ def upload_user_img(request):
     img = request.data.get("img")
     if not img:
         return JsonResponse({"code": 400, "msg": "请上传图片"})
-    ip, port = request.get_host().split(":")
+    from_ip = get_request_ip(request)
+    if from_ip == "127.0.0.1":
+        ip, port = request.get_host().split(":")
+    else:
+        port = request.get_host().split(":")[-1]
+        ip = get_local_ip()
     img_name = img.name
     img_suffix = img_name.split(".")[-1]
     if img_suffix not in ALLOWED_IMG_SUFFIX:
