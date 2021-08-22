@@ -171,8 +171,8 @@
         border-radius: 0px;
         padding: 12px 5px 12px 15px;
         color: $light_gray;
-        height: 47px;
-        line-height: 47px;
+        height: 100%;
+        line-height: 50px;
         caret-color: $cursor;
         &:-webkit-autofill {
           box-shadow: 0 0 0px 1000px $bg inset !important;
@@ -207,9 +207,9 @@
     .reg-form {
       position: relative;
       width: 400px;
-      height: 500px;
+      height: 580px;
       max-width: 80%;
-      margin: 180px;
+      margin: 150px;
       overflow: hidden;
       float:right;
       background-image: url("../../assets/loginl.png");
