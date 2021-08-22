@@ -48,12 +48,12 @@
       </div>
     </el-dialog>
     <el-card class="box-card">
-    <el-row v-if="this.countlist.length===0">
-      <div style="margin-left: 10px">
-        <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
-        <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
-          查询
-        </el-button>
+      <el-row v-if="this.countlist.length===0">
+        <div style="margin-left: 10px">
+          <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
+          <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
+            查询
+          </el-button>
           <el-button  id="first-bmh" type="primary" style="left: 10px;display:none" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
         </div>
       </el-row>

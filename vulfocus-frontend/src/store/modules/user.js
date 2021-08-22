@@ -77,6 +77,7 @@ const actions = {
         commit('SET_RANK', rank)
         commit("SET_ROLES", roles)
         commit("SET_EMAIL", email)
+        commit("SET_GREENHAND", greenhand)
         resolve(data)
       }).catch(error => {
         reject(error)
