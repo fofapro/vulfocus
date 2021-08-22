@@ -63,8 +63,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
         user_id = obj.id
         successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="").values('image_id').distinct()
         if successful:
-            img = ImageInfo.objects.filter(image_id=i['image_id']).first()
-            rank += img.rank
+            for i in successful:
+                img = ImageInfo.objects.filter(image_id=i['image_id']).first()
+                rank += img.rank
         return rank
 
     def rankCount(self, obj):

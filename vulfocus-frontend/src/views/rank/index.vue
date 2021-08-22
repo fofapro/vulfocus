@@ -5,7 +5,7 @@
       <el-option v-for="item in options" :key="item.name" :label="item.name" :value="item.name">{{item.name}}</el-option>
     </el-select>
     <el-table :data="tableData" border stripe style="margin-top: 20px" >
-      <el-table-column type="index" label="排名" width="200">
+      <el-table-column type="index" label="排名" width="100px">
         <template slot-scope="scope">
           <p v-if="page.currentPageNum*page.size+scope.$index+1-page.size>=4" style="margin-left:17px">{{page.currentPageNum*page.size+scope.$index+1-page.size}}</p>
           <svg-icon icon-class="trophy1" v-if="page.currentPageNum*page.size+scope.$index+1-page.size===1"  style="width: 50px;height: 50px"/>
