@@ -398,6 +398,8 @@ def send_register_email(request):
 def captcha(ip,port):
     hashkey = CaptchaStore.generate_key()
     image_url = captcha_image_url(hashkey)
+    with open('./'+image_url, 'rb') as f:
+        print(f.read().hex())
     captcha_code = {"hashkey": hashkey, "image_url": "http://{ip}:{port}".format(ip=ip,port=port)+image_url}
     return captcha_code
 
@@ -488,6 +490,6 @@ def upload_user_img(request):
     with open(os.path.join(static_path, img_name), "wb") as f:
         for chunk in img.chunks():
             f.write(chunk)
-    user.avatar = "http://{ip}:{port}/static/user/".format(ip=ip, port=port) + img_name
+    user.avatar = '/images/user/' + img_name
     user.save()
     return JsonResponse({"code": 200, "msg": "上传成功", "image_path": img_name})
