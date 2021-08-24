@@ -90,11 +90,13 @@ class get_user_rank(APIView):
         for _data in list(page):
             user_info = UserProfile.objects.filter(id=_data["user_id"]).first()
             username = ""
+            pass_container_vuls = ""
+            user_avatar = ""
             if user_info:
                 username = user_info.username
                 user_avatar = user_info.avatar
                 pass_container_vuls = ContainerVul.objects.filter(is_check=True, user_id=user_info.id, time_model_id='').values('image_id').distinct().count()
-            result.append({"rank": _data["score"], "name": username, "image_url": user_avatar,"pass_container_count": pass_container_vuls})
+            result.append({"rank": _data["score"], "name": username, "image_url": user_avatar, "pass_container_count": pass_container_vuls})
 
         data = {
             'results': result,
@@ -122,6 +124,42 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserRegisterSerializer
 
+    def create(self, request, *args, **kwargs):
+        username = request.data.get("username", "")
+        password = request.data.get("password", "")
+        checkpass = request.data.get("checkpass", "")
+        email = request.data.get("email", "")
+        captcha_code = request.data.get("captcha_code", "")
+        hashkey = request.data.get("hashkey", "")
+        if not username:
+            return JsonResponse({"code": 400, "msg": "用户名不能为空"})
+        if UserProfile.objects.filter(username=username).count():
+            return JsonResponse({"code": 400, "msg": "该用户已被注册"})
+        if not email:
+            return JsonResponse({"code": 400, "msg": "邮箱不能为空"})
+        if UserProfile.objects.filter(email=email, has_active=True).count():
+            return JsonResponse({"code": 400, "msg": "该邮箱已被注册"})
+        if not captcha_code:
+            return JsonResponse({"code": 400, "msg": "验证码不能为空"})
+        if not judge_captcha(captcha_code, hashkey):
+            return JsonResponse({"code": 400, "msg": "验证码错误"})
+        if password != checkpass:
+            return JsonResponse({"code": 400, "msg": "两次密码输入不一致"})
+        code = generate_code(6)
+        keys = red_user_cache.keys()
+        for single_key in keys:
+            try:
+                single_user_info = red_user_cache.get(single_key)
+                redis_username, redis_password, redis_email = single_user_info.split("-")
+                if username == redis_username:
+                    return JsonResponse({"code": 400, "msg": "该用户已被注册"})
+                if redis_email == email:
+                    return JsonResponse({"code": 400, "msg": "该邮箱已被注册"})
+            except Exception as e:
+                return JsonResponse({"code": 400, "msg": "用户注册失败"})
+        red_user_cache.set(code, username+"-"+password+"-"+email, ex=300)
+        send_activate_email(receiver_email=email, code=code,request=request)
+        return JsonResponse({"code": 200, "msg": "注册成功"})
 
 # 定义一验证码
 class MyCode(View):
@@ -349,12 +387,10 @@ def send_register_email(request):
 
 
 # 生成验证码
-def captcha(ip,port):
+def captcha():
     hashkey = CaptchaStore.generate_key()
     image_url = captcha_image_url(hashkey)
-    with open('./'+image_url, 'rb') as f:
-        print(f.read().hex())
-    captcha_code = {"hashkey": hashkey, "image_url": "http://{ip}:{port}".format(ip=ip,port=port)+image_url}
+    captcha_code = {"hashkey": hashkey, "image_url": image_url}
     return captcha_code
 
 
@@ -376,9 +412,7 @@ def judge_captcha(captchastr, captchahashkey):
 @authentication_classes([])
 @permission_classes([])
 def refresh_captcha(request):
-    port = request.get_host().split(":")[-1]
-    ip = get_local_ip()
-    return JsonResponse(captcha(ip, port))
+    return JsonResponse(captcha())
 
 def send_activate_email(receiver_email, code, request):
     from_url = request.META.get('HTTP_REFERER')
