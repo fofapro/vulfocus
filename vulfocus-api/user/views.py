@@ -277,8 +277,15 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
     def create(self, request, *args, **kwargs):
         http_referer = request.META.get('HTTP_REFERER')
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         username = request.data.get("username", None)
+        hashkey = request.data.get("hashkey", "")
+        captcha_code = request.data.get("captcha_code", "")
+        if not hashkey:
+            return JsonResponse({"code": 400, "msg": "验证码哈希值不能为空"})
+        if not captcha_code:
+            return JsonResponse({"code": 400, "msg": "验证码不能为空"})
+        if not judge_captcha(captcha_code, hashkey):
+            return JsonResponse({"code": 400, "msg": "验证码输入错误"})
         if not User.objects.filter(username=username).count():
             return JsonResponse({"code": 400, "msg": "该用户不存在"})
         user = User.objects.get(username=username)
@@ -297,8 +304,7 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
                 send_from = s.docmd('MAIL FROM:<{}>'.format(EMAIL_HOST_USER))
                 message = MIMEText('请点击该链接{http_referer}#/updatepwd?code={code}'.format(http_referer=http_referer, code=code) + '。有效期为5分钟', 'plain', 'utf-8')
                 message['Subject'] = Header(u'找回密码', 'utf-8').encode()
-                send_from = s.sendmail(from_addr="{}".format(EMAIL_HOST_USER), to_addrs=user.email,
-                                       msg=message.as_string())
+                send_from = s.sendmail(from_addr="{}".format(EMAIL_HOST_USER), to_addrs=user.email, msg=message.as_string())
                 s.close()
             except smtplib.SMTPDataError as e:
                 return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
@@ -306,9 +312,7 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
             if not validate_email(user.email):
                 return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
             try:
-                send_mail(subject="找回密码",
-                          message="{http_referer}#/updatepwd?code={code}。有效期为5分钟".format(http_referer=http_referer, code=code),
-                          from_email=EMAIL_FROM,
+                send_mail(subject="找回密码", message="{http_referer}#/updatepwd?code={code}。有效期为5分钟".format(http_referer=http_referer, code=code), from_email=EMAIL_FROM,
                           recipient_list=[user.email])
             except:
                 return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
