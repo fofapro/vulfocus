@@ -690,11 +690,16 @@ class LayoutViewSet(viewsets.ModelViewSet):
             if user_info:
                 username = user_info.username
             result.append({"score": _data["score"], "username": username})
+        if score_count == 0:
+            score = 0
+        else:
+            score = (round(score_count/score_total_count, 2)*100)
         return JsonResponse({
             "result": result,
             "count": pages.count,
             "current": current_rank,
-            "progress": "%s/%s" % (score_count, score_total_count,),
+            # "progress": "%s/%s" % (score_count, score_total_count,),
+            "progress": "%s" % score,
             "score": current_score
         })
 

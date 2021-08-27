@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     <el-dialog :visible.sync="centerDialogVisible" @close="handleDialogClose"  title="镜像信息">
-      <i  class="el-icon-reading"  v-model="drawer" @click="openDrawer" style="position:absolute;z-index: 9999;color: rgb(140, 197, 255);left:100px;top: 21px;font-size: 20px"></i>
+      <i  class="el-icon-reading" v-if="this.countlist.length===0" v-model="drawer" @click="openDrawer" style="position:absolute;z-index: 9999;color: rgb(140, 197, 255);left:100px;top: 21px;font-size: 20px"></i>
       <div class="text item" v-loading="startCon" element-loading-text="环境启动中" >
         <div class="text item">
           访问地址: {{vul_host}}
@@ -47,43 +47,58 @@
         </div>
       </div>
     </el-dialog>
-    <el-card class="box-card">
-      <el-row :gutter="6" v-if="this.countlist.length===0">
-      <el-col :span="2">
-          <ul style="width: 100%;color: #606266" >模糊查询</ul>
-      </el-col>
-      <el-col :span="22">
+    <el-card class="box-card"  v-if="this.countlist.length===0">
+      <div style="margin-left: 10px">
         <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
         <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
           查询
         </el-button>
-        <el-button id="first-bmh" type="primary" style="left: 10px;" size="medium" @click="showTips" >新手引导</el-button>
-      </el-col>
-    </el-row>
-      <el-row :gutter=6 style="margin-top: 6px" v-if="this.countlist.length===0">
-      <el-col :span=2>
-        <ul style="width: 100%;color: #606266" >难易程度</ul>
-      </el-col>
-      <el-col :span=1.5 style="margin-left: 6px">
-        <el-radio-group v-model="searchForm.rank_range" size="medium" style="margin-top: 6px" @change="getselectdata">
-          <el-radio-button label=0>全部</el-radio-button>
-          <el-radio-button label=0.5 id="first-bmh2" >入门</el-radio-button>
-          <el-radio-button label=2.0>初级</el-radio-button>
-          <el-radio-button label=3.5>中级</el-radio-button>
-          <el-radio-button label=5>高级</el-radio-button>
-        </el-radio-group>
-      </el-col>
-    </el-row>
-      <el-row :gutter=6 style="margin-top: 6px" v-if="this.countlist.length===0" >
-      <el-col :span=2>
-        <ul style="width: 100%;color: #606266" >漏洞类型</ul>
-      </el-col>
-      <el-col :span=21>
-        <el-select v-model="searchForm.time_img_type" @change="getselectdata" multiple filterable allow-create default-first-option placeholder="请选择漏洞类型" style="left: 5px;width: 40%;margin-top: 6px">
-          <el-option v-for="item in degreeList" :key="item.value" :label="item.value" :value="item.value"></el-option>
-        </el-select>
-      </el-col>
-    </el-row>
+        <el-button  id="first-bmh" type="primary" style="left: 10px;display:none" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name" style="width: 150px">
+          难易程度
+        </div>
+        <div class="filter-content">
+          <span :class="activeClass1 === index ? 'current':''" @click="selectDiff(index,item)" v-for="(item,index) in DifficultyList" >{{item.lable}}</span>
+        </div>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name">
+          开发语言
+        </div>
+        <div class="filter-content">
+            <span :class="activeClass2 === index ? 'current':''" @click="selectLan(index,item)" v-for="(item,index) in languageList" v-if="index <= taglength2" >{{item.value}}</span>
+            <span v-if="languageList.length>10" style="color: #36a3f7" @click="showactive('taglength2')" >{{ showBtnTag2?"更多...":"收起" }}</span>
+        </div>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name">
+          漏洞类型
+        </div>
+        <div class="filter-content">
+          <span :class="activeClass3 === index ? 'current':''" @click="selectDeg(index,item)" v-for="(item,index) in degreeList" v-if="index <= taglength3" >{{item.value}}</span>
+          <span v-if="degreeList.length>10" style="color: #36a3f7" @click="showactive('taglength3')" >{{ showBtnTag3?"更多...":"收起" }}</span>
+        </div>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name">
+          开发框架
+        </div>
+        <div class="filter-content">
+          <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" v-if="index <= taglength4">{{item.value}}</span>
+          <span v-if="classifyList.length>10" style="color: #36a3f7" @click="showactive('taglength4')" >{{ showBtnTag4?"更多...":"收起" }}</span>
+        </div>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name">
+          数据库
+        </div>
+        <div class="filter-content">
+          <span :class="activeClass5 === index ? 'current':''" @click="selectSql(index,item)" v-for="(item,index) in databaseList" v-if="index <= taglength5" >{{item.value}}</span>
+          <span v-if="databaseList.length>10" style="color: #36a3f7" @click="showactive('taglength5')" >{{ showBtnTag5?"更多...":"收起" }}</span>
+        </div>
+      </div>
     </el-card>
     <el-divider style="margin-top: 1px"></el-divider>
     <el-row :gutter="24" id="first-bmh3" v-loading="loading">
@@ -150,7 +165,7 @@
 </template>
 
 <script>
-import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop } from '@/api/docker'
+import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop,ImgDashboard,getWriteup } from '@/api/docker'
 import { publicMethod,gettimetemp } from '@/api/timemoudel'
 import { getTask } from '@/api/tasks'
 import CountDown from 'vue2-countdown'
@@ -163,6 +178,7 @@ import ViewerEditor from '@/components/ViewerEditor'
 import 'codemirror/lib/codemirror.css' // codemirror
 import 'tui-editor/dist/tui-editor.css' // editor ui
 import 'tui-editor/dist/tui-editor-contents.css' // editor content
+import { mapGetters } from 'vuex'
 import codeSyntaxHighlight from "@toast-ui/editor-plugin-code-syntax-highlight";
 import hljs from "highlight.js";
 import Editor from 'tui-editor'
@@ -183,10 +199,23 @@ export default {
         total: 0,
         size: 20,
       },
+      activeClass1: 0,
+      activeClass2: 0,
+      activeClass3: 0,
+      activeClass4: 0,
+      activeClass5: 0,
+      taglength2: 10,
+      taglength3: 10,
+      taglength4: 10,
+      taglength5: 10,
+      showBtnTag2: true,
+      showBtnTag3: true,
+      showBtnTag4: true,
+      showBtnTag5: true,
       DifficultyList:[
         {value:0, lable:"全部"},
-        {value:1, lable:"入门"},
-        {value:2.5, lable:"初级"},
+        {value:0.5, lable:"入门"},
+        {value:2.0, lable:"初级"},
         {value:3.5, lable:"中级"},
         {value:5, lable:"高级"},
       ],
@@ -215,43 +244,52 @@ export default {
         time_img_type:"",
         rank_range:0
       },
+      user:{
+        greenhand:false
+      },
       vul_port:{},
       countlist:[],
       notifications: {},
       degreeList:[
-          {value:"命令执行", lable:"命令执行"},
-          {value:"代码执行", lable:"代码执行"},
-          {value:"文件写入", lable:"文件写入"},
-          {value:"文件上传", lable:"文件上传"},
-          {value:"后门", lable:"后门"},
-          {value:"默认口令", lable:"默认口令"},
-          {value:"弱口令", lable:"弱口令"},
-          {value:"权限绕过", lable:"权限绕过"},
-          {value:"未授权访问", lable:"未授权访问"},
-          {value:"XXE漏洞", lable:"XXE漏洞"},
-          {value:"SQL注入", lable:"SQL注入"},
-          {value:"文件读取", lable:"文件读取"},
-          {value:"文件下载", lable:"文件下载"},
-          {value:"文件包含", lable:"文件包含"},
-          {value:"文件删除", lable:"文件删除"},
-          {value:"目录遍历", lable:"目录遍历"},
-          {value:"信息泄漏", lable:"信息泄漏"},
-          {value:"任意账户操作", lable:"任意账户操作"},
-          {value:"XSS漏洞", lable:"XSS漏洞"},
-          {value:"SSRF漏洞", lable:"SSRF漏洞"},
-          {value:"CSRF漏洞", lable:"CSRF漏洞"},
-        ],
-      loading:true
+        {value:"全部"},
+      ],
+      languageList:[
+        {value:"全部"},
+      ],
+      databaseList:[
+        {value:"全部"},
+      ],
+      classifyList:[
+        {value:"全部"},
+      ],
+      allTag:[],
+      allTag2:[],
+      allTag3:[],
+      allTag4:[],
+      allTag5:[],
+      searchRank:0,
+      loading:true,
+      firstLogin:false,
       };
     },
   created() {
     this.listData(1)
     this.timeData()
+    this.getUser()
   },
   beforeDestroy(){
     Notification.closeAll()
   },
-
+  computed: {
+    ...mapGetters([
+      'name',
+      'avatar',
+      'roles',
+      'rank',
+      'email',
+      'greenhand',
+    ])
+  },
   methods:{
       timeData(){
         gettimetemp().then(response => {
@@ -271,15 +309,39 @@ export default {
           }})
       },
       listData() {
-          ImgList().then(response => {
+          ImgDashboard().then(response => {
             this.listdata = response.data.results
             this.page.total = response.data.count
+            this.degreeList = [{value:"全部"}]
+            this.languageList = [{value:"全部"}]
+            this.databaseList = [{value:"全部"}]
+            this.classifyList = [{value:"全部"}]
+            for (let i = 0; i <response.data.degree['HoleType'].length ; i++) {
+              this.degreeList.push({"value":response.data.degree['HoleType'][i]})
+            }
+            for (let i = 0; i <response.data.degree['devLanguage'].length ; i++) {
+              this.languageList.push({"value":response.data.degree['devLanguage'][i]})
+            }
+            for (let i = 0; i <response.data.degree['devDatabase'].length ; i++) {
+              this.databaseList.push({"value":response.data.degree['devDatabase'][i]})
+            }
+            for (let i = 0; i <response.data.degree['devClassify'].length ; i++) {
+              this.classifyList.push({"value":response.data.degree['devClassify'][i]})
+            }
             for (let i = 0; i <this.listdata.length ; i++) {
               this.listdata[i].status.start_flag = false
               this.listdata[i].status.stop_flag = false
               this.listdata[i].status.delete_flag = false
             }
             this.loading=false
+            if (this.user.greenhand === true){
+              if (this.loading === false && this.firstLogin === false){
+                this.$nextTick(() => {
+                  this.showTips()
+                  this.firstLogin = true
+               });
+              }
+            }
           })
       },
       getselectdata(){
@@ -290,7 +352,9 @@ export default {
           background: "rgba(255,255,255,0.4)",
           target: document.querySelector("#first-bmh3")
         });
-        ImgList(undefined,undefined,undefined,true,this.searchForm.time_img_type,this.searchForm.rank_range).then(response =>{
+        let allTag = []
+        allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
+        ImgDashboard(undefined,undefined,undefined,true,allTag,this.searchRank).then(response =>{
             loading.close()
             this.listdata = response.data.results
             this.page.total = response.data.count
@@ -315,7 +379,7 @@ export default {
         this.images_name = images_name
         this.images_desc = images_desc
         this.is_flag = raw_data.is_flag
-        this.writeup_date = raw_data.writeup_date
+        // this.writeup_date = raw_data.writeup_date
         this.is_docker_compose = raw_data.is_docker_compose
         this.centerDialogVisible = true
         this.$set(raw_data.status, "start_flag", true)
@@ -328,6 +392,7 @@ export default {
           // this.centerDialogVisible = false
         }
         if (raw_data.status.status === "running"){
+          this.images_id = raw_data.image_id
           this.vul_host = raw_data.status.host
           this.vul_port = JSON.parse(raw_data.status.port)
           this.container_id = raw_data.status.container_id
@@ -336,6 +401,11 @@ export default {
           this.writeup_date = raw_data.writeup_date
           this.is_docker_compose = raw_data.is_docker_compose
           this.is_flag = raw_data.is_flag
+          if (this.user.greenhand === true){
+                this.$nextTick(() => {
+                  this.openDrawer()
+             })
+          }
         }else{
           ContainerSTART(id).then(response=>{
           let taskId = response.data["data"]
@@ -361,6 +431,12 @@ export default {
                     raw_data.status.container_id = container_id
                     this.startCon = false
                     this.cStatus = false
+                    this.images_id = raw_data.image_id
+                    if (this.user.greenhand === true){
+                        this.$nextTick(() => {
+                          this.openDrawer()
+                     })
+                  }
                   }else if (responseStatus === 201){
                     this.$message({
                       message: response.data["msg"],
@@ -393,6 +469,7 @@ export default {
                 message:  "恭喜！通过",
                 type: "success",
               })
+              this.$store.state.user.greenhand = false
               this.reload()
               this.centerDialogVisible = false
             }else if(responseData.status === 201){
@@ -452,6 +529,7 @@ export default {
          * 删除容器
          */
         this.$set(raw.status, "delete_flag", true)
+        this.$set(raw.status, "stop_flag", true)
         this.$forceUpdate();
         ContainerDelete(container_id).then(response=>{
           let taskId = response.data["data"]
@@ -504,7 +582,7 @@ export default {
           background: "rgba(255,255,255,255.4)",
           target: document.querySelector("#first-bmh3")
         });
-        ImgList(this.search,false,page,true,this.searchForm.time_img_type,this.searchForm.rank_range).then(response => {
+        ImgDashboard(this.search,false,page,true,this.allTag,this.searchRank).then(response => {
           loading.close()
           this.listdata = response.data.results
           this.page.total = response.data.count
@@ -532,10 +610,16 @@ export default {
       },
       closeDrawer(done){
         this.drawer=false
-        this.reload()
       },
       openDrawer(){
-          this.drawer=true
+        getWriteup(this.images_id).then(response => {
+          if (response.data.code === 200){
+            this.writeup_date = response.data.data.writeup_date
+            this.writeup_date_name = response.data.data.username
+            this.drawer=true
+          }else {
+          }
+        })
       },
       editorButton(){
         this.drawerFlag=true
@@ -554,26 +638,10 @@ export default {
         });
         const steps = [
           {
-            element:"#first-bmh", // 这是点击触发的id
-            popover:{
-              title:"第一步",
-              description:"开始新手引导",
-              position: "bottom"
-            }
-          },
-          {
-            element:"#first-bmh2", // 这是点击触发的id
-            popover:{
-              title:"第二步",
-              description:"点击入门镜像",
-              position: "bottom"
-            }
-          },
-          {
             element:"#first-bmh3", // 这是点击触发的id
             popover:{
-              title:"第三步",
-              description:"启动入门镜像,启动后可以根据访问地址旁的 ! 了解漏洞镜像",
+              title:"提示",
+              description:"启动入门镜像,启动后可以点击镜像信息旁的<i  class=\"el-icon-reading\"  style=\"color: rgb(140, 197, 255);font-size: 20px\"></i>了解漏洞镜像！成功提交flag后可以解除新手模式，查看所有漏洞环境",
               position: "top"
             },
           },
@@ -589,6 +657,87 @@ export default {
           background: "rgba(0,0,0,0.7)",
           target: document.querySelector("#first-bmh3")
         });
+      },
+      getUser() {
+        this.user = {
+          greenhand:this.greenhand
+        }
+      },
+      showactive(tag){
+        let tags = tag
+        if (tags === "taglength2"){
+          if (!this.showBtnTag2){
+            this.taglength2 = 10
+          }else {
+            this.taglength2 = this.languageList.length
+          }
+          this.showBtnTag2 = !this.showBtnTag2;
+        }
+        if (tags === "taglength3"){
+          if (!this.showBtnTag3){
+            this.taglength3 = 10
+          }else {
+            this.taglength3 = this.degreeList.length
+          }
+          this.showBtnTag3 = !this.showBtnTag3;
+        }
+        if (tags === "taglength4"){
+          if (!this.showBtnTag4){
+            this.taglength4 = 10
+          }else {
+            this.taglength4 = this.classifyList.length
+          }
+          this.showBtnTag4 = !this.showBtnTag4;
+        }
+        if (tags === "taglength5"){
+          if (!this.showBtnTag5){
+            this.taglength5 = 10
+          }else {
+            this.taglength5 = this.databaseList.length
+          }
+          this.showBtnTag5 = !this.showBtnTag5;
+        }
+      },
+      selectLan(index,item){
+        this.activeClass2 = index
+        this.allTag2.splice(0,1)
+        if (item.value === "全部"){
+        }else {
+          this.allTag2.push(item.value)
+        }
+        this.getselectdata()
+      },
+      selectIfy(index,item){
+        this.activeClass4 = index
+        this.allTag4.splice(0,1)
+        if (item.value === "全部"){
+        }else {
+          this.allTag4.push(item.value)
+        }
+        this.getselectdata()
+      },
+      selectDiff(index,item){
+        this.activeClass1 = index
+        this.searchRank = item.value
+        this.getselectdata()
+      },
+      selectDeg(index,item){
+        this.activeClass3 = index
+        this.allTag3.splice(0,1)
+        if (item.value === "全部"){
+        }else {
+          this.allTag3.push(item.value)
+        }
+        this.getselectdata()
+      },
+      selectSql(index,item){
+        this.activeClass5 = index
+        this.allTag5.splice(0,1)
+        if (item.value === "全部"){
+        }else {
+          this.allTag5.push(item.value)
+        }
+        this.getselectdata()
       },
   },
   mounted: function() {
@@ -684,6 +833,47 @@ export default {
 </style>
 
 <style rel="stylesheet/scss" lang="scss">
+.filter-line {
+  padding: 13px 16px;
+  box-sizing: border-box;
+  display: flex;
+  font-size: 14px;
+  border-bottom: 1px dashed #dde6f0;
+  background: #fff;
+
+  .filter-name {
+   width: 150px;
+   height: 24px;
+   text-align: center;
+   line-height: 24px;
+   color: #fff;
+   background: #36a3f7;
+   border-radius: 200px 0 200px 200px;
+   margin-right: 20px;
+  }
+  .filter-content {
+    display: flex;
+    flex-flow: wrap;
+    /*justify-content: space-between;*/
+    align-items: center;
+    flex-wrap: wrap;
+    color: #656666;
+    width: 90%;
+  }
+  span {
+    display: inline-block;
+    padding: 5px 20px;
+    box-sizing: border-box;
+    cursor: pointer;
+    flex-wrap: wrap;
+  }
+  span.current {
+   color: #126ef7;
+   background: #ebf5ff;
+   border-radius: 200px;
+  }
+}
+
 .el-drawer{
   overflow: scroll
 }
