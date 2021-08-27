@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { sendMail,valMail,accessUpdateCode } from "@/api/user"
+import { sendMail,valMail,accessCode } from "@/api/user"
 
 export default {
   name: 'update',
@@ -144,7 +144,7 @@ export default {
     geturl(){
       let code = this.$route.query.code
       if (code){
-        accessUpdateCode(code).then(response=>{
+        accessCode(code).then(response=>{
           let data = response.data
           if (data.code===200){
           }else {

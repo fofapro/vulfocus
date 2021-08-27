@@ -55,5 +55,6 @@ def validate_email(email):
         elif send_from[0] == 550:
             return False
     except Exception as e:
+        print(e)
         return None
     return None

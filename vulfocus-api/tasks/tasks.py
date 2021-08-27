@@ -70,8 +70,6 @@ def create_image_task(image_info, user_info, request_ip, image_file=None):
                     port_list = []
                     if "ExposedPorts" in config:
                         port_list = config["ExposedPorts"]
-                    else:
-                        port_list = image.attrs['Config']['ExposedPorts']
                     ports = []
                     for port in port_list:
                         port = port.replace("/", "").replace("tcp", "").replace("udp", "")
@@ -427,7 +425,10 @@ def run_docker_compose(image_id, container_id, user_id, time_model_id, task_id, 
                 traceback.print_exc()
         else:
             vulport = {}
-            yml_c = json.loads(img_info.docker_compose_yml)
+            yml_c = json.loads(img_info.original_yml)
+            new_yaml = YAML(typ='safe')
+            new_yaml.allow_duplicate_keys = True
+            yml_c = new_yaml.load(yml_c)
             yml_c['networks'] = {"default": {"external": {"name": "docker-compose-dedicated"}}}
             yml_content = yaml.dump(yml_c)
             env_content = json.loads(img_info.docker_compose_env)
@@ -445,7 +446,7 @@ def run_docker_compose(image_id, container_id, user_id, time_model_id, task_id, 
                     raise Exception("无可用端口")
                 random_list.append(random_port)
                 result_port_list.append("%s=%s" % (_port, random_port,))
-                for one_port in json.loads(img_info.compose_env_port):
+                for one_port in json.loads(img_info.image_port):
                     split_port = one_port.split(':')
                     if _port in split_port[0]:
                         vulport[random_port] = split_port[1]
@@ -621,9 +622,10 @@ def delete_docker_compose(task_id):
     user_info = UserProfile.objects.filter(id=user_id).first()
     image_info = ImageInfo.objects.filter(image_name=image_name).first()
     # 删除容器
-    container_vul = ContainerVul.objects.filter(Q(container_id=container_id)
+    container_vul = ContainerVul.objects.filter(Q(user_id=user_id) & Q(container_id=container_id)
                                                      & ~Q(docker_compose_path="") & ~Q(container_status='delete')).first()
-    con_user_id = container_vul.user_id
+    msg = R.ok(msg="删除成功")
+    compose_path = container_vul.docker_compose_path
     if container_vul.container_status == 'running':
         compose_path = container_vul.docker_compose_path
         try:
@@ -646,10 +648,9 @@ def delete_docker_compose(task_id):
                 container_vul.save()
         except Exception:
             msg = R.err(msg="删除失败，服务器内部错误")
-    all_stop_container = ContainerVul.objects.filter(Q(user_id=con_user_id) & Q(image_id=image_info.image_id) &
+    all_stop_container = ContainerVul.objects.filter(Q(user_id=user_id) & Q(image_id=image_info.image_id) &
                     Q(container_status="stop") & Q(docker_compose_path="")).all()
     if all_stop_container:
-        compose_path = container_vul.docker_compose_path
         for corrtlation_container in all_stop_container:
             docker_container_id = corrtlation_container.docker_container_id
             try:
@@ -666,7 +667,6 @@ def delete_docker_compose(task_id):
                 corrtlation_container.save()
         if os.path.exists(compose_path) == True:
             shutil.rmtree(compose_path)
-    container_vul.docker_compose_path = ""
     container_vul.container_status = "delete"
     container_vul.save()
     msg = R.ok(msg="删除成功")
@@ -1021,8 +1021,6 @@ def create_image(task_id):
         port_list = []
         if "ExposedPorts" in config:
             port_list = config["ExposedPorts"]
-        else:
-            port_list = image.attrs['Config']['ExposedPorts']
         ports = []
         for port in port_list:
             port = port.replace("/", "").replace("tcp", "").replace("udp", "")

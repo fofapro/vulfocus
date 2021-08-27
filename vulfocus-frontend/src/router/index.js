@@ -47,11 +47,6 @@ export const constantRoutes = [
     hidden: false
   },
   {
-    path: '/activate',
-    component: ()=> import('@/views/retrieve/activate'),
-    hidden:false
-  },
-  {
     path: '/retrieve',
     component: () => import('@/views/retrieve/index'),
     hidden: false

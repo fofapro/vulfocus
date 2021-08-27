@@ -10,7 +10,6 @@ const state = {
   rank:'',
   email:'',
   roles: [],
-  greenhand: false,
 }
 
 const mutations = {
@@ -31,10 +30,7 @@ const mutations = {
   },
   SET_EMAIL: (state, email) => {
     state.email = email
-  },
-  SET_GREENHAND: (state, greenhand) => {
-    state.greenhand = greenhand
-  },
+  }
 }
 
 const actions = {
@@ -53,9 +49,9 @@ const actions = {
     })
   },
   register({ commit }, userInfo) {
-    const { name,pass,checkpass,email,captcha_code,hashkey} = userInfo
+    const { name,pass,checkPass,email} = userInfo
     return new Promise((resolve, reject) => {
-      register({ username: name.trim(), password: pass ,email:email, checkpass:checkpass, captcha_code:captcha_code, hashkey:hashkey }).then(response => {
+      register({ username: name.trim(), password: pass ,email:email}).then(response => {
         resolve(response)
       }).catch(error => {
         reject(error)
@@ -71,13 +67,12 @@ const actions = {
         if (!data) {
           reject('Verification failed, please Login again.')
         }
-        const { name, avatar,rank, roles, email, greenhand } = data
+        const { name, avatar,rank, roles, email } = data
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
         commit('SET_RANK', rank)
         commit("SET_ROLES", roles)
         commit("SET_EMAIL", email)
-        commit("SET_GREENHAND", greenhand)
         resolve(data)
       }).catch(error => {
         reject(error)

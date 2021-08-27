@@ -28,103 +28,10 @@
                   <el-button v-model="imgType" @click.stop="changeType" size="medium">{{imgTypeText}}</el-button>
                 </el-col>
               </el-form-item>
-              <el-form-item label="标签" >
-                <div class="tag-group">
-                  <el-row>
-                    <el-col :span="2.5">
-                      <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">漏洞类型</el-button>
-                    </el-col>
-                    <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in vulInfo.HoleType" closable :disable-transitions="false" @close="handleClose(tag, 'HoleType', 'newtag')">
-                      {{tag}}
-                    </el-tag>
-                    <el-autocomplete
-                      v-if="inputVisible1"
-                      ref="saveTagInput1"
-                      @keyup.enter.native="handleInputConfirm1('newtag')"
-                      popper-class="my-autocomplete"
-                      v-model="inputValue1"
-                      :fetch-suggestions="((queryString,cb)=>{querySearch(queryString,cb,type='inputValue1')})"
-                      placeholder="请输入内容"
-                      @select="handleSel">
-                      <template slot-scope="{ item }">
-                        <div class="name">{{ item.value }}</div>
-                      </template>
-                    </el-autocomplete>
-                    <el-button v-else class="button-new-tag" size="small" @click="showInput1">+ New Tag</el-button>
-                  </el-row>
-                </div>
-                <div class="tag-group">
-                  <el-row>
-                    <el-col :span="2.5">
-                      <el-button  type='primary' size="mini" style="width: 80px" class="tag-group__title">开发语言</el-button>
-                    </el-col>
-                    <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in vulInfo.devLanguage" closable :disable-transitions="false" @close="handleClose(tag,'devLanguage', 'newtag')">
-                    {{tag}}
-                    </el-tag>
-                    <el-autocomplete
-                      v-if="inputVisible2"
-                      ref="saveTagInput2"
-                      @keyup.enter.native="handleInputConfirm2('newtag')"
-                      popper-class="my-autocomplete"
-                      v-model="inputValue2"
-                      :fetch-suggestions="((queryString,cb)=>{querySearch(queryString,cb,type='inputValue2')})"
-                      placeholder="请输入内容"
-                      @select="handleSel">
-                      <template slot-scope="{ item }">
-                        <div class="name">{{ item.value }}</div>
-                      </template>
-                    </el-autocomplete>
-                    <el-button v-else class="button-new-tag" size="small" @click="showInput2">+ New Tag</el-button>
-                  </el-row>
-                </div>
-                <div class="tag-group">
-                  <el-row>
-                    <el-col :span="2.5">
-                      <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">数据库</el-button>
-                    </el-col>
-                    <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in vulInfo.devDatabase" closable :disable-transitions="false" @close="handleClose(tag, 'devDatabase', 'newtag')">
-                    {{tag}}
-                    </el-tag>
-                    <el-autocomplete
-                      v-if="inputVisible3"
-                      ref="saveTagInput3"
-                      @keyup.enter.native="handleInputConfirm3('newtag')"
-                      popper-class="my-autocomplete"
-                      v-model="inputValue3"
-                      :fetch-suggestions="((queryString,cb)=>{querySearch(queryString,cb,type='inputValue3')})"
-                      placeholder="请输入内容"
-                      @select="handleSel">
-                      <template slot-scope="{ item }">
-                        <div class="name">{{ item.value }}</div>
-                      </template>
-                    </el-autocomplete>
-                    <el-button v-else class="button-new-tag" size="small" @click="showInput3">+ New Tag</el-button>
-                  </el-row>
-                </div>
-                <div class="tag-group">
-                  <el-row>
-                    <el-col :span="2.5">
-                      <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">开发框架</el-button>
-                    </el-col>
-                    <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in vulInfo.devClassify" closable :disable-transitions="false" @close="handleClose(tag, 'devClassify', 'newtag')">
-                    {{tag}}
-                    </el-tag>
-                    <el-autocomplete
-                      v-if="inputVisible4"
-                      ref="saveTagInput4"
-                      @keyup.enter.native="handleInputConfirm4('newtag')"
-                      popper-class="my-autocomplete"
-                      v-model="inputValue4"
-                      :fetch-suggestions="((queryString,cb)=>{querySearch(queryString,cb,type='inputValue4')})"
-                      placeholder="请输入内容"
-                      @select="handleSel">
-                      <template slot-scope="{ item }">
-                        <div class="name">{{ item.value }}</div>
-                      </template>
-                    </el-autocomplete>
-                    <el-button v-else class="button-new-tag" size="small" @click="showInput4">+ New Tag</el-button>
-                  </el-row>
-                </div>
+              <el-form-item label="分类">
+                <el-select v-model="vulInfo.degree" multiple filterable allow-create default-first-option placeholder="请选择镜像标签" >
+                  <el-option v-for="item in degreeList" :key="item.value" :label="item.label" :value="item.value"> </el-option>
+                </el-select>
               </el-form-item>
               <el-form-item label="Rank">
                 <el-input-number v-model="vulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
@@ -217,7 +124,7 @@
         </el-table-column>
       </el-table>
     </el-dialog>
-    <el-dialog :visible.sync="editShow"  @close="closeDialog">
+    <el-dialog :visible.sync="editShow">
       <el-tabs>
         <el-tab-pane label="修改">
           <el-form label-width="80px" v-loading="editLoding" element-loading-text="修改中">
@@ -227,103 +134,10 @@
           <el-form-item label="镜像">
             <el-input v-model="editVulInfo.image_name" disabled></el-input>
           </el-form-item>
-          <el-form-item label="标签" >
-            <div class="tag-group">
-              <el-row>
-                <el-col :span="2.5">
-                  <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">漏洞类型</el-button>
-                </el-col>
-                <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in editVulInfo.HoleType" closable :disable-transitions="false" @close="handleClose(tag, 'HoleType')">
-                  {{tag}}
-                </el-tag>
-                <el-autocomplete
-                  v-if="inputVisible1"
-                  ref="saveTagInput1"
-                  @keyup.enter.native="handleInputConfirm1"
-                  popper-class="my-autocomplete"
-                  v-model="inputValue1"
-                  :fetch-suggestions="((queryString,cb)=>{querySearch(queryString,cb,type='inputValue1')})"
-                  placeholder="请输入内容"
-                  @select="handleSel">
-                  <template slot-scope="{ item }">
-                    <div class="name">{{ item.value }}</div>
-                  </template>
-                </el-autocomplete>
-                <el-button v-else class="button-new-tag" size="small" @click="showInput1">+ New Tag</el-button>
-              </el-row>
-            </div>
-            <div class="tag-group">
-              <el-row>
-                <el-col :span="2.5">
-                  <el-button  type='primary' size="mini" style="width: 80px" class="tag-group__title">开发语言</el-button>
-                </el-col>
-                <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in editVulInfo.devLanguage" closable :disable-transitions="false" @close="handleClose(tag,'devLanguage')">
-                {{tag}}
-                </el-tag>
-                <el-autocomplete
-                  v-if="inputVisible2"
-                  ref="saveTagInput2"
-                  @keyup.enter.native="handleInputConfirm2"
-                  popper-class="my-autocomplete"
-                  v-model="inputValue2"
-                  :fetch-suggestions="((queryString,cb)=>{querySearch(queryString,cb,type='inputValue2')})"
-                  placeholder="请输入内容"
-                  @select="handleSel">
-                  <template slot-scope="{ item }">
-                    <div class="name">{{ item.value }}</div>
-                  </template>
-                </el-autocomplete>
-                <el-button v-else class="button-new-tag" size="small" @click="showInput2">+ New Tag</el-button>
-              </el-row>
-            </div>
-            <div class="tag-group">
-              <el-row>
-                <el-col :span="2.5">
-                  <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">数据库</el-button>
-                </el-col>
-                <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in editVulInfo.devDatabase" closable :disable-transitions="false" @close="handleClose(tag, 'devDatabase')">
-                {{tag}}
-                </el-tag>
-                <el-autocomplete
-                  v-if="inputVisible3"
-                  ref="saveTagInput3"
-                  @keyup.enter.native="handleInputConfirm3"
-                  popper-class="my-autocomplete"
-                  v-model="inputValue3"
-                  :fetch-suggestions="((queryString,cb)=>{querySearch(queryString,cb,type='inputValue3')})"
-                  placeholder="请输入内容"
-                  @select="handleSel">
-                  <template slot-scope="{ item }">
-                    <div class="name">{{ item.value }}</div>
-                  </template>
-                </el-autocomplete>
-                <el-button v-else class="button-new-tag" size="small" @click="showInput3">+ New Tag</el-button>
-              </el-row>
-            </div>
-            <div class="tag-group">
-              <el-row>
-                <el-col :span="2.5">
-                  <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">分类</el-button>
-                </el-col>
-                <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in editVulInfo.devClassify" closable :disable-transitions="false" @close="handleClose(tag, 'devClassify')">
-                {{tag}}
-                </el-tag>
-                <el-autocomplete
-                  v-if="inputVisible4"
-                  ref="saveTagInput4"
-                  @keyup.enter.native="handleInputConfirm4"
-                  popper-class="my-autocomplete"
-                  v-model="inputValue4"
-                  :fetch-suggestions="((queryString,cb)=>{querySearch(queryString,cb,type='inputValue4')})"
-                  placeholder="请输入内容"
-                  @select="handleSel">
-                  <template slot-scope="{ item }">
-                    <div class="name">{{ item.value }}</div>
-                  </template>
-                </el-autocomplete>
-                <el-button v-else class="button-new-tag" size="small" @click="showInput4">+ New Tag</el-button>
-              </el-row>
-            </div>
+          <el-form-item label="分类" >
+            <el-select v-model="editVulInfo.degree" multiple placeholder="请选择镜像标签" style="width: 100%">
+              <el-option v-for="item in degreeList" :key="item.value" :label="item.label" :value="item.value" > </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="Rank">
             <el-input-number v-model="editVulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
@@ -331,7 +145,7 @@
               <i class="el-icon-question"></i>
             </el-tooltip>
           </el-form-item>
-          <el-form-item label="Flag">
+          <el-form-item label="flag">
             <el-switch v-model="editVulInfo.is_flag"></el-switch>
             <el-tooltip content="是否开启flag" placement="top">
               <i class="el-icon-question"></i>
@@ -406,7 +220,7 @@
       <el-table-column prop="image_vul_name" label="漏洞名称" :show-overflow-tooltip=true></el-table-column>
       <el-table-column prop="image_port" label="端口" width="150"></el-table-column>
       <el-table-column prop="rank" label="分数" width="50"></el-table-column>
-      <el-table-column label="标签" width="260">
+      <el-table-column label="漏洞分类" width="260">
         <template slot-scope="{row}" v-if="row.degree.length > 0 && row.degree !==''">
           <el-tag v-for="i in row.degree" style="margin-left: 2px;">{{i}}</el-tag>
         </template>
@@ -500,24 +314,8 @@
           desc: "",
           degree:[],
           writeup_date: '',
-          is_flag: true,
-          HoleType: [],
-          devLanguage:[],
-          devDatabase:[],
-          devClassify:[],
+          is_flag: true
         },
-        HoleType: [],
-        devLanguage:[],
-        devDatabase:[],
-        devClassify:[],
-        inputVisible1: false,
-        inputVisible2: false,
-        inputVisible3: false,
-        inputVisible4: false,
-        inputValue1: '',
-        inputValue2: '',
-        inputValue3: '',
-        inputValue4: '',
         editShow: false,
         editLoding: false,
         tabLoading: true,
@@ -544,55 +342,6 @@
           {value:"SSRF漏洞", lable:"SSRF漏洞"},
           {value:"CSRF漏洞", lable:"CSRF漏洞"},
         ],
-        languageList:[
-          {value:"Java", lable:"Java"},
-          {value:"Python", lable:"Python"},
-          {value:"C++", lable:"C++"},
-          {value:"C#", lable:"C#"},
-          {value:"VisualBasic", lable:"VisualBasic"},
-          {value:"JavaScript", lable:"JavaScript"},
-          {value:"HTML", lable:"HTML"},
-          {value:"PHP", lable:"PHP"},
-          {value:"R", lable:"R"},
-          {value:"Swift", lable:"Swift"},
-          {value:"Go", lable:"Go"},
-          {value:"Ruby", lable:"Ruby"},
-          {value:"Perl", lable:"Perl"},
-          {value:"Asp", lable:"Asp"},
-          {value:".Net", lable:".Net"},
-        ],
-        databaseList:[
-          {value:"Oracle", lable:"Oracle"},
-          {value:"MySQL", lable:"MySQL"},
-          {value:"Microsoft SQL Server", lable:"Microsoft SQL Server"},
-          {value:"PostgreSQL", lable:"PostgreSQL"},
-          {value:"MongoDB", lable:"MongoDB"},
-          {value:"IBM Db2", lable:"IBM Db2"},
-          {value:"Elasticsearch", lable:"Elasticsearch"},
-          {value:"Redis", lable:"Redis"},
-          {value:"SQLite", lable:"SQLite"},
-          {value:"Cassandra", lable:"Cassandra"},
-          {value:"Microsoft Access", lable:"Microsoft Access"},
-          {value:"MariaDB Relational", lable:"MariaDB Relational"},
-          {value:"Splunk", lable:"Splunk"},
-          {value:"Hive", lable:"Hive"},
-          {value:"Teradata", lable:"Teradata"},
-        ],
-        classifyList:[
-        {value:"Bootstrap", lable:"Bootstrap"},
-        {value:"Angular", lable:"Angular"},
-        {value:"Jquery", lable:"Jquery"},
-        {value:"react", lable:"react"},
-        {value:"vue", lable:"vue"},
-        {value:"Zepto", lable:"Zepto"},
-        {value:"CakePHP", lable:"CakePHP"},
-        {value:"Django", lable:"Django"},
-        {value:"Ruby on Rails", lable:"Ruby on Rails"},
-        {value:"Flask", lable:"Flask"},
-        {value:"Phoenix", lable:"Phoenix"},
-        {value:"Spring Boot", lable:"Spring Boot"},
-        {value:"Laravel", lable:"Laravel"},
-        ],
         editVulInfo:{
           rank: "",
           image_name: "",
@@ -604,10 +353,6 @@
           is_flag: true,
           is_docker_compose:false,
           docker_compose_yml:'',
-          HoleType: [],
-          devLanguage:[],
-          devDatabase:[],
-          devClassify:[],
         },
         compose_content:"",
         imgType: "text",
@@ -640,13 +385,8 @@
         },
         value:[],
         newFile: new FormData(),
-        fileList:[],
-        restaurants: [],
-        state: ''
+        fileList:[]
       }
-    },
-    mounted() {
-      this.restaurants = this.degreeList;
     },
     created() {
       this.initTableData()
@@ -714,35 +454,6 @@
       },
       initSummariesList(){
         this.searchSummariesList("")
-      },
-      querySearch(queryString, cb, type) {
-        let types = type
-        if (type){
-          if (types === 'inputValue1') {
-            var restaurants = this.degreeList;
-          }
-          if (types === 'inputValue2') {
-            var restaurants = this.languageList;
-          }
-          if (types === 'inputValue3') {
-            var restaurants = this.databaseList;
-          }
-          if (types === 'inputValue4') {
-            var restaurants = this.classifyList;
-          }
-        }else {
-          var restaurants = []
-        }
-        var results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants;
-        // 调用 callback 返回建议列表的数据
-        cb(results);
-      },
-      createFilter(queryString) {
-        return (restaurant) => {
-          return (restaurant.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
-        };
-      },
-      handleSel(item) {
       },
       initTableData(){
         clearInterval(this.taskCheckInterval)
@@ -820,13 +531,6 @@
       },
       handleEditImage(){
         this.editLoding = true
-        let all_degree = {
-          'HoleType':this.editVulInfo.HoleType,
-          'devLanguage':this.editVulInfo.devLanguage,
-          'devDatabase':this.editVulInfo.devDatabase,
-          'devClassify':this.editVulInfo.devClassify,
-        }
-        this.editVulInfo.degree = all_degree
         ImageEdit(this.editVulInfo.image_id,this.editVulInfo).then(response => {
           this.editLoding = false
           let rsp = response.data
@@ -845,10 +549,6 @@
             });
           }
         })
-      },
-      closeDialog() {
-          this.editShow=false
-          this.editVulInfo = []
       },
       closeProgress(){
         this.progressShow = false
@@ -876,21 +576,11 @@
             formData.set("file", uploadFiles[0].raw);
           }
         }
-        let all_degree = {
-          'HoleType':this.vulInfo.HoleType,
-          'devLanguage':this.vulInfo.devLanguage,
-          'devDatabase':this.vulInfo.devDatabase,
-          'devClassify':this.vulInfo.devClassify,
-        }
-
         formData.set("rank", this.vulInfo.rank)
         formData.set("image_name", this.vulInfo.name)
         formData.set("image_vul_name", this.vulInfo.vul_name)
         formData.set("image_desc", this.vulInfo.desc)
-        formData.set("HoleType", this.vulInfo.HoleType)
-        formData.set("devLanguage", this.vulInfo.devLanguage)
-        formData.set("devDatabase", this.vulInfo.devDatabase)
-        formData.set("devClassify", this.vulInfo.devClassify)
+        formData.set("degree", this.vulInfo.degree)
         formData.set("is_flag", this.vulInfo.is_flag)
         formData.set("writeup_date", this.vulInfo.writeup_date)
         this.loading = true
@@ -1323,145 +1013,10 @@
       handleChange(file,fileList){
         this.fileList = fileList
       },
-      handleClose(tag, type, tags) {
-        let types = type
-        if (tags === 'newtag'){
-          if (types === 'HoleType') {
-            this.vulInfo.HoleType.splice(this.vulInfo.HoleType.indexOf(tag), 1);
-          }
-          if (types === 'devLanguage') {
-            this.vulInfo.devLanguage.splice(this.vulInfo.devLanguage.indexOf(tag), 1);
-          }
-          if (types === 'devDatabase') {
-            this.vulInfo.devDatabase.splice(this.vulInfo.devDatabase.indexOf(tag), 1);
-          }
-          if (types === 'devClassify') {
-            this.vulInfo.devClassify.splice(this.vulInfo.devClassify.indexOf(tag), 1);
-          }
-        }else {
-          if (types === 'HoleType') {
-            this.editVulInfo.HoleType.splice(this.editVulInfo.HoleType.indexOf(tag), 1);
-          }
-          if (types === 'devLanguage') {
-            this.editVulInfo.devLanguage.splice(this.editVulInfo.devLanguage.indexOf(tag), 1);
-          }
-          if (types === 'devDatabase') {
-            this.editVulInfo.devDatabase.splice(this.editVulInfo.devDatabase.indexOf(tag), 1);
-          }
-          if (types === 'devClassify') {
-            this.editVulInfo.devClassify.splice(this.editVulInfo.devClassify.indexOf(tag), 1);
-          }
-        }
-      },
-      showInput1() {
-        this.inputVisible1 = true;
-        this.$nextTick(_ => {
-          this.$refs.saveTagInput1.$refs.input.focus();
-        });
-      },
-
-      showInput2() {
-        this.inputVisible2 = true;
-        this.$nextTick(_ => {
-          this.$refs.saveTagInput2.$refs.input.focus();
-        });
-      },
-      showInput3() {
-        this.inputVisible3 = true;
-        this.$nextTick(_ => {
-          this.$refs.saveTagInput3.$refs.input.focus();
-        });
-      },
-      showInput4() {
-        this.inputVisible4 = true;
-        this.$nextTick(_ => {
-          this.$refs.saveTagInput4.$refs.input.focus();
-        });
-      },
-      handleInputConfirm1(tag) {
-        let inputValue = this.inputValue1;
-        if (tag === 'newtag'){
-          if (this.vulInfo.HoleType === null){
-            this.vulInfo.HoleType = [];
-          }
-          this.vulInfo.HoleType.push(inputValue);
-        }else {
-          if (this.editVulInfo.HoleType === null){
-            this.editVulInfo.HoleType = [];
-          }
-          this.editVulInfo.HoleType.push(inputValue);
-        }
-        this.inputVisible1 = false;
-        this.inputValue1 = '';
-      },
-      handleInputConfirm2(tag) {
-        let inputValue = this.inputValue2;
-        if (tag === 'newtag'){
-          if (this.vulInfo.devLanguage === null){
-            this.vulInfo.devLanguage = [];
-          }
-          this.vulInfo.devLanguage.push(inputValue);
-        }else {
-          if (this.editVulInfo.devLanguage === null){
-            this.editVulInfo.devLanguage = [];
-          }
-          this.editVulInfo.devLanguage.push(inputValue);
-        }
-        this.inputVisible2 = false;
-        this.inputValue2 = '';
-      },
-      handleInputConfirm3(tag) {
-        let inputValue = this.inputValue3;
-        if (tag === 'newtag'){
-          if (this.vulInfo.devDatabase === null){
-              this.vulInfo.devDatabase = [];
-          }
-          this.vulInfo.devDatabase.push(inputValue);
-        }else {
-          if (this.editVulInfo.devDatabase === null){
-              this.editVulInfo.devDatabase = [];
-          }
-          this.editVulInfo.devDatabase.push(inputValue);
-        }
-        this.inputVisible3 = false;
-        this.inputValue3 = '';
-      },
-      handleInputConfirm4(tag) {
-        let inputValue = this.inputValue4;
-        if (tag === 'newtag'){
-          if (this.vulInfo.devClassify === null){
-              this.vulInfo.devClassify = [];
-          }
-          this.vulInfo.devClassify.push(inputValue);
-        }else {
-          if (this.editVulInfo.devClassify === null){
-              this.editVulInfo.devClassify = [];
-          }
-          this.editVulInfo.devClassify.push(inputValue);
-        }
-        this.inputVisible4 = false;
-        this.inputValue4 = '';
-      }
-
     }
   }
 </script>
 
 <style scoped>
-  .el-tag + .el-tag {
-    margin-left: 10px;
-  }
-  .button-new-tag {
-    margin-left: 10px;
-    height: 32px;
-    line-height: 30px;
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-  .input-new-tag {
-    width: 90px;
-    margin-left: 10px;
-    vertical-align: bottom;
-  }
 
 </style>

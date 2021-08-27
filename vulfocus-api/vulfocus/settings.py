@@ -56,8 +56,7 @@ INSTALLED_APPS = [
     'dockerapi',
     'network',
     'tasks',
-    'layout_image',
-    'captcha',
+    'layout_image'
 ]
 
 # redis host
@@ -74,7 +73,6 @@ else:
     REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), decode_responses=True,db=1)
 
 REDIS_IMG = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), db=6, decode_responses=True)
-REDIS_USER_CACHE = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), db=7, decode_responses=True)
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
@@ -253,8 +251,3 @@ EMAIL_USE_SSL = True
 EMAIL_FROM = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-# 字母验证码设置
-CAPTCHA_IMAGE_SIZE = (90, 45)   # 设置 captcha 图片大小
-CAPTCHA_LENGTH = 4   # 字符个数
-CAPTCHA_TIMEOUT = 1   # 过期时间(minutes)
