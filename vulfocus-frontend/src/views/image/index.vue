@@ -104,7 +104,7 @@
                 <div class="tag-group">
                   <el-row>
                     <el-col :span="2.5">
-                      <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">分类</el-button>
+                      <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">开发框架</el-button>
                     </el-col>
                     <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in vulInfo.devClassify" closable :disable-transitions="false" @close="handleClose(tag, 'devClassify', 'newtag')">
                     {{tag}}
@@ -1381,8 +1381,14 @@
       handleInputConfirm1(tag) {
         let inputValue = this.inputValue1;
         if (tag === 'newtag'){
+          if (this.vulInfo.HoleType === null){
+            this.vulInfo.HoleType = [];
+          }
           this.vulInfo.HoleType.push(inputValue);
         }else {
+          if (this.editVulInfo.HoleType === null){
+            this.editVulInfo.HoleType = [];
+          }
           this.editVulInfo.HoleType.push(inputValue);
         }
         this.inputVisible1 = false;
@@ -1391,8 +1397,14 @@
       handleInputConfirm2(tag) {
         let inputValue = this.inputValue2;
         if (tag === 'newtag'){
+          if (this.vulInfo.devLanguage === null){
+            this.vulInfo.devLanguage = [];
+          }
           this.vulInfo.devLanguage.push(inputValue);
         }else {
+          if (this.editVulInfo.devLanguage === null){
+            this.editVulInfo.devLanguage = [];
+          }
           this.editVulInfo.devLanguage.push(inputValue);
         }
         this.inputVisible2 = false;
@@ -1401,8 +1413,14 @@
       handleInputConfirm3(tag) {
         let inputValue = this.inputValue3;
         if (tag === 'newtag'){
+          if (this.vulInfo.devDatabase === null){
+              this.vulInfo.devDatabase = [];
+          }
           this.vulInfo.devDatabase.push(inputValue);
         }else {
+          if (this.editVulInfo.devDatabase === null){
+              this.editVulInfo.devDatabase = [];
+          }
           this.editVulInfo.devDatabase.push(inputValue);
         }
         this.inputVisible3 = false;
@@ -1411,8 +1429,14 @@
       handleInputConfirm4(tag) {
         let inputValue = this.inputValue4;
         if (tag === 'newtag'){
+          if (this.vulInfo.devClassify === null){
+              this.vulInfo.devClassify = [];
+          }
           this.vulInfo.devClassify.push(inputValue);
         }else {
+          if (this.editVulInfo.devClassify === null){
+              this.editVulInfo.devClassify = [];
+          }
           this.editVulInfo.devClassify.push(inputValue);
         }
         this.inputVisible4 = false;

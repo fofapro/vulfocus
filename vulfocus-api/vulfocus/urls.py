@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from rest_framework import routers
-from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs, DashboardView, get_writeup_info
+from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs, DashboardView, get_writeup_info, get_version, get_url_name
 from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset, AccessLinkView, send_register_email
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView, MyCode, refresh_captcha
@@ -52,6 +52,7 @@ urlpatterns = [
     url(r'setting/get', get_setting),
     url(r'setting/update', update_setting),
     url(r'img/upload', upload_img),
+    url(r'get/urlname', get_url_name),
     url(r'get/website/imgs', get_timing_imgs),
     url(r'^getcaptcha/', MyCode.as_view()),
     url(r'^build/compose/', build_compose),
@@ -67,5 +68,6 @@ urlpatterns = [
     url(r"accessupdatelink",AccessUpdataLinkView.as_view()),
     url(r'uploaduserimg',upload_user_img),
     url(r'get_writeup', get_writeup_info),
-    url(r'timerank', TimeRankSet.as_view())
+    url(r'timerank', TimeRankSet.as_view()),
+    url(r'get_version', get_version),
 ]

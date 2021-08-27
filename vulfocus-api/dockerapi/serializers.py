@@ -71,6 +71,7 @@ class TimeRankSerializer(serializers.ModelSerializer):
         user = UserProfile.objects.filter(username=obj.user_name).first()
         return user.avatar
 
+
 class TimeMoudelSerializer(serializers.ModelSerializer):
 
     start_date = serializers.SerializerMethodField('a_start_date')

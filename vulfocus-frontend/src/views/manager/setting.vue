@@ -43,6 +43,16 @@
               </el-tooltip>
             </el-col>
           </el-form-item>
+          <el-form-item label="网站名称" >
+            <el-col :span="20">
+              <el-input v-model="data.url_name"></el-input>
+            </el-col>
+            <el-col :span="2" align="center">
+              <el-tooltip content="修改网站名称" placement="top">
+                <i class="el-icon-question"></i>
+              </el-tooltip>
+            </el-col>
+          </el-form-item>
           <el-form-item label="镜像过期删除" >
             <el-col :span="20">
               <el-switch v-model="data.del_container"></el-switch>
@@ -86,7 +96,8 @@
           pwd: '',
           time: '1800',
           is_synchronization: false,
-          del_container:true
+          del_container:true,
+          url_name:""
         },
       };
     },
@@ -117,6 +128,7 @@
         formData.set("share_username",this.data.share_username)
         formData.set("is_synchronization",this.data.is_synchronization)
         formData.set("del_container",this.data.del_container)
+        formData.set("url_name",this.data.url_name)
         this.loading = true
         settingUpdate(formData).then(response => {
           let rspData = response.data

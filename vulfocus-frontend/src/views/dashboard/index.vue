@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     <el-dialog :visible.sync="centerDialogVisible" @close="handleDialogClose"  title="镜像信息">
-      <i  class="el-icon-reading"  v-model="drawer" @click="openDrawer" style="position:absolute;z-index: 9999;color: rgb(140, 197, 255);left:100px;top: 21px;font-size: 20px"></i>
+      <i  class="el-icon-reading" v-if="this.countlist.length===0" v-model="drawer" @click="openDrawer" style="position:absolute;z-index: 9999;color: rgb(140, 197, 255);left:100px;top: 21px;font-size: 20px"></i>
       <div class="text item" v-loading="startCon" element-loading-text="环境启动中" >
         <div class="text item">
           访问地址: {{vul_host}}
@@ -47,66 +47,58 @@
         </div>
       </div>
     </el-dialog>
-    <el-card class="box-card">
-      <el-row v-if="this.countlist.length===0">
-        <div style="margin-left: 10px">
-          <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
-          <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
-            查询
-          </el-button>
-          <el-button  id="first-bmh" type="primary" style="left: 10px;display:none" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
+    <el-card class="box-card"  v-if="this.countlist.length===0">
+      <div style="margin-left: 10px">
+        <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
+        <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
+          查询
+        </el-button>
+        <el-button  id="first-bmh" type="primary" style="left: 10px;display:none" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name" style="width: 150px">
+          难易程度
         </div>
-      </el-row>
-      <el-row v-if="this.countlist.length===0">
-        <div class="filter-line">
-          <div class="filter-name" style="width: 190px">
-            难易程度
-          </div>
-          <div class="filter-content">
-            <span :class="activeClass1 === index ? 'current':''" @click="selectDiff(index,item)" v-for="(item,index) in DifficultyList" >{{item.lable}}</span>
-          </div>
+        <div class="filter-content">
+          <span :class="activeClass1 === index ? 'current':''" @click="selectDiff(index,item)" v-for="(item,index) in DifficultyList" >{{item.lable}}</span>
         </div>
-      </el-row>
-      <el-row>
-        <div class="filter-line">
-          <div class="filter-name">
-            开发语言
-          </div>
-          <div class="filter-content">
-            <span :class="activeClass2 === index ? 'current':''" @click="selectLan(index,item)" v-for="(item,index) in languageList" >{{item.value}}</span>
-          </div>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name">
+          开发语言
         </div>
-      </el-row>
-      <el-row>
-        <div class="filter-line">
-          <div class="filter-name">
-            漏洞类型
-          </div>
-          <div class="filter-content">
-            <span :class="activeClass3 === index ? 'current':''" @click="selectDeg(index,item)" v-for="(item,index) in degreeList" >{{item.value}}</span>
-          </div>
+        <div class="filter-content">
+            <span :class="activeClass2 === index ? 'current':''" @click="selectLan(index,item)" v-for="(item,index) in languageList" v-if="index <= taglength2" >{{item.value}}</span>
+            <span v-if="languageList.length>10" style="color: #36a3f7" @click="showactive('taglength2')" >{{ showBtnTag2?"更多...":"收起" }}</span>
         </div>
-    </el-row>
-      <el-row>
-        <div class="filter-line">
-          <div class="filter-name">
-            开发框架
-          </div>
-          <div class="filter-content">
-            <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" >{{item.value}}</span>
-          </div>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name">
+          漏洞类型
         </div>
-      </el-row>
-      <el-row>
-        <div class="filter-line">
-          <div class="filter-name">
-            数据库
-          </div>
-          <div class="filter-content">
-            <span :class="activeClass5 === index ? 'current':''" @click="selectSql(index,item)" v-for="(item,index) in databaseList" >{{item.value}}</span>
-          </div>
+        <div class="filter-content">
+          <span :class="activeClass3 === index ? 'current':''" @click="selectDeg(index,item)" v-for="(item,index) in degreeList" v-if="index <= taglength3" >{{item.value}}</span>
+          <span v-if="degreeList.length>10" style="color: #36a3f7" @click="showactive('taglength3')" >{{ showBtnTag3?"更多...":"收起" }}</span>
         </div>
-    </el-row>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name">
+          开发框架
+        </div>
+        <div class="filter-content">
+          <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" v-if="index <= taglength4">{{item.value}}</span>
+          <span v-if="classifyList.length>10" style="color: #36a3f7" @click="showactive('taglength4')" >{{ showBtnTag4?"更多...":"收起" }}</span>
+        </div>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name">
+          数据库
+        </div>
+        <div class="filter-content">
+          <span :class="activeClass5 === index ? 'current':''" @click="selectSql(index,item)" v-for="(item,index) in databaseList" v-if="index <= taglength5" >{{item.value}}</span>
+          <span v-if="databaseList.length>10" style="color: #36a3f7" @click="showactive('taglength5')" >{{ showBtnTag5?"更多...":"收起" }}</span>
+        </div>
+      </div>
     </el-card>
     <el-divider style="margin-top: 1px"></el-divider>
     <el-row :gutter="24" id="first-bmh3" v-loading="loading">
@@ -212,6 +204,14 @@ export default {
       activeClass3: 0,
       activeClass4: 0,
       activeClass5: 0,
+      taglength2: 10,
+      taglength3: 10,
+      taglength4: 10,
+      taglength5: 10,
+      showBtnTag2: true,
+      showBtnTag3: true,
+      showBtnTag4: true,
+      showBtnTag5: true,
       DifficultyList:[
         {value:0, lable:"全部"},
         {value:0.5, lable:"入门"},
@@ -251,80 +251,16 @@ export default {
       countlist:[],
       notifications: {},
       degreeList:[
-          {value:"全部", lable:"全部"},
-          {value:"命令执行", lable:"命令执行"},
-          {value:"代码执行", lable:"代码执行"},
-          {value:"文件写入", lable:"文件写入"},
-          {value:"文件上传", lable:"文件上传"},
-          {value:"后门", lable:"后门"},
-          {value:"默认口令", lable:"默认口令"},
-          {value:"弱口令", lable:"弱口令"},
-          {value:"权限绕过", lable:"权限绕过"},
-          {value:"未授权访问", lable:"未授权访问"},
-          {value:"XXE漏洞", lable:"XXE漏洞"},
-          {value:"SQL注入", lable:"SQL注入"},
-          {value:"文件读取", lable:"文件读取"},
-          {value:"文件下载", lable:"文件下载"},
-          {value:"文件包含", lable:"文件包含"},
-          {value:"文件删除", lable:"文件删除"},
-          {value:"目录遍历", lable:"目录遍历"},
-          {value:"信息泄漏", lable:"信息泄漏"},
-          {value:"任意账户操作", lable:"任意账户操作"},
-          {value:"XSS漏洞", lable:"XSS漏洞"},
-          {value:"SSRF漏洞", lable:"SSRF漏洞"},
-          {value:"CSRF漏洞", lable:"CSRF漏洞"},
-        ],
+        {value:"全部"},
+      ],
       languageList:[
-          {value:"全部", lable:"全部"},
-          {value:"Java", lable:"Java"},
-          {value:"Python", lable:"Python"},
-          {value:"C++", lable:"C++"},
-          {value:"C#", lable:"C#"},
-          {value:"VisualBasic", lable:"VisualBasic"},
-          {value:"JavaScript", lable:"JavaScript"},
-          {value:"HTML", lable:"HTML"},
-          {value:"PHP", lable:"PHP"},
-          {value:"R", lable:"R"},
-          {value:"Swift", lable:"Swift"},
-          {value:"Go", lable:"Go"},
-          {value:"Ruby", lable:"Ruby"},
-          {value:"Perl", lable:"Perl"},
-          {value:"Asp", lable:"Asp"},
-          {value:".Net", lable:".Net"},
-        ],
+        {value:"全部"},
+      ],
       databaseList:[
-        {value:"全部", lable:"全部"},
-        {value:"Oracle", lable:"Oracle"},
-        {value:"MySQL", lable:"MySQL"},
-        {value:"Microsoft SQL Server", lable:"Microsoft SQL Server"},
-        {value:"PostgreSQL", lable:"PostgreSQL"},
-        {value:"MongoDB", lable:"MongoDB"},
-        {value:"IBM Db2", lable:"IBM Db2"},
-        {value:"Elasticsearch", lable:"Elasticsearch"},
-        {value:"Redis", lable:"Redis"},
-        {value:"SQLite", lable:"SQLite"},
-        {value:"Cassandra", lable:"Cassandra"},
-        {value:"Microsoft Access", lable:"Microsoft Access"},
-        {value:"MariaDB Relational", lable:"MariaDB Relational"},
-        {value:"Splunk", lable:"Splunk"},
-        {value:"Hive", lable:"Hive"},
-        {value:"Teradata", lable:"Teradata"},
+        {value:"全部"},
       ],
       classifyList:[
-        {value:"全部", lable:"全部"},
-        {value:"Bootstrap", lable:"Bootstrap"},
-        {value:"Angular", lable:"Angular"},
-        {value:"Jquery", lable:"Jquery"},
-        {value:"react", lable:"react"},
-        {value:"vue", lable:"vue"},
-        {value:"Zepto", lable:"Zepto"},
-        {value:"CakePHP", lable:"CakePHP"},
-        {value:"Django", lable:"Django"},
-        {value:"Ruby on Rails", lable:"Ruby on Rails"},
-        {value:"Flask", lable:"Flask"},
-        {value:"Phoenix", lable:"Phoenix"},
-        {value:"Spring Boot", lable:"Spring Boot"},
-        {value:"Laravel", lable:"Laravel"},
+        {value:"全部"},
       ],
       allTag:[],
       allTag2:[],
@@ -376,6 +312,22 @@ export default {
           ImgDashboard().then(response => {
             this.listdata = response.data.results
             this.page.total = response.data.count
+            this.degreeList = [{value:"全部"}]
+            this.languageList = [{value:"全部"}]
+            this.databaseList = [{value:"全部"}]
+            this.classifyList = [{value:"全部"}]
+            for (let i = 0; i <response.data.degree['HoleType'].length ; i++) {
+              this.degreeList.push({"value":response.data.degree['HoleType'][i]})
+            }
+            for (let i = 0; i <response.data.degree['devLanguage'].length ; i++) {
+              this.languageList.push({"value":response.data.degree['devLanguage'][i]})
+            }
+            for (let i = 0; i <response.data.degree['devDatabase'].length ; i++) {
+              this.databaseList.push({"value":response.data.degree['devDatabase'][i]})
+            }
+            for (let i = 0; i <response.data.degree['devClassify'].length ; i++) {
+              this.classifyList.push({"value":response.data.degree['devClassify'][i]})
+            }
             for (let i = 0; i <this.listdata.length ; i++) {
               this.listdata[i].status.start_flag = false
               this.listdata[i].status.stop_flag = false
@@ -709,6 +661,41 @@ export default {
       getUser() {
         this.user = {
           greenhand:this.greenhand
+        }
+      },
+      showactive(tag){
+        let tags = tag
+        if (tags === "taglength2"){
+          if (!this.showBtnTag2){
+            this.taglength2 = 10
+          }else {
+            this.taglength2 = this.languageList.length
+          }
+          this.showBtnTag2 = !this.showBtnTag2;
+        }
+        if (tags === "taglength3"){
+          if (!this.showBtnTag3){
+            this.taglength3 = 10
+          }else {
+            this.taglength3 = this.degreeList.length
+          }
+          this.showBtnTag3 = !this.showBtnTag3;
+        }
+        if (tags === "taglength4"){
+          if (!this.showBtnTag4){
+            this.taglength4 = 10
+          }else {
+            this.taglength4 = this.classifyList.length
+          }
+          this.showBtnTag4 = !this.showBtnTag4;
+        }
+        if (tags === "taglength5"){
+          if (!this.showBtnTag5){
+            this.taglength5 = 10
+          }else {
+            this.taglength5 = this.databaseList.length
+          }
+          this.showBtnTag5 = !this.showBtnTag5;
         }
       },
       selectLan(index,item){

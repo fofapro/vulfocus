@@ -427,10 +427,7 @@ def run_docker_compose(image_id, container_id, user_id, time_model_id, task_id, 
                 traceback.print_exc()
         else:
             vulport = {}
-            yml_c = json.loads(img_info.original_yml)
-            new_yaml = YAML(typ='safe')
-            new_yaml.allow_duplicate_keys = True
-            yml_c = new_yaml.load(yml_c)
+            yml_c = json.loads(img_info.docker_compose_yml)
             yml_c['networks'] = {"default": {"external": {"name": "docker-compose-dedicated"}}}
             yml_content = yaml.dump(yml_c)
             env_content = json.loads(img_info.docker_compose_env)
@@ -448,7 +445,7 @@ def run_docker_compose(image_id, container_id, user_id, time_model_id, task_id, 
                     raise Exception("无可用端口")
                 random_list.append(random_port)
                 result_port_list.append("%s=%s" % (_port, random_port,))
-                for one_port in json.loads(img_info.image_port):
+                for one_port in json.loads(img_info.compose_env_port):
                     split_port = one_port.split(':')
                     if _port in split_port[0]:
                         vulport[random_port] = split_port[1]

@@ -129,7 +129,6 @@
     get_captcha().then(response=>{
       let data = response.data;
       this.image_url = response.config.baseURL+data.image_url;
-      console.log(response);
       this.ruleForm.hashkey = data.hashkey;
     })
   },

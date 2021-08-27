@@ -11,7 +11,7 @@ from user.serializers import UserProfileSerializer
 from user.models import UserProfile
 import django.utils
 import django.utils.timezone as timezone
-from .common import R, DEFAULT_CONFIG, get_setting_config
+from .common import R, DEFAULT_CONFIG, get_setting_config, get_version_config
 from django.db.models import Q
 from .models import SysLog, SysConfig, TimeMoudel, TimeTemp, TimeRank
 import json
@@ -19,7 +19,7 @@ from tasks import tasks
 from vulfocus.settings import client, VUL_IP
 from tasks.models import TaskInfo
 import re
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 import datetime
 import uuid
 import requests
@@ -725,7 +725,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                          operation_value=operation_args["image_vul_name"], operation_args=json.dumps(operation_args), ip=request_ip)
         sys_log.save()
         image_id = img_info.image_id
-        container_vul = ContainerVul.objects.filter(Q(image_id=image_id) & ~Q(container_status='delete'))
+        container_vul = ContainerVul.objects.filter(Q(image_id=image_id) & ~Q(container_status='delete') & ~Q(container_status='creat'))
         data_json = ContainerVulSerializer(container_vul, many=True)
         if container_vul.count() == 0:
             img_info.delete()
@@ -808,6 +808,23 @@ class DashboardView(APIView):
             max_size = 20
         img_t = self.request.GET.get("type", "")
         user = self.request.user
+        degrees = ImageInfo.objects.all().values('degree').distinct()
+        HoleType, devLanguage, devDatabase, devClassify = [], [], [], []
+        for single_degree in degrees:
+            origin_degree = json.loads(single_degree["degree"]) if single_degree["degree"] else ""
+            if isinstance(origin_degree, list):
+                HoleType += origin_degree
+            elif isinstance(origin_degree, dict):
+                if origin_degree["HoleType"]:
+                    HoleType += origin_degree["HoleType"]
+                if origin_degree["devLanguage"]:
+                    devLanguage += origin_degree["devLanguage"]
+                if origin_degree["devDatabase"]:
+                    devDatabase += origin_degree["devDatabase"]
+                if origin_degree["devClassify"]:
+                    devClassify += origin_degree["devClassify"]
+        return_degree_dict = {"HoleType": list(set(HoleType)), "devLanguage": list(set(devLanguage)),
+                              "devDatabase": list(set(devDatabase)), "devClassify": list(set(devClassify))}
         time_img_type = []
         rank_range = ""
         image_ids = ""
@@ -973,7 +990,7 @@ class DashboardView(APIView):
                         rank_q.children.append(('rank__gt', min_rank))
                         degree_q = Q()
                         if len(img_t_list) > 0:
-                            degree_q.connector = 'OR'
+                            degree_q.connector = 'AND'
                             for img_type in img_t_list:
                                 degree_q.children.append(('degree__contains', json.dumps(img_type)))
                         count = ImageInfo.objects.filter(
@@ -1032,7 +1049,7 @@ class DashboardView(APIView):
             else:
                 pass
             data_infos.append(img)
-        return JsonResponse({'results': data_infos, 'count': count})
+        return JsonResponse({'results': data_infos, 'count': count, "degree": return_degree_dict})
 
 
 class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
@@ -1116,23 +1133,14 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         """
         if not pk:
             return JsonResponse(R.build(msg="id不能为空"))
-        container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
-                                                    container_id=pk).first()
+        # container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
+        #                                             container_id=pk).first()
         user_id = request.user.id
         original_container = ContainerVul.objects.filter(container_id=pk).first()
-        # original_container = ContainerVul.objects.filter(Q(user_id=user_id) & Q(container_id=pk)
-        #                                                  & ~Q(docker_compose_path="") & ~Q(
-        #     container_status='delete')).first()
-        image_info = ImageInfoSerializer(original_container.image_id).data
-        if not container_vul and not original_container:
+        if not original_container:
             return JsonResponse(R.build(msg="环境不存在"))
         user_info = request.user
-        # container_vul = self.get_object()
-        if image_info['is_docker_compose'] == True:
-            task_id = tasks.delete_container_task(container_vul=original_container, user_info=user_info,
-                                                  request_ip=get_request_ip(request))
-            return JsonResponse(R.ok(task_id))
-        task_id = tasks.delete_container_task(container_vul=container_vul, user_info=user_info,
+        task_id = tasks.delete_container_task(container_vul=original_container, user_info=user_info,
                                               request_ip=get_request_ip(request))
         return JsonResponse(R.ok(task_id))
 
@@ -1230,6 +1238,13 @@ def get_writeup_info(request):
     else:
         return JsonResponse({'code': 200, 'data': {"username": '', "writeup_date": ''}})
 
+@api_view(http_method_names=["GET"])
+@authentication_classes([])
+@permission_classes([])
+def get_version(request):
+    rsp_data = get_version_config()
+    return JsonResponse(R.ok(data=rsp_data))
+
 
 @api_view(http_method_names=["GET"])
 def get_setting(request):
@@ -1271,6 +1286,9 @@ def update_setting(request):
             return JsonResponse(R.build(msg="分享用户名不符合要求"))
     is_synchronization = request.POST.get("is_synchronization")
     del_container = request.POST.get("del_container")
+    url_name = request.POST.get("url_name")
+    if not url_name:
+        url_name = 'vulfocus'
     if is_synchronization and 'true' == is_synchronization:
         is_synchronization = 1
     else:
@@ -1328,12 +1346,21 @@ def update_setting(request):
                 is_synchronization_config.save()
         del_container_config = SysConfig.objects.filter(config_key="del_container").first()
         if not del_container_config:
-            del_container_config = SysConfig(config_key="del_container", config_value=DEFAULT_CONFIG["time"])
+            del_container_config = SysConfig(config_key="del_container", config_value=DEFAULT_CONFIG["del_container"])
             del_container_config.save()
         else:
             if del_container_config.config_value != str(del_container) or del_container_config.config_value != del_container:
                 del_container_config.config_value = str(del_container)
                 del_container_config.save()
+        url_name_config = SysConfig.objects.filter(config_key="url_name").first()
+        if not url_name_config:
+            url_name_config = SysConfig(config_key="url_name", config_value=DEFAULT_CONFIG["url_name"])
+            url_name_config.save()
+        else:
+            if url_name_config.config_value != str(
+                    url_name) or url_name_config.config_value != url_name:
+                url_name_config.config_value = str(url_name)
+                url_name_config.save()
     rsp_data = get_setting_config()
     return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
 
@@ -1381,6 +1408,18 @@ def get_timing_imgs(request):
         return JsonResponse({"code": 200, "data": "成功"})
     except Exception as e:
         return JsonResponse({"code": 201, "data": e})
+
+
+@csrf_exempt
+def get_url_name(req):
+    if req.method == "GET":
+        configs = get_setting_config()
+        try:
+            url_name = configs['url_name']
+        except:
+            url_name = "vulfocus"
+        return JsonResponse(url_name, safe=False)
+
 
 class UserRank(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer

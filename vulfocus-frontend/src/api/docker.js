@@ -134,3 +134,10 @@ export function getWriteup(id) {
     method: 'get'
   })
 }
+
+export function getversion(){
+  return request({
+    url: '/get_version/',
+    method: 'get'
+  })
+}

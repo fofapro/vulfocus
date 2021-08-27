@@ -20,8 +20,25 @@ DEFAULT_CONFIG = {
     "pwd": "2a295233-801b-4efb-9f78-916330b984f6",
     "time": 30 * 60,
     "is_synchronization": 0,
-    "del_container": 1
+    "del_container": 1,
+    "version":"v0.3.2.7",
+    "url_name": "vulfocus"
 }
+
+def get_version_config():
+    rsp_data = {}
+    config_key = "version"
+    config = SysConfig.objects.filter(config_key=config_key).first()
+    config_value = DEFAULT_CONFIG[config_key]
+    if not config:
+        config = SysConfig(config_key=config_key, config_value=config_value)
+        config.save()
+    config.config_value = config_value
+    config.save()
+    config_key = config.config_key
+    config_value = config.config_value
+    rsp_data[config_key] = config_value
+    return rsp_data
 
 
 def docker_login(username, pwd):

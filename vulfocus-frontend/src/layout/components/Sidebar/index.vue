@@ -36,7 +36,7 @@
             <el-menu-item class="nest-menu" >
               <div style="margin-left: 15%">
                 <i class="el-icon-collection-tag" style="color: rgb(191, 203, 217);"></i>
-                <span slot="title" style="color: rgb(191, 203, 217); ">  v3.2.7</span>
+                <span slot="title" style="color: rgb(191, 203, 217); ">  {{version}}</span>
               </div>
             </el-menu-item>
           </el-menu>
@@ -48,12 +48,18 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import { getversion } from "@/api/docker"
 import Logo from './Logo'
 import SidebarItem from './SidebarItem'
 import variables from '@/styles/variables.scss'
 
 export default {
   components: { SidebarItem, Logo },
+  data() {
+    return {
+      version: '',
+  }
+  },
   computed: {
     ...mapGetters([
       'permission_routes',
@@ -82,6 +88,11 @@ export default {
     isCollapse() {
       return !this.sidebar.opened
     }
+  },
+  created:function get_version(){
+    getversion().then(response=>{
+      this.version=response.data.data.version;
+    })
   }
 }
 </script>
