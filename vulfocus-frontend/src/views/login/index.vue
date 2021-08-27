@@ -68,7 +68,7 @@
           <el-button  style="width:75%;margin-bottom:30px;" @click="jumpreg" >注册</el-button>
         </div>
         <div>
-          <el-button type="text" @click="findPassword" style="color: #009ad6;margin-left: 70%">忘记密码
+          <el-button type="text" @click="findPassword" style="color: #009ad6;margin-left: 70%;float:left">忘记密码
             <i class="el-icon-question"></i>
           </el-button>
         </div>
@@ -101,7 +101,9 @@ export default {
       loading: false,
       passwordType: 'password',
       redirect: undefined,
-      displayInput:false
+      displayInput:false,
+      version: ''
+
     }
   },
   watch: {
