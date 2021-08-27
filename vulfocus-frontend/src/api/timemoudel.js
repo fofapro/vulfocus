@@ -61,15 +61,21 @@ export function timetempdelete(id) {
 }
 
 export function userranklist(page) {
+  if(page === undefined || page === null){
+    page = 1
+  }
   return request({
     url: '/rank/user/?page='+ page,
     method: 'get'
   })
 }
 
-export function timeranklist(value) {
+export function timeranklist(value,page) {
+  if(page === undefined || page === null){
+    page = 1
+  }
   return request({
-    url: '/timerank/?value=' + value,
+    url: '/timerank/?value=' + value + '&page='+ page,
     method: 'get'
   })
 }

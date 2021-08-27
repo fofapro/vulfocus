@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from dockerapi.models import ContainerVul
+from dockerapi.models import ContainerVul,ImageInfo
+from dockerapi.serializers import ImageInfoSerializer
+from user.models import UserProfile, RegisterCode
 import datetime
 User = get_user_model()
 
@@ -20,6 +22,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
          user = super(UserRegisterSerializer, self).create(validated_data= validated_data)
          user.set_password(validated_data["password"])
+         user.greenhand = True
          user.save()
          return user
 
@@ -38,7 +41,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count", "date_joined")
+        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count", "date_joined", 'greenhand')
 
     def transition_time(self,obj):
         time = obj.date_joined.strftime('%Y-%m-%d %H:%M:%S')
@@ -53,14 +56,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def rankAD(self, obj):
         rank = 0
         user_id = obj.id
-        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="")
-        for i in successful:
-            rank += i.image_id.rank
+        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="").values('image_id').distinct()
+        if successful:
+            for i in successful:
+                img = ImageInfo.objects.filter(image_id=i['image_id']).first()
+                rank += img.rank
         return rank
 
     def rankCount(self, obj):
         user_id = obj.id
-        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="")
+        successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id="").values('image_id').distinct()
         return successful.count()
 
     def set_role(self, obj):

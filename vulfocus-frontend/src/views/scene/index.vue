@@ -1,7 +1,7 @@
 <template>
 <div class="app-container">
   <el-row>
-    <el-col :span="11">
+    <el-col :span="13">
       <el-card v-loading="loadingFlag" :element-loading-text="loadingText">
         <div slot="header" class="clearfix">
           <span>场景信息</span>
@@ -11,75 +11,115 @@
           <el-tooltip v-if="isRun" content="未启动">
             <i class="fa fa-stop" aria-hidden="true"></i>
           </el-tooltip>
-        </div>
-        <div>
-          <div class="text item">
-            环境名称：{{layout.name}}
           </div>
-          <div class="text item">
-            环境描述：{{layout.desc}}
+          <div>
+            <div class="text item">
+              <el-row>
+                <el-col :span="5" class="filter-tag">
+                  环境名称：
+                </el-col>
+                <el-col :span="19">
+                  {{layout.name}}
+                </el-col>
+              </el-row>
+            </div>
+            <div class="text item">
+              <el-row>
+                <el-col :span="5" class="filter-tag">
+                  环境描述：
+                </el-col>
+                <el-col :span="19" style="font-size: 15px">
+                  {{layout.desc}}
+                </el-col>
+              </el-row>
+            </div>
+            <div class="text item" >
+              <el-row>
+                <el-col :span="5" class="filter-tag">
+                  访问地址：
+                </el-col>
+                <el-col :span="19" style="font-size: 15px">
+                  <p v-for="(item,i) in open" >
+                      {{item}}
+                  </p>
+                </el-col>
+              </el-row>
+            </div>
+            <div class="text item">
+              <el-row>
+                <el-col :span="5" class="filter-tag">
+                  当前分数：
+                </el-col>
+                <el-col :span="10">
+                  {{currentScore}}
+                </el-col>
+              </el-row>
+            </div>
+            <div class="text item">
+              <el-row>
+                <el-col :span="5" class="filter-tag">
+                  当前进度：
+                </el-col>
+                <el-col :span="19">
+                  <el-progress :text-inside="true" :stroke-width="20" color="#5ed275" style="width: 90%;color: #5ed275" :percentage="currentProgress" status="success"></el-progress>
+                </el-col>
+              </el-row>
+            </div>
+            <div class="text item">
+              <el-row>
+                <el-col :span="5" class="filter-tag">
+                  当前排名：
+                </el-col>
+                <el-col :span="10">
+                  <span v-if="currentRank === 0" >
+                    未上榜
+                  </span>
+                  <span v-else-if="currentRank > 0" >
+                    {{currentRank}}
+                  </span>
+                </el-col>
+              </el-row>
+            </div>
+            <el-form >
+              <el-form-item label="Flag">
+                <el-input :disabled="isRun" size="small" style="width: 80%" v-model="flag" placeholder="请输入Flag：格式flag-{xxxxxxxx}"></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-button size="small" :disabled="isRun" type="primary" @click="handleFlag">提交</el-button>
+                <el-button v-if="isAdmin===true && isRun" size="small" @click="handleRun" type="primary">启动</el-button>
+                <el-button v-if="isAdmin===true && !isRun" size="small" @click="handleStop" type="primary">停止</el-button>
+              </el-form-item>
+            </el-form>
           </div>
-          <div class="text item" >
-            访问地址：
-            <p v-for="(item,i) in open" >
-              {{item}}
-            </p>
+        </el-card>
+      </el-col>
+      <el-col :span="10" :offset="1">
+        <el-card>
+          <div slot="header" class="clearfix">
+            <span>排名</span>
           </div>
-          <div class="text item">
-            当前分数：{{currentScore}}
+          <div>
+            <el-table :data="rankList">
+              <el-table-column label="序号" type="index" :index="computeTableIndex" width="50"></el-table-column>
+              <el-table-column prop="username" :show-overflow-tooltip=true label="用户名"></el-table-column>
+              <el-table-column prop="score" label="积分" width="180"></el-table-column>
+            </el-table>
           </div>
-          <div class="text item">
-            当前进度：{{currentProgress}}
+          <div style="margin-top: 20px">
+            <el-pagination
+              :page-size="page.size"
+              @current-change="handleRank"
+              layout="total, prev, pager, next, jumper"
+              :total="page.total">
+            </el-pagination>
           </div>
-          <div class="text item">
-            当前排名：
-            <span v-if="currentRank === 0" >
-              未上榜
-            </span>
-            <span v-else-if="currentRank > 0" >
-              {{currentRank}}
-            </span>
-          </div>
-          <el-form >
-            <el-form-item label="Flag">
-              <el-input :disabled="isRun" size="small" style="width: 80%" v-model="flag" placeholder="请输入Flag：格式flag-{xxxxxxxx}"></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button size="small" :disabled="isRun" type="primary" @click="handleFlag">提交</el-button>
-              <el-button v-if="isAdmin===true && isRun" size="small" @click="handleRun" type="primary">启动</el-button>
-              <el-button v-if="isAdmin===true && !isRun" size="small" @click="handleStop" type="primary">停止</el-button>
-            </el-form-item>
-          </el-form>
-        </div>
-      </el-card>
-    </el-col>
-    <el-col :span="12" :offset="1">
-      <el-card>
-        <div slot="header" class="clearfix">
-          <span>排名</span>
-        </div>
-        <div>
-          <el-table :data="rankList">
-            <el-table-column label="序号" type="index" :index="computeTableIndex" width="50"></el-table-column>
-            <el-table-column prop="username" :show-overflow-tooltip=true label="用户名"></el-table-column>
-            <el-table-column prop="score" label="积分" width="180"></el-table-column>
-          </el-table>
-        </div>
-        <div style="margin-top: 20px">
-          <el-pagination
-            :page-size="page.size"
-            @current-change="handleRank"
-            layout="total, prev, pager, next, jumper"
-            :total="page.total">
-          </el-pagination>
-        </div>
-      </el-card>
-    </el-col>
-  </el-row>
-  <div>
-
+        </el-card>
+      </el-col>
+    </el-row>
+    <div style="margin-top: 20px">
   </div>
 </div>
+
 </template>
 
 <script>
@@ -346,4 +386,15 @@ export default {
 .clearfix:after {
   clear: both
 }
+.filter-tag {
+ width: 120px;
+ /*height: 24px;*/
+ text-align: center;
+ line-height: 20px;
+ color: #fff;
+ background: #685d5d;
+ border-radius: 20px 20px 20px 20px;
+ margin-right: 10px;
+}
+
 </style>

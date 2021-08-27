@@ -14,11 +14,12 @@ import time
 import datetime
 import yaml
 r = redis.Redis(connection_pool=REDIS_POOL)
-
+from user.models import UserProfile
 
 class TimeTempSerializer(serializers.ModelSerializer):
     time_img_type = serializers.SerializerMethodField('typeck')
     rank_range = serializers.SerializerMethodField('rankck')
+    name = serializers.SerializerMethodField('name_ck')
 
     def typeck(self, obj):
         img_d = obj.time_img_type
@@ -35,6 +36,15 @@ class TimeTempSerializer(serializers.ModelSerializer):
             except Exception as e:
                 return 0.0
 
+    def name_ck(self, obj):
+        name = obj.name.rstrip()
+        try:
+            if not name:
+                name = obj.time_desc
+            return name
+        except:
+            return name
+
     class Meta:
         model = TimeTemp
         fields = "__all__"
@@ -43,6 +53,7 @@ class TimeTempSerializer(serializers.ModelSerializer):
 class TimeRankSerializer(serializers.ModelSerializer):
     flag_s = serializers.SerializerMethodField('flag_status')
     name = serializers.SerializerMethodField("a_user_name")
+    image_url = serializers.SerializerMethodField('get_user_avatar')
 
     class Meta:
         model = TimeRank
@@ -55,6 +66,11 @@ class TimeRankSerializer(serializers.ModelSerializer):
     def a_user_name(self, obj):
         name = obj.user_name
         return name
+
+    def get_user_avatar(self, obj):
+        user = UserProfile.objects.filter(username=obj.user_name).first()
+        return user.avatar
+
 
 class TimeMoudelSerializer(serializers.ModelSerializer):
 
@@ -83,6 +99,10 @@ class ImageInfoSerializer(serializers.ModelSerializer):
     writeup_date = serializers.SerializerMethodField('contentck')
     update_date = serializers.SerializerMethodField('transition_time')
     image_port = serializers.SerializerMethodField('image_port_ck')
+    HoleType = serializers.SerializerMethodField('d_HoleType')
+    devLanguage = serializers.SerializerMethodField('d_devLanguage')
+    devDatabase = serializers.SerializerMethodField('d_devDatabase')
+    devClassify = serializers.SerializerMethodField('d_devClassify')
 
     def statusck(self, obj):
         status = {}
@@ -100,9 +120,21 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             time_model_id = time_moudel_data.time_id
         # 排出已经删除数据 Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
         data = ContainerVul.objects.all().filter(user_id=id, image_id=obj.image_id, time_model_id=time_model_id).first()
+        run_data = ""
         if obj.is_docker_compose == True:
             data = ContainerVul.objects.all().filter(
-                Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="")).first()
+                Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="") &
+                Q(is_check=True) & Q(time_model_id=time_model_id)).first()
+            if data:
+                # 通过删除后再次启动的容器
+                run_data = ContainerVul.objects.all().filter(
+                    Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="") &
+                    Q(is_check=False) & Q(time_model_id=time_model_id) & ~Q(container_status__contains="delete") ).first()
+                if run_data:
+                    data = run_data
+            if not data:
+                data = ContainerVul.objects.all().filter(
+                    Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & ~Q(docker_compose_path="")).first()
         status["status"] = ""
         status["is_check"] = False
         status["container_id"] = ""
@@ -132,7 +164,10 @@ class ImageInfoSerializer(serializers.ModelSerializer):
                         status["start_date"] = ""
                         status["end_date"] = ""
             status["status"] = data.container_status
-            status["is_check"] = data.is_check
+            if run_data != "" and data == run_data:
+                status["is_check"] = True
+            else:
+                status["is_check"] = data.is_check
             status["container_id"] = data.container_id
         # 查询正在拉取镜像的任务
         operation_args = {
@@ -193,8 +228,67 @@ class ImageInfoSerializer(serializers.ModelSerializer):
 
     def degreeck(self, obj):
         img_d = obj.degree
+        d_list = []
         try:
-            return json.loads(img_d)
+            if img_d:
+                img_ds = json.loads(img_d)
+                if img_ds['HoleType']:
+                    d_list += img_ds['HoleType']
+                if img_ds['devLanguage']:
+                    d_list += img_ds['devLanguage']
+                if img_ds['devDatabase']:
+                    d_list += img_ds['devDatabase']
+                if img_ds['devClassify']:
+                    d_list += img_ds['devClassify']
+            return d_list
+        except Exception as e:
+            return []
+
+    def d_HoleType(self, obj):
+        img_d = obj.degree
+        try:
+            if img_d:
+                img_d = json.loads(img_d)
+                if img_d['HoleType']:
+                    return img_d['HoleType']
+                else:
+                    return []
+        except Exception as e:
+            return []
+
+    def d_devLanguage(self, obj):
+        img_d = obj.degree
+        try:
+            if img_d:
+                img_d = json.loads(img_d)
+                if img_d['devLanguage']:
+                    return img_d['devLanguage']
+                else:
+                    return []
+        except Exception as e:
+            return []
+
+    def d_devClassify(self, obj):
+        img_d = obj.degree
+        try:
+            if img_d:
+                img_d = json.loads(img_d)
+                if img_d['devClassify']:
+                    return img_d['devClassify']
+                else:
+                    return []
+        except Exception as e:
+            return []
+
+    def d_devDatabase(self, obj):
+        img_d = obj.degree
+        try:
+            if img_d:
+                img_d = json.loads(img_d)
+                if img_d['devDatabase']:
+                    return img_d['devDatabase']
+                else:
+                    return []
         except Exception as e:
             return []
 

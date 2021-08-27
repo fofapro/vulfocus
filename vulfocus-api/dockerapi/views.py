@@ -2,6 +2,7 @@ import socket
 from django.http import JsonResponse, HttpResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from dockerapi.models import ImageInfo
 from dockerapi.serializers import ImageInfoSerializer, ContainerVulSerializer, SysLogSerializer, TimeMoudelSerializer, TimeRankSerializer, TimeTempSerializer
@@ -10,7 +11,7 @@ from user.serializers import UserProfileSerializer
 from user.models import UserProfile
 import django.utils
 import django.utils.timezone as timezone
-from .common import R, DEFAULT_CONFIG, get_setting_config
+from .common import R, DEFAULT_CONFIG, get_setting_config, get_version_config
 from django.db.models import Q
 from .models import SysLog, SysConfig, TimeMoudel, TimeTemp, TimeRank
 import json
@@ -18,7 +19,7 @@ from tasks import tasks
 from vulfocus.settings import client, VUL_IP
 from tasks.models import TaskInfo
 import re
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 import datetime
 import uuid
 import requests
@@ -27,7 +28,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from tasks.tasks import start_docker_compose
 from layout_image.bridge import get_project
-
+from django.core.paginator import Paginator
 
 
 def get_request_ip(request):
@@ -117,14 +118,28 @@ class CreateTimeTemplate(viewsets.ModelViewSet):
         return JsonResponse({"code": 200, "message": "删除成功"})
 
 
-class TimeRankSet(viewsets.ModelViewSet):
+class TimeRankSet(APIView):
     serializer_class = TimeRankSerializer
 
-    def get_queryset(self):
+    def get(self, request):
         value = self.request.GET.get("value")
+        page = self.request.GET.get("page", 1)
+        if page:
+            min_size = (int(page) - 1) * 20
+            max_size = int(page) * 20
+        else:
+            min_size = 0
+            max_size = 20
         time_data = TimeTemp.objects.all().filter(name=value).first()
-        temp_data = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank")
-        return temp_data
+        if not time_data:
+            time_data = TimeTemp.objects.all().filter(time_desc=value).first()
+        count = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank").count()
+        temp_data = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank")[min_size:max_size]
+        temp_list = []
+        for tmp in temp_data:
+            temp = TimeRankSerializer(tmp).data
+            temp_list.append(temp)
+        return JsonResponse({'results': temp_list, 'count': count})
 
 
 class TimeMoudelSet(viewsets.ModelViewSet):
@@ -288,6 +303,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         time_img_type = []
         rank_range = ""
         image_ids = ""
+        user_info = UserProfile.objects.filter(username=user.username).first()
         data = TimeMoudel.objects.filter(user_id=self.request.user.id, end_time__gte=now_time).first()
         if data:
             data_temp = TimeTemp.objects.filter(temp_id=data.temp_time_id_id).first()
@@ -299,13 +315,17 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                 time_img_type = json.loads(data_temp.time_img_type)
             except Exception as e:
                 pass
-        if user.is_superuser:
+        if user_info.greenhand == True:
+            rank_range_greenhand = Q()
+            rank_range_greenhand.children.append(('rank__lte', 0.5))
+            rank_range_greenhand.children.append(('rank__gt', 0.0))
+            return ImageInfo.objects.filter(rank_range_greenhand).order_by('-create_date')
+        elif user.is_superuser:
             if query:
                 query = query.strip()
                 if flag and flag == "flag":
                     image_info_list = ImageInfo.objects.filter(Q(image_name__contains=query) | Q(image_vul_name__contains=query)
                                                        | Q(image_desc__contains=query)).order_by('-create_date')
-                    return image_info_list
                 else:
                     query = query.strip()
                     time_img_type_q = Q()
@@ -340,8 +360,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if rank == 0.0:
                         rank = 5
                     if not img_t:
-                        data = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()
-                        return data
+                        image_info_list = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
@@ -353,14 +372,9 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                             degree_q.connector = 'OR'
                             for img_type in img_t_list:
                                 degree_q.children.append(('degree__contains', json.dumps(img_type)))
-                        data = ImageInfo.objects.filter(~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()
-                        if not data:
-                            return []
-                        else:
-                            return data
-                if flag and flag == "flag":
+                        image_info_list = ImageInfo.objects.filter(~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()
+                elif flag and flag == "flag":
                     image_info_list = ImageInfo.objects.filter().order_by('-create_date')
-                    return image_info_list
                 else:
                     time_img_type_q = Q()
                     if len(time_img_type) > 0:
@@ -423,8 +437,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if rank == 0.0:
                         rank = 5
                     if not img_t:
-                        data = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()
-                        return data
+                        image_info_list = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
@@ -436,11 +449,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                             degree_q.connector = 'OR'
                             for img_type in img_t_list:
                                 degree_q.children.append(('degree__contains', json.dumps(img_type)))
-                        data = ImageInfo.objects.filter(~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()
-                        if not data:
-                            return []
-                        else:
-                            return data
+                        image_info_list = ImageInfo.objects.filter(~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()
                 else:
                     time_img_type_q = Q()
                     if len(time_img_type) > 0:
@@ -513,10 +522,15 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
             image_desc = image_desc.strip()
             image_info.image_desc = image_desc
         if "degree" in data:
-            degree = []
-            for dg in data['degree']:
-                dg = dg.strip()
-                degree.append(dg)
+            degree = data['degree']
+            if degree['HoleType']:
+                degree['HoleType'] = list(set(degree['HoleType']))
+            if degree['devLanguage']:
+                degree['devLanguage'] = list(set(degree['devLanguage']))
+            if degree['devDatabase']:
+                degree['devDatabase'] = list(set(degree['devDatabase']))
+            if degree['devClassify']:
+                degree['devClassify'] = list(set(degree['devClassify']))
             image_info.degree = json.dumps(degree)
         if "writeup_date" in data:
             if data['writeup_date'] == "":
@@ -544,14 +558,17 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         image_vul_name = request.POST.get("image_vul_name", "")
         image_desc = request.POST.get("image_desc", "")
         degree = request.POST.get("degree", "")
-        is_list = isinstance(degree, list)
-        is_str = isinstance(degree, str)
-        if is_list == True:
-            pass
-        elif is_str == True and degree:
-            degree = degree.split(',')
-        else:
-            degree = ""
+        data = request.data
+        degree_dict = dict()
+        if data['HoleType']:
+            degree_dict['HoleType'] = list(set(data['HoleType'].split(',')))
+        if data['devLanguage']:
+            degree_dict['devLanguage'] = list(set(data['devLanguage'].split(',')))
+        if data['devDatabase']:
+            degree_dict['devDatabase'] = list(set(data['devDatabase'].split(',')))
+        if data['devClassify']:
+            degree_dict['devClassify'] = list(set(data['devClassify'].split(',')))
+        degree = degree_dict
         try:
             image_rank = request.POST.get("rank", default=2.5)
             image_rank = float(image_rank)
@@ -708,7 +725,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                          operation_value=operation_args["image_vul_name"], operation_args=json.dumps(operation_args), ip=request_ip)
         sys_log.save()
         image_id = img_info.image_id
-        container_vul = ContainerVul.objects.filter(Q(image_id=image_id) & ~Q(container_status='delete'))
+        container_vul = ContainerVul.objects.filter(Q(image_id=image_id) & ~Q(container_status='delete') & ~Q(container_status='creat'))
         data_json = ContainerVulSerializer(container_vul, many=True)
         if container_vul.count() == 0:
             img_info.delete()
@@ -757,6 +774,282 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         else:
             task_id = tasks.create_container_task(container_vul, user, get_request_ip(request))
         return JsonResponse(R.ok(task_id))
+
+
+class DashboardView(APIView):
+    serializer_class = ImageInfoSerializer
+
+    def get(self, request):
+        now_time = datetime.datetime.now().timestamp()
+        query = self.request.GET.get("query", "")
+        flag = self.request.GET.get("flag", "")
+        temp = self.request.GET.get("temp", "")
+        rank = self.request.GET.get("rank", "")
+        page = self.request.GET.get('page', "")
+        min_rank = 0
+        try:
+            if rank != "undefined" and rank != "":
+                rank = float(rank)
+                if rank == 0.5:
+                    min_rank = 0.0
+                if rank == 2.0:
+                    min_rank = 0.5
+                if rank == 3.5:
+                    min_rank = 2.0
+                if rank == 5.0:
+                    min_rank = 3.5
+        except:
+            rank = 0.0
+        if page:
+            min_size = (int(page) - 1) * 20
+            max_size = int(page) * 20
+        else:
+            min_size = 0
+            max_size = 20
+        img_t = self.request.GET.get("type", "")
+        user = self.request.user
+        degrees = ImageInfo.objects.all().values('degree').distinct()
+        HoleType, devLanguage, devDatabase, devClassify = [], [], [], []
+        for single_degree in degrees:
+            origin_degree = json.loads(single_degree["degree"]) if single_degree["degree"] else ""
+            if isinstance(origin_degree, list):
+                HoleType += origin_degree
+            elif isinstance(origin_degree, dict):
+                if origin_degree["HoleType"]:
+                    HoleType += origin_degree["HoleType"]
+                if origin_degree["devLanguage"]:
+                    devLanguage += origin_degree["devLanguage"]
+                if origin_degree["devDatabase"]:
+                    devDatabase += origin_degree["devDatabase"]
+                if origin_degree["devClassify"]:
+                    devClassify += origin_degree["devClassify"]
+        return_degree_dict = {"HoleType": list(set(HoleType)), "devLanguage": list(set(devLanguage)),
+                              "devDatabase": list(set(devDatabase)), "devClassify": list(set(devClassify))}
+        time_img_type = []
+        rank_range = ""
+        image_ids = ""
+        user_info = UserProfile.objects.filter(username=user.username).first()
+        data = TimeMoudel.objects.filter(user_id=self.request.user.id, end_time__gte=now_time).first()
+        if data:
+            data_temp = TimeTemp.objects.filter(temp_id=data.temp_time_id_id).first()
+            if data_temp.image_ids:
+                image_ids = json.loads(data_temp.image_ids)
+            if data_temp.rank_range != "":
+                rank_range = float(data_temp.rank_range)
+            try:
+                time_img_type = json.loads(data_temp.time_img_type)
+            except Exception as e:
+                pass
+        if user_info.greenhand == True:
+            rank_range_greenhand = Q()
+            rank_range_greenhand.children.append(('rank__lte', 0.5))
+            rank_range_greenhand.children.append(('rank__gt', 0.0))
+            count = ImageInfo.objects.filter(rank_range_greenhand).count()
+            image_info_list = ImageInfo.objects.filter(rank_range_greenhand)[min_size:max_size]
+        elif user.is_superuser:
+            if query:
+                query = query.strip()
+                if flag and flag == "flag":
+                    count = ImageInfo.objects.filter(
+                        Q(image_name__contains=query) | Q(image_vul_name__contains=query)
+                        | Q(image_desc__contains=query)).count()
+                    image_info_list = ImageInfo.objects.filter(
+                        Q(image_name__contains=query) | Q(image_vul_name__contains=query)
+                        | Q(image_desc__contains=query))[min_size:max_size]
+                else:
+                    query = query.strip()
+                    time_img_type_q = Q()
+                    if len(time_img_type) > 0:
+                        time_img_type_q.connector = 'OR'
+                        for img_type in time_img_type:
+                            time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
+                    rank_range_q = Q()
+                    if rank_range != "":
+                        rank_range_q = 'AND'
+                        rank_range_q.children.append(('rank__lte', rank_range))
+                        rank_range_q.children.append(('rank__gt', min_rank))
+                    image_q = Q()
+                    image_q.connector = "OR"
+                    image_q.children.append(('image_name__contains', query))
+                    image_q.children.append(('image_desc__contains', query))
+                    image_q.children.append(('image_vul_name__contains', query))
+                    query_q = Q()
+                    if len(time_img_type_q) > 0:
+                        query_q.add(time_img_type_q, 'AND')
+                    if type(rank_range) == float:
+                        query_q.add(rank_range_q, 'AND')
+                    is_ok_q = Q()
+                    is_ok_q.connector = 'AND'
+                    is_ok_q.children.append(('is_ok', True))
+                    query_q.add(is_ok_q, 'AND')
+                    if not data:
+                        query_q.add(image_q, 'AND')
+                    count = ImageInfo.objects.filter(query_q).count()
+                    image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
+            else:
+                if temp == "temp":
+                    if rank == 0.0:
+                        rank = 5
+                    if not img_t:
+                        count = ImageInfo.objects.filter(
+                            Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all().count()
+                        image_info_list = ImageInfo.objects.filter(
+                            Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
+                    else:
+                        img_t_list = img_t.split(",")
+                        rank_q = Q()
+                        rank_q.connector = "AND"
+                        rank_q.children.append(('rank__lte', rank))
+                        rank_q.children.append(('rank__gt', min_rank))
+                        degree_q = Q()
+                        if len(img_t_list) > 0:
+                            degree_q.connector = 'AND'
+                            for img_type in img_t_list:
+                                degree_q.children.append(('degree__contains', json.dumps(img_type)))
+                        count = ImageInfo.objects.filter(
+                            ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all().count()
+                        image_info_list = ImageInfo.objects.filter(
+                            ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()[min_size:max_size]
+                elif flag and flag == "flag":
+                    count = ImageInfo.objects.filter().count()
+                    image_info_list = ImageInfo.objects.filter()[min_size:max_size]
+                else:
+                    time_img_type_q = Q()
+                    if len(time_img_type) > 0:
+                        time_img_type_q.connector = 'OR'
+                        for img_type in time_img_type:
+                            time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
+                    rank_range_q = Q()
+                    if rank_range != "":
+                        rank_range_q.connector = 'AND'
+                        rank_range_q.children.append(('rank__lte', rank_range))
+                        rank_range_q.children.append(('rank__gt', min_rank))
+                    query_q = Q()
+                    if len(time_img_type_q) > 0:
+                        query_q.add(time_img_type_q, 'AND')
+                    if type(rank_range) == float:
+                        query_q.add(rank_range_q, 'AND')
+                    is_ok_q = Q()
+                    is_ok_q.connector = 'AND'
+                    is_ok_q.children.append(('is_ok', True))
+                    query_q.add(is_ok_q, 'AND')
+                    count = ImageInfo.objects.filter(query_q).order_by('-create_date').count()
+                    image_info_list = ImageInfo.objects.filter(query_q).order_by('-create_date')[min_size:max_size]
+                    if image_ids:
+                        imageids_q = Q()
+                        imageids_q.connector = 'OR'
+                        for img_id in image_ids:
+                            imageids_q.children.append(('image_id', img_id))
+                        count = ImageInfo.objects.filter(imageids_q & Q(is_ok=True)).count()
+                        image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True))[min_size:max_size]
+        else:
+            if query:
+                query = query.strip()
+                time_img_type_q = Q()
+                if len(time_img_type) > 0:
+                    time_img_type_q.connector = 'OR'
+                    for img_type in time_img_type:
+                        time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
+                rank_range_q = Q()
+                if rank_range != "":
+                    rank_range_q = 'AND'
+                    rank_range_q.children.append(('rank__lte', rank_range))
+                    rank_range_q.children.append(('rank__gt', min_rank))
+                image_q = Q()
+                image_q.connector = "OR"
+                image_q.children.append(('image_name__contains', query))
+                image_q.children.append(('image_desc__contains', query))
+                image_q.children.append(('image_vul_name__contains', query))
+                query_q = Q()
+                if len(time_img_type_q) > 0:
+                    query_q.add(time_img_type_q, 'AND')
+                if type(rank_range) == float:
+                    query_q.add(rank_range_q, 'AND')
+                is_ok_q = Q()
+                is_ok_q.connector = 'AND'
+                is_ok_q.children.append(('is_ok', True))
+                query_q.add(is_ok_q, 'AND')
+                if not data:
+                    query_q.add(image_q, 'AND')
+                count = ImageInfo.objects.filter(query_q).count()
+                image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
+            else:
+                if temp == "temp":
+                    if rank == 0.0:
+                        rank = 5
+                    if not img_t:
+                        count = ImageInfo.objects.filter(
+                            Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all().count()
+                        image_info_list = ImageInfo.objects.filter(
+                            Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
+                    else:
+                        img_t_list = img_t.split(",")
+                        rank_q = Q()
+                        rank_q.connector = 'AND'
+                        rank_q.children.append(('rank__lte', rank))
+                        rank_q.children.append(('rank__gt', min_rank))
+                        degree_q = Q()
+                        if len(img_t_list) > 0:
+                            degree_q.connector = 'AND'
+                            for img_type in img_t_list:
+                                degree_q.children.append(('degree__contains', json.dumps(img_type)))
+                        count = ImageInfo.objects.filter(
+                            ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all().count()
+                        image_info_list = ImageInfo.objects.filter(
+                            ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()[min_size:max_size]
+                else:
+                    time_img_type_q = Q()
+                    if len(time_img_type) > 0:
+                        time_img_type_q.connector = 'OR'
+                        for img_type in time_img_type:
+                            time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
+                    rank_range_q = Q()
+                    if rank_range != "":
+                        rank_range_q.connector = 'AND'
+                        rank_range_q.children.append(('rank__lte', rank_range))
+                        rank_range_q.children.append(('rank__gt', min_rank))
+                    query_q = Q()
+                    if len(time_img_type_q) > 0:
+                        query_q.add(time_img_type_q, 'AND')
+                    if type(rank_range) == float:
+                        query_q.add(rank_range_q, 'AND')
+                    is_ok_q = Q()
+                    is_ok_q.connector = 'AND'
+                    is_ok_q.children.append(('is_ok', True))
+                    query_q.add(is_ok_q, 'AND')
+                    count = ImageInfo.objects.filter(query_q).count()
+                    image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
+                    if image_ids:
+                        imageids_q = Q()
+                        imageids_q.connector = 'OR'
+                        for img_id in image_ids:
+                            imageids_q.children.append(('image_id', img_id))
+                        count = ImageInfo.objects.filter(imageids_q & Q(is_ok=True)).count()
+                        image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True))[min_size:max_size]
+        if data:
+            for image_info in image_info_list:
+                image_info.image_name = ''
+                image_info.image_vul_name = ''
+                image_info.image_desc = ''
+        data_infos = []
+        for imgs in image_info_list:
+            img = ImageInfoSerializer(imgs, context={'request': self.request}).data
+            if user_info.greenhand != True:
+                del img['writeup_date']
+                del img['HoleType']
+                del img['devLanguage']
+                del img['devDatabase']
+                del img['devClassify']
+                del img['docker_compose_yml']
+                del img['docker_compose_env']
+                del img['compose_env_port']
+                del img['original_yml']
+                if img['is_docker_compose'] == True:
+                    del img['status']['json_yml']
+            else:
+                pass
+            data_infos.append(img)
+        return JsonResponse({'results': data_infos, 'count': count, "degree": return_degree_dict})
 
 
 class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
@@ -840,23 +1133,14 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         """
         if not pk:
             return JsonResponse(R.build(msg="id不能为空"))
-        container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
-                                                    container_id=pk).first()
+        # container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
+        #                                             container_id=pk).first()
         user_id = request.user.id
-        original_container = ContainerVul.objects.filter(container_id=pk, user_id=user_id).first()
-        # original_container = ContainerVul.objects.filter(Q(user_id=user_id) & Q(container_id=pk)
-        #                                                  & ~Q(docker_compose_path="") & ~Q(
-        #     container_status='delete')).first()
-        image_info = ImageInfoSerializer(original_container.image_id).data
-        if not container_vul and not original_container:
+        original_container = ContainerVul.objects.filter(container_id=pk).first()
+        if not original_container:
             return JsonResponse(R.build(msg="环境不存在"))
         user_info = request.user
-        # container_vul = self.get_object()
-        if image_info['is_docker_compose'] == True:
-            task_id = tasks.delete_container_task(container_vul=original_container, user_info=user_info,
-                                                  request_ip=get_request_ip(request))
-            return JsonResponse(R.ok(task_id))
-        task_id = tasks.delete_container_task(container_vul=container_vul, user_info=user_info,
+        task_id = tasks.delete_container_task(container_vul=original_container, user_info=user_info,
                                               request_ip=get_request_ip(request))
         return JsonResponse(R.ok(task_id))
 
@@ -890,7 +1174,13 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
             if not container_vul.is_check:
                 # 更新为通过
                 container_vul.is_check_date = timezone.now()
-                container_vul.is_check = True
+                is_compose_container = ContainerVul.objects.filter(user_id=user_id, is_check=True, time_model_id="",
+                                                                   image_id=operation_args['image_id']).first()
+                img = ImageInfo.objects.filter(image_id=operation_args['image_id']).first()
+                if is_compose_container and img.is_docker_compose == True:
+                    container_vul.is_check = False
+                else:
+                    container_vul.is_check = True
                 container_vul.save()
                 # 检测是否在时间模式中
                 now_time = datetime.datetime.now().timestamp()
@@ -898,17 +1188,22 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
                 if time_moudel_data:
                     rank = 0
                     time_model_id = time_moudel_data.time_id
-                    successful = ContainerVul.objects.filter(is_check=True, user_id=user_id,
-                                                             time_model_id=time_model_id)
+                    successful = ContainerVul.objects.filter(is_check=True, user_id=user_id, time_model_id=time_model_id).values(
+                        'image_id').distinct()
                     rd = TimeRank.objects.filter(time_temp_id=time_moudel_data.temp_time_id_id, user_id=user_id).first()
                     for i in successful:
-                        rank += i.image_id.rank
+                        img = ImageInfo.objects.filter(image_id=i['image_id']).first()
+                        rank += img.rank
                     if rank >= rd.rank:
                         rd.rank = rank
                         rd.save()
                 # 停止 Docker
                 tasks.stop_container_task(container_vul=container_vul, user_info=user_info,
                                           request_ip=get_request_ip(request))
+            users = UserProfile.objects.filter(id=user_id).first()
+            if users.greenhand == True:
+                users.greenhand = False
+                users.save()
             return JsonResponse(R.ok())
 
 
@@ -926,6 +1221,29 @@ class SysLogSet(viewsets.ModelViewSet):
                                          | Q(operation_value__contains=query )).order_by('-create_date')
         else:
             return []
+
+
+@api_view(http_method_names=["GET"])
+def get_writeup_info(request):
+    image_id = request.GET.get("id", "")
+    writeup_date = ""
+    if image_id:
+        img_info = ImageInfo.objects.filter(image_id=image_id).first()
+        if img_info:
+            if img_info.writeup_date:
+                writeup_date = json.loads(img_info.writeup_date)
+            else:
+                writeup_date = ""
+        return JsonResponse({'code': 200, 'data': {"username": '', "writeup_date": writeup_date}})
+    else:
+        return JsonResponse({'code': 200, 'data': {"username": '', "writeup_date": ''}})
+
+@api_view(http_method_names=["GET"])
+@authentication_classes([])
+@permission_classes([])
+def get_version(request):
+    rsp_data = get_version_config()
+    return JsonResponse(R.ok(data=rsp_data))
 
 
 @api_view(http_method_names=["GET"])
@@ -968,6 +1286,9 @@ def update_setting(request):
             return JsonResponse(R.build(msg="分享用户名不符合要求"))
     is_synchronization = request.POST.get("is_synchronization")
     del_container = request.POST.get("del_container")
+    url_name = request.POST.get("url_name")
+    if not url_name:
+        url_name = 'vulfocus'
     if is_synchronization and 'true' == is_synchronization:
         is_synchronization = 1
     else:
@@ -1025,12 +1346,21 @@ def update_setting(request):
                 is_synchronization_config.save()
         del_container_config = SysConfig.objects.filter(config_key="del_container").first()
         if not del_container_config:
-            del_container_config = SysConfig(config_key="del_container", config_value=DEFAULT_CONFIG["time"])
+            del_container_config = SysConfig(config_key="del_container", config_value=DEFAULT_CONFIG["del_container"])
             del_container_config.save()
         else:
             if del_container_config.config_value != str(del_container) or del_container_config.config_value != del_container:
                 del_container_config.config_value = str(del_container)
                 del_container_config.save()
+        url_name_config = SysConfig.objects.filter(config_key="url_name").first()
+        if not url_name_config:
+            url_name_config = SysConfig(config_key="url_name", config_value=DEFAULT_CONFIG["url_name"])
+            url_name_config.save()
+        else:
+            if url_name_config.config_value != str(
+                    url_name) or url_name_config.config_value != url_name:
+                url_name_config.config_value = str(url_name)
+                url_name_config.save()
     rsp_data = get_setting_config()
     return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
 
@@ -1078,6 +1408,18 @@ def get_timing_imgs(request):
         return JsonResponse({"code": 200, "data": "成功"})
     except Exception as e:
         return JsonResponse({"code": 201, "data": e})
+
+
+@csrf_exempt
+def get_url_name(req):
+    if req.method == "GET":
+        configs = get_setting_config()
+        try:
+            url_name = configs['url_name']
+        except:
+            url_name = "vulfocus"
+        return JsonResponse(url_name, safe=False)
+
 
 class UserRank(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
