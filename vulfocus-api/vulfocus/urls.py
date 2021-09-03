@@ -23,6 +23,8 @@ from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
 from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose
 from user.views import refresh_captcha, AccessUpdataLinkView, upload_user_img
+from notice.views import NoticeViewset, publish_notice, get_notifications_count, get_public_notice, notice_detail
+import notifications.urls
 
 router = routers.DefaultRouter()
 router.register('images', ImageInfoViewSet, basename='Images')
@@ -41,6 +43,7 @@ router.register("changepassword",UpdatePassViewset,basename="changepassword")
 router.register("login",LoginViewset,basename="login")
 router.register("send_email",SendEmailViewset,basename="send_email")
 router.register("reset_password",ResetPasswordViewset,basename="reset_password")
+router.register("notice", NoticeViewset, basename="notice")
 
 urlpatterns = [
     url(r'^', include(router.urls)),
@@ -70,4 +73,9 @@ urlpatterns = [
     url(r'get_writeup', get_writeup_info),
     url(r'timerank', TimeRankSet.as_view()),
     url(r'get_version', get_version),
+    url(r'inbox/notifications', include((notifications.urls, notifications))),
+    url(r'public_notice', publish_notice),
+    url(r"get_notices", get_public_notice),
+    url(r"notice_detail", notice_detail),
+    url(r'get_notifications_count',get_notifications_count),
 ]

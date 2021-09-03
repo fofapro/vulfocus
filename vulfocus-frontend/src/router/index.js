@@ -137,7 +137,19 @@ export const constantRoutes = [
         meta: { title: '场景', icon: 'table', noCache: true }
       },]
   },
-
+   {
+    path:'/notices',
+    component:Layout,
+    redirect:'/notices/all',
+    children: [
+      {
+        path: 'all',
+        component: () => import('@/views/notice/notices'),
+        name: 'Notice',
+        meta: { title: '公告列表', icon: 'notice', noCache: true }
+      }
+    ]
+  },
 ]
 
 const createRouter = () => new Router({
@@ -247,7 +259,12 @@ export const asyncRoutes = [
         name: 'setting',
         meta: { title: '系统配置', icon: 'setting', noCache: true }
       },
-
+      {
+        path:'notice',
+        component: () => import('@/views/notice/notice_index'),
+        name: 'notice',
+        meta: {title: '公告管理', icon:'log',role: ['admin']}
+      }
     ]
   },
   { path: '*', redirect: '/404', hidden: true }
