@@ -17,7 +17,7 @@ from user.models import UserProfile, EmailCode,  RegisterCode
 from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from rest_framework import permissions, status
 from vulfocus.settings import EMAIL_FROM, EMAIL_HOST, EMAIL_HOST_USER
-from dockerapi.common import R
+from dockerapi.common import R, get_setting_config
 from dockerapi.models import ContainerVul
 from vulfocus.settings import REDIS_IMG as r_img
 from PIL import ImageDraw,ImageFont,Image
@@ -132,6 +132,7 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
         email = request.data.get("email", "")
         captcha_code = request.data.get("captcha_code", "")
         hashkey = request.data.get("hashkey", "")
+        get_setting_info = get_setting_config()
         if not username:
             return JsonResponse({"code": 400, "msg": "用户名不能为空"})
         if UserProfile.objects.filter(username=username).count():
@@ -158,12 +159,19 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
                     return JsonResponse({"code": 400, "msg": "该邮箱已被注册"})
             except Exception as e:
                 return JsonResponse({"code": 400, "msg": "用户注册失败"})
+        if get_setting_info['cancel_validation'] == False:
+            user = UserProfile(username=username, email=email)
+            user.set_password(password)
+            user.has_active = True
+            user.greenhand = True
+            user.save()
+            return JsonResponse({"code": 200, "msg": "注册成功"})
         try:
             send_activate_email(receiver_email=email, code=code, request=request)
         except smtplib.SMTPDataError as e:
             return JsonResponse({"code": 400, "msg": "邮件发送失败，请减缓发送频率"})
         red_user_cache.set(code, username + "-" + password + "-" + email, ex=300)
-        return JsonResponse({"code": 200, "msg": "注册成功"})
+        return JsonResponse({"code": 200, "msg": "注册用户成功，请到邮箱激活您的账号"})
 
 # 定义一验证码
 class MyCode(View):
