@@ -3,7 +3,7 @@
     <div class="filter-container">
       <el-input v-model="search" style="width: 230px" size="medium"></el-input>
       <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">查询</el-button>
-      <el-button type="primary" size="medium" icon="el-icon-edit" @click="editorButton"  style="margin-left: 1000px">添加</el-button>
+      <el-button type="primary" size="medium" icon="el-icon-edit" @click="editorButton">添加</el-button>
     </div>
     <el-table :data="tableData" border stripe align = "center" style="width: 100%" v-loading="tabLoading">
       <el-table-column type="index" width="50"> </el-table-column>
@@ -47,7 +47,7 @@
     </el-table>
     <div>
       <el-drawer v-if="drawerFlag" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" :visible="drawer">
-        <el-input style="width: 600px;margin-left: 200px;margin-bottom: 20px" v-model="title" >
+        <el-input style="width: 600px;margin-bottom: 20px" v-model="title" >
           <template slot="prepend" style="color: black">公告标题</template>
         </el-input>
         <div style="margin-right: 10px">
@@ -87,7 +87,7 @@
 <script>
 import MarkdownEditor from '@/components/MarkdownEditor'
 import ViewerEditor from '@/components/ViewerEditor'
-import {create_notice,get_notice,delete_notice,public_notice, get_all_notices} from '@/api/notice'
+import {create_notice,get_notice,delete_notice,public_notice} from '@/api/notice'
 export default {
   name: "notice_index",
   components:{
