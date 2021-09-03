@@ -34,10 +34,6 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 |CVE-2020-8840|`docker pull  vulfocus/jackson-CVE-2020-8840`|CVE-2020-8840|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-35728|`docker pull  vulfocus/jackson-CVE-2020-35728`|CVE-2020-35728|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-11231|`docker pull vulfocus/getsimple-CVE-2019-11231`|CVE-2019-11231|[Vulfocus](https://github.com/fofapro/vulfocus)|
-||`docker pull vulfocus/thinkphp-3.2.x`||[Vulfocus](https://github.com/fofapro/vulfocus)|
-||`docker pull vulfocus/apache-nifi-api`||[Vulfocus](https://github.com/fofapro/vulfocus)|
-||`docker pull vulfocus/yapi`||[Vulfocus](https://github.com/fofapro/vulfocus)|
-||`docker pull vulfocus/spring-boot-whitelabel-spel`||[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CNVD-2019-21763|`docker pull vulfocus/redis-CNVD-2019-21763`|CNVD-2019-21763|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-5475|`docker pull vulfocus/nexus-CVE-2019-5475`|CVE-2019-5475|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-11444|`docker pull vulfocus/nexus-CVE-2020-11444`|CVE-2020-11444|[Vulfocus](https://github.com/fofapro/vulfocus)|
