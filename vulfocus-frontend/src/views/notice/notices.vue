@@ -4,21 +4,21 @@
       <el-table :data="notice_list" border stripe align = "center" style="width: 70%;margin: 20px auto" v-loading="tabLoading">
         <el-table-column type="index" width="50">
           <template slot-scope="scope">
-            <svg-icon icon-class="email"  style="width: 30px;height: 30px"/>
+            <svg-icon icon-class="email"  style="width: 30px;height: 30px" @click="read_detail(scope.row.notice_id)"/>
           </template>
         </el-table-column>
-        <el-table-column label="公告" :show-overflow-tooltip=true >
+        <el-table-column label="公告" :show-overflow-tooltip=true align="center">
           <template slot-scope="scope">
-            <div style="cursor: pointer" @click="read_detail(scope.row.notice_id)">
-              <div style="float: left;color: black;font-size: 16px;margin-left: 30px"><p>{{scope.row.title}}</p></div>
+            <div style="cursor: pointer;" @click="read_detail(scope.row.notice_id)">
+              <div style="float: left;color: black;font-size: 20px;margin:0 auto;width:100%;height:40px;" v-if="scope.row.notification.unread==true"><p>{{scope.row.title}}</p></div>
+              <div style="float: left;color: grey;font-size: 16px;margin:0 auto;width:100%;height:40px;" v-if="scope.row.notification.unread==false"><p>{{scope.row.title}}</p></div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="update_date" :show-overflow-tooltip=true label="发布时间" width="200"> </el-table-column>
-        <el-table-column :show-overflow-tooltip=true width="60">
+        <el-table-column :show-overflow-tooltip=true label="发布时间" width="200" align="center">
           <template slot-scope="scope">
-            <svg-icon icon-class="is_read"  style="width: 30px;height: 30px" v-if="scope.row.notification.unread==true"/>
-            <svg-icon icon-class="not_read"  style="width: 30px;height: 30px" v-if="scope.row.notification.unread==false"/>
+            <div style="float: left;color: black;font-size: 16px;margin:0 auto;width:100%;height:40px;" v-if="scope.row.notification.unread==true"><p>{{scope.row.update_date}}</p></div>
+            <div style="float: left;color: grey;font-size: 16px;margin:0 auto;width:100%;height:40px;" v-if="scope.row.notification.unread==false"><p>{{scope.row.update_date}}</p></div>
           </template>
         </el-table-column>
       </el-table>
