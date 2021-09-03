@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div class="login-container"  v-bind:style="{backgroundImage:'url(' + bg + ')',backgroundSize:'100% 100%', backgroundRepeat:'no-repeat', backgroundPosition:'center'}">
     <div class="icon-con" style="float: right;margin-top: 0px" >
       <a href="https://github.com/fofapro/vulfocus" target="_blank" class="github-corner" aria-label="View source on Github">
         <svg
@@ -28,12 +28,9 @@
     <div class="form-container">
       <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
         <div class="title-container" align="center" style="margin-bottom: 10%;">
-          <img src="../../assets/logintitle.png" style="margin-top: 30px"/>
+          <img :src="logoimg" style="margin-top: 30px;width: 80%;height: 66px"/>
         </div>
         <el-form-item prop="username" style="margin-left: 45px;margin-right: 40px">
-<!--          <span class="svg-container">-->
-<!--            <svg-icon icon-class="user" />-->
-<!--          </span>-->
           <el-input
             ref="username"
             v-model="loginForm.username"
@@ -45,9 +42,6 @@
           />
         </el-form-item>
         <el-form-item prop="password" style="margin-left: 45px;margin-right: 40px">
-<!--          <span class="svg-container">-->
-<!--            <svg-icon icon-class="password" />-->
-<!--          </span>-->
           <el-input
             :key="passwordType"
             ref="password"
@@ -79,6 +73,7 @@
 
 <script>
 import { lininfo } from "@/api/docker"
+import { settingimg } from "@/api/setting"
 import {login} from "@/api/user"
 export default {
   name: 'Login',
@@ -102,8 +97,10 @@ export default {
       passwordType: 'password',
       redirect: undefined,
       displayInput:false,
-      version: ''
-
+      version: '',
+      bg: require('../../assets/loginbackground.png'),
+      logoimg: require('../../assets/logintitle.png'),
+      cancel_registration: true
     }
   },
   watch: {
@@ -114,9 +111,32 @@ export default {
       immediate: true
     }
   },
+  beforeCreate() {
+    settingimg().then(response => {
+        let data = response.data
+        if (data){
+          let enterprise_bg = data.data['enterprise_bg']
+          let enterprise_logo = data.data['enterprise_logo']
+          this.cancel_registration = data.data['cancel_registration']
+          if (enterprise_bg){
+            this.bg = enterprise_bg || require('../../assets/loginbackground.png')
+          }
+          if (enterprise_logo){
+            this.logoimg = enterprise_logo || require('../../assets/logintitle.png')
+          }
+        }
+      })
+  },
   methods: {
     jumpreg(){
-      this.$router.push('/register')
+      if (this.cancel_registration === true){
+        this.$router.push('/register')
+      }else {
+        this.$message({
+          message: '该功能已禁用',
+          type: "error",
+        })
+      }
     },
     showPwd() {
       if (this.passwordType === 'password') {
@@ -129,7 +149,14 @@ export default {
       })
     },
     findPassword(){
-      this.$router.push('/retrieve')
+      if (this.cancel_registration === true){
+        this.$router.push('/retrieve')
+      }else {
+        this.$message({
+          message: '该功能已禁用',
+          type: "error",
+        })
+      }
     },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
@@ -308,7 +335,6 @@ $light_gray:#eee;
   width: 100%;
   background-color: $bg;
   overflow: hidden;
-  background: url("../../assets/loginbackground.png") center no-repeat;
   background-size: 100%;
 }
 </style>
