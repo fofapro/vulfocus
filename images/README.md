@@ -4,6 +4,53 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE-2019-9733 |`docker pull  vulfocus/artifactory-CVE-2019-9733 `|CVE-2019-9733 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-9506|`docker pull  vulfocus/jira-CVE-2017-9506`|CVE-2017-9506|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-8451|`docker pull  vulfocus/jira-CVE-2019-8451`|CVE-2019-8451|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-14181|`docker pull  vulfocus/jira-CVE-2020-14181`|CVE-2020-14181|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-8442|`docker pull  vulfocus/jira-CVE-2019-8442`|CVE-2019-8442|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-3403|`docker pull  vulfocus/jira-CVE-2019-3403`|CVE-2019-3403|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-18950|`docker pull  vulfocus/kindeditor-CVE-2018-18950`|CVE-2018-18950|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-7314|`docker pull  vulfocus/joomla-CVE-2018-7314`|CVE-2018-7314|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2016-8870|`docker pull  vulfocus/joomla-CVE-2016-8870`|CVE-2016-8870|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2015-7857|`docker pull  vulfocus/joomla-CVE-2015-7857`|CVE-2015-7857|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-16894|`docker pull  vulfocus/laravel-CVE-2017-16894`|CVE-2017-16894|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2013-1892|`docker pull  vulfocus/mogodb-CVE-2013-1892`|CVE-2013-1892|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-6893|`docker pull  vulfocus/finecms-CVE-2018-6893`|CVE-2018-6893|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-18393|`docker pull  vulfocus/openfire-CVE-2019-18393`|CVE-2019-18393|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-14685|`docker pull  vulfocus/gxlcms-CVE-2018-14685`|CVE-2018-14685|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-11582  |`docker pull  vulfocus/finecms-CVE-2017-11582:latest  `|CVE-2017-11582  |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-11629|`docker pull  vulfocus/finecms-CVE-2017-11629:latest`|CVE-2017-11629|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-14685|`docker pull  vulfocus/gxlcms-CVE-2018-14685:latest`|CVE-2018-14685|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-9798|`docker pull  vulfocus/apache-CVE-2017-9798`|CVE-2017-9798|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-8033|`docker pull  vulfocus/ofbiz-CVE-2018-8033`|CVE-2018-8033|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2016-6816|`docker pull  vulfocus/tomcat-CVE-2016-6816`|CVE-2016-6816|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-1947|`docker pull  vulfocus/shardingsphere-CVE-2020-1947`|CVE-2020-1947|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-17519|`docker pull  vulfocus/flink-CVE-2020-17519`|CVE-2020-17519|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-30128|`docker pull  vulfocus/ofbiz-CVE-2021-30128`|CVE-2021-30128|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-26259|`docker pull  vulfocus/xstream-CVE-2020-26259`|CVE-2020-26259|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-26258|`docker pull  vulfocus/xstream-CVE-2020-26258`|CVE-2020-26258|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-35464|`docker pull  vulfocus/forgerok-openam-CVE-2021-35464`|CVE-2021-35464|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-8840|`docker pull  vulfocus/jackson-CVE-2020-8840`|CVE-2020-8840|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-35728|`docker pull  vulfocus/jackson-CVE-2020-35728`|CVE-2020-35728|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-11231|`docker pull vulfocus/getsimple-CVE-2019-11231`|CVE-2019-11231|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CNVD-2019-21763|`docker pull vulfocus/redis-CNVD-2019-21763`|CNVD-2019-21763|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-5475|`docker pull vulfocus/nexus-CVE-2019-5475`|CVE-2019-5475|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-11444|`docker pull vulfocus/nexus-CVE-2020-11444`|CVE-2020-11444|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-21351|`docker pull vulfocus/xstream-CVE-2021-21351`|CVE-2021-21351|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-29505|`docker pull vulfocus/xstream-CVE-2021-29505`|CVE-2021-29505|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-12491|`docker pull vulfocus/phpok-CVE-2018-12491`|CVE-2018-12491|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2016-3088|`docker pull vulfocus/activemq-CVE-2016-3088`|CVE-2016-3088|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-15709|`docker pull vulfocus/activemq-CVE-2017-15709`|CVE-2017-15709|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-23017|`docker pull vulfocus/nginx-CVE-2021-23017`|CVE-2021-23017|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CNVD-2018-01221|`docker pull vulfocus/dedecms-CNVD-2018-01221`|CNVD-2018-01221|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2021-22214|`docker pull vulfocus/gitlab-CVE-2021-22214`|CVE-2021-22214|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-10664|`docker pull vulfocus/domoticz-CVE-2019-10664`|CVE-2019-10664|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-15516|`docker pull vulfocus/cuberite-CVE-2019-15516`|CVE-2019-15516|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2014-6271|`docker pull vulfocus/bash-CVE-2014-6271`|CVE-2014-6271|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-3331|`docker pull vulfocus/cisco-CVE-2020-3331`|CVE-2020-3331|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CNVD-2018-01221|`docker pull vulfocus/dedecms-CNVD-2018-01221`|CNVD-2018-01221|[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-8933|`docker pull vulfocus/dedecms-CVE-2019-8933`|CVE-2019-8933|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-11580|`docker pull vulfocus/atlassian-crowd-CVE-2019-11580`|CVE-2019-11580|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2015-8399|`docker pull vulfocus/atlassian-confluence-CVE-2015-8399`|CVE-2015-8399|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2018-11759|`docker pull vulfocus/apache-CVE-2018-11759`|CVE-2018-11759|[Vulfocus](https://github.com/fofapro/vulfocus)|

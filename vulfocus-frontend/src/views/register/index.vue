@@ -151,7 +151,7 @@
             this.$store.dispatch('user/register', this.ruleForm).then(response => {
               if (response.data.code === 200) {
                 Message({
-                  message:  '注册用户成功，请到邮箱激活您的账号',
+                  message: response.data.msg,
                   type: 'success',
                   duration: 5 * 1000
                 })

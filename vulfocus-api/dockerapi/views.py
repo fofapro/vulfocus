@@ -1284,6 +1284,8 @@ def update_setting(request):
         share_username_reg = "[\da-zA-z\-]+"
         if not re.match(share_username_reg, share_username):
             return JsonResponse(R.build(msg="分享用户名不符合要求"))
+    cancel_validation = request.POST.get("cancel_validation")
+    cancel_registration = request.POST.get("cancel_registration")
     is_synchronization = request.POST.get("is_synchronization")
     del_container = request.POST.get("del_container")
     url_name = request.POST.get("url_name")
@@ -1297,6 +1299,14 @@ def update_setting(request):
         del_container = 1
     else:
         del_container = 0
+    if cancel_validation and 'true' == cancel_validation:
+        cancel_validation = 1
+    else:
+        cancel_validation = 0
+    if cancel_registration and 'true' == cancel_registration:
+        cancel_registration = 1
+    else:
+        cancel_registration = 0
     try:
         time = int(time)
         if time != 0 and time < 60:
@@ -1357,10 +1367,25 @@ def update_setting(request):
             url_name_config = SysConfig(config_key="url_name", config_value=DEFAULT_CONFIG["url_name"])
             url_name_config.save()
         else:
-            if url_name_config.config_value != str(
-                    url_name) or url_name_config.config_value != url_name:
+            if url_name_config.config_value != str(url_name) or url_name_config.config_value != url_name:
                 url_name_config.config_value = str(url_name)
                 url_name_config.save()
+        cancel_validation_config = SysConfig.objects.filter(config_key="cancel_validation").first()
+        if not cancel_validation_config:
+            cancel_validation_config = SysConfig(config_key="cancel_validation", config_value=DEFAULT_CONFIG["cancel_validation"])
+            cancel_validation_config.save()
+        else:
+            if cancel_validation_config.config_value != str(cancel_validation) or cancel_validation_config.config_value != cancel_validation:
+                cancel_validation_config.config_value = str(cancel_validation)
+                cancel_validation_config.save()
+        cancel_registration_config = SysConfig.objects.filter(config_key="cancel_registration").first()
+        if not cancel_registration_config:
+            cancel_registration_config = SysConfig(config_key="cancel_registration", config_value=DEFAULT_CONFIG["cancel_registration"])
+            cancel_registration_config.save()
+        else:
+            if cancel_registration_config.config_value != str(cancel_registration) or cancel_registration_config.config_value != cancel_registration:
+                cancel_registration_config.config_value = str(cancel_registration)
+                cancel_registration_config.save()
     rsp_data = get_setting_config()
     return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
 
@@ -1420,6 +1445,20 @@ def get_url_name(req):
             url_name = "vulfocus"
         return JsonResponse(url_name, safe=False)
 
+@csrf_exempt
+def get_setting_img(req):
+    if req.method == "GET":
+        rsp_data = {}
+        try:
+            set_data = get_setting_config()
+            if set_data:
+                rsp_data['enterprise_logo'] = set_data['enterprise_logo']
+                rsp_data['enterprise_bg'] = set_data['enterprise_bg']
+                rsp_data['cancel_registration'] = set_data['cancel_registration']
+        except:
+            rsp_data = {}
+        return JsonResponse(R.ok(data=rsp_data))
+
 
 class UserRank(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
@@ -1443,3 +1482,47 @@ def get_local_ip():
     finally:
         s.close()
     return local_ip
+
+@api_view(http_method_names=["POST"])
+def update_enterprise_setting(request):
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse(R.build(msg="权限不足"))
+    url_name = request.POST.get("url_name")
+    enterprise_bg = request.POST.get("enterprise_bg", "")
+    enterprise_logo = request.POST.get("enterprise_logo", "")
+    if not url_name:
+        url_name = 'vulfocus'
+    try:
+        with transaction.atomic():
+            url_name_config = SysConfig.objects.filter(config_key="url_name").first()
+            if not url_name_config:
+                url_name_config = SysConfig(config_key="url_name", config_value=DEFAULT_CONFIG["url_name"])
+                url_name_config.save()
+            else:
+                if url_name_config.config_value != str(
+                        url_name) or url_name_config.config_value != url_name:
+                    url_name_config.config_value = str(url_name)
+                    url_name_config.save()
+            enterprise_bg_config = SysConfig.objects.filter(config_key="enterprise_bg").first()
+            if not enterprise_bg_config:
+                enterprise_bg_config = SysConfig(config_key="enterprise_bg", config_value=DEFAULT_CONFIG["enterprise_bg"])
+                enterprise_bg_config.save()
+            else:
+                if enterprise_bg_config.config_value != str(
+                        enterprise_bg) or enterprise_bg_config.config_value != enterprise_bg:
+                    enterprise_bg_config.config_value = str(enterprise_bg)
+                    enterprise_bg_config.save()
+            enterprise_logo_config = SysConfig.objects.filter(config_key="enterprise_logo").first()
+            if not enterprise_logo_config:
+                enterprise_logo_config = SysConfig(config_key="enterprise_logo", config_value=DEFAULT_CONFIG["enterprise_logo"])
+                enterprise_logo_config.save()
+            else:
+                if enterprise_logo_config.config_value != str(
+                        enterprise_logo) or enterprise_logo_config.config_value != enterprise_logo:
+                    enterprise_logo_config.config_value = str(enterprise_logo)
+                    enterprise_logo_config.save()
+    except:
+        return JsonResponse(R.build('修改失败'))
+    rsp_data = get_setting_config()
+    return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
