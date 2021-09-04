@@ -87,8 +87,8 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 <table>
 <tr>
 <td><a href="http://www.sinorail.com/" target="_blank">中铁信网络技术研究院</a></td>
-<td><a href="https://www.idss-cn.com/" target="_blank"><img src="./cooperate/idss.png" alt="观安信息"></a></td>
-<td><a href="http://www.snnu.edu.cn/" target="_blank"><img src="./cooperate/snnu.png" alt="山西师范大学"></a></td>
+<td><a href="https://www.idss-cn.com/" target="_blank"><img src="./cooperate/idss.png" width="190px" height="80px" alt="观安信息"></a></td>
+<td><a href="http://www.snnu.edu.cn/" target="_blank"><img src="./cooperate/snnu.png"  width="190px" height="80px" alt="山西师范大学"></a></td>
 </tr>
 </table>
 
