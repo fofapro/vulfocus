@@ -80,7 +80,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 ![](./imgs/11.gif)
 
-## 合作单位
+## 合作伙伴
 
 >  按注册顺序排序，欢迎用户在 [https://github.com/fofapro/vulfocus/issues/198](https://github.com/fofapro/vulfocus/issues/198) 注册（仅供社区参考）
 
