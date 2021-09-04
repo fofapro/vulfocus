@@ -80,6 +80,20 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 ![](./imgs/11.gif)
 
+## 技术合作单位
+
+>  按注册顺序排序，欢迎用户在 [https://github.com/fofapro/vulfocus/issues/198](https://github.com/fofapro/vulfocus/issues/198) 注册（仅供社区参考）
+
+<table>
+<tr>
+<td><a href="http://www.sinorail.com/" target="_blank">中铁信网络技术研究院</a></td>
+<td><a href="https://www.idss-cn.com/" target="_blank"><img src="./cooperate/idss.png" alt="观安信息"></a></td>
+<td><a href="http://www.snnu.edu.cn/" target="_blank"><img src="./cooperate/snnu.png" alt="山西师范大学"></a></td>
+</tr>
+</table>
+
+
+
 ## FAQ
 
 **镜像启动后立即访问地址失败？**
