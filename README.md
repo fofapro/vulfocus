@@ -178,7 +178,9 @@ GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fo
 
 - [Vue Element Admin](https://github.com/PanJiaChen/vue-element-admin)
 - [Vulhub](https://vulhub.org/)
+- [VulApps](https://github.com/Medicean/VulApps)
 
 ## 声明
 
 该项目会收集了当下比较流行的漏洞环境，若有侵权，请联系我们！
+
