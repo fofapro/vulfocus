@@ -93,6 +93,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 </tr>
 <tr>
 <td><a href="https://red-team.cn/" target="_blank"><img src="./cooperate/red-team.png" width="190px" height="80px" alt="公鸡队之家·知识星球"></a></td>
+<td><a href="https://www.sierting.com/" target="_blank"><img src="./cooperate/sierting.png" width="190px" height="80px" alt="克拉玛依市思而听网络科技有限公司"></a></td>
 </tr>
 </table>
 
