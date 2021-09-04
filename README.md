@@ -82,18 +82,25 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 ## 合作伙伴
 
->  按注册顺序排序，欢迎用户在 [https://github.com/fofapro/vulfocus/issues/198](https://github.com/fofapro/vulfocus/issues/198) 注册（仅供社区参考）
+>  按注册顺序排序，欢迎用户在 [https://github.com/fofapro/vulfocus/issues/198](https://github.com/fofapro/vulfocus/issues/198) 登记（仅供社区参考）
 
 <table>
 <tr>
 <td><a href="http://www.sinorail.com/" target="_blank">中铁信网络技术研究院</a></td>
-<td><a href="https://www.idss-cn.com/" target="_blank"><img src="./cooperate/idss.png" width="190px" height="80px" alt="观安信息"></a></td>
 <td><a href="http://www.snnu.edu.cn/" target="_blank"><img src="./cooperate/snnu.png"  width="190px" height="80px" alt="山西师范大学"></a></td>
 <td><a href="http://www.baimaohui.net/" target="_blank"><img src="./cooperate/baimaohui.png"  width="190px" height="80px" alt="白帽汇安全研究院"></a></td>
+<td><a href="https://github.com/0verSp4ce" target="_blank"><img src="./cooperate/0verSp4ce.png" width="190px" height="80px" alt="凌驭空间（OverSpace）安全团队"></a></td>
+</tr>
+<tr>
+<td><a href="https://red-team.cn/" target="_blank"><img src="./cooperate/red-team.png" width="190px" height="80px" alt="公鸡队之家·知识星球"></a></td>
 </tr>
 </table>
 
 
+
+
+
+0verSp4ce.png
 
 ## FAQ
 
