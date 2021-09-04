@@ -17,7 +17,7 @@ from user.models import UserProfile, EmailCode,  RegisterCode
 from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from rest_framework import permissions, status
 from vulfocus.settings import EMAIL_FROM, EMAIL_HOST, EMAIL_HOST_USER
-from dockerapi.common import R
+from dockerapi.common import R, get_setting_config
 from dockerapi.models import ContainerVul
 from vulfocus.settings import REDIS_IMG as r_img
 from PIL import ImageDraw,ImageFont,Image
@@ -132,6 +132,7 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
         email = request.data.get("email", "")
         captcha_code = request.data.get("captcha_code", "")
         hashkey = request.data.get("hashkey", "")
+        get_setting_info = get_setting_config()
         if not username:
             return JsonResponse({"code": 400, "msg": "用户名不能为空"})
         if UserProfile.objects.filter(username=username).count():
@@ -158,12 +159,19 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
                     return JsonResponse({"code": 400, "msg": "该邮箱已被注册"})
             except Exception as e:
                 return JsonResponse({"code": 400, "msg": "用户注册失败"})
+        if get_setting_info['cancel_validation'] == False:
+            user = UserProfile(username=username, email=email)
+            user.set_password(password)
+            user.has_active = True
+            user.greenhand = True
+            user.save()
+            return JsonResponse({"code": 200, "msg": "注册成功"})
         try:
             send_activate_email(receiver_email=email, code=code, request=request)
         except smtplib.SMTPDataError as e:
-            return JsonResponse({"code": 400, "msg": "邮件发送失败，请减缓发送频率或者检测邮箱有效性"})
+            return JsonResponse({"code": 400, "msg": "邮件发送失败，请减缓发送频率"})
         red_user_cache.set(code, username + "-" + password + "-" + email, ex=300)
-        return JsonResponse({"code": 200, "msg": "注册成功"})
+        return JsonResponse({"code": 200, "msg": "注册用户成功，请到邮箱激活您的账号"})
 
 # 定义一验证码
 class MyCode(View):
@@ -297,25 +305,11 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
         while EmailCode.objects.filter(code=code).count():
             code = generate_code()
         email_instance = EmailCode(user=user, code=code, email=user.email)
-        if "qq.com" in user.email:
-            try:
-                s = smtplib.SMTP("mx1.qq.com", timeout=10)
-                helo = s.docmd('HELO {}'.format(EMAIL_HOST))
-                send_from = s.docmd('MAIL FROM:<{}>'.format(EMAIL_HOST_USER))
-                message = MIMEText('请点击该链接{http_referer}#/updatepwd?code={code}'.format(http_referer=http_referer, code=code) + '。有效期为5分钟', 'plain', 'utf-8')
-                message['Subject'] = Header(u'找回密码', 'utf-8').encode()
-                send_from = s.sendmail(from_addr="{}".format(EMAIL_HOST_USER), to_addrs=user.email, msg=message.as_string())
-                s.close()
-            except smtplib.SMTPDataError as e:
-                return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
-        else:
-            if not validate_email(user.email):
-                return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
-            try:
-                send_mail(subject="找回密码", message="{http_referer}#/updatepwd?code={code}。有效期为5分钟".format(http_referer=http_referer, code=code), from_email=EMAIL_FROM,
+        try:
+            send_mail(subject="找回密码", message="{http_referer}#/updatepwd?code={code}。有效期为5分钟".format(http_referer=http_referer, code=code), from_email=EMAIL_FROM,
                           recipient_list=[user.email])
-            except:
-                return JsonResponse({"code": 400, "msg": "您所绑定邮箱不可达，请验证该邮箱是否存在"})
+        except:
+            return JsonResponse({"code": 400, "msg": "邮件发送失败"})
         email_instance.save()
         return JsonResponse({"code": 200, "msg": "ok"})
 
@@ -410,6 +404,7 @@ def judge_captcha(captchastr, captchahashkey):
         try:
             captcha_instance = CaptchaStore.objects.get(hashkey=captchahashkey)
             if captcha_instance.challenge == captchastr.upper():
+                captcha_instance.delete()
                 return True
         except Exception as e:
             return False

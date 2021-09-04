@@ -5,9 +5,22 @@
 
     <breadcrumb class="breadcrumb-container" />
     <div class="right-menu">
+      <el-dropdown class="notice_show" trigger="click">
+        <div class="notice_wraper">
+          <svg-icon icon-class="llindang" style="width:28px;height:28px" />
+          <el-badge :value="notifications_count" class="item" v-if="notifications_count!=0" style="margin-left:-12px;margin-top:-17px;"></el-badge>
+        </div>
+        <el-dropdown-menu slot="dropdown" class="notice-dropdown">
+          <router-link to="/notices/all" >
+            <el-dropdown-item v-for="item in notice_list">
+              {{item}}
+            </el-dropdown-item>
+          </router-link>
+        </el-dropdown-menu>
+       </el-dropdown>
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
-          <img :src="avatar+'?imageView2'" class="user-avatar">
+          <img :src="avatar+'?imageView2'" class="user-avatar" style="margin-left:20px">
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -33,10 +46,13 @@ import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
 import { lininfo } from "@/api/docker"
+import { get_notifications_count,get_public_notice }from '@/api/notice'
 
 export default {
   data(){
     return {
+      notice_list:[],
+      notifications_count:0
     }
   },
   components: {
@@ -61,6 +77,21 @@ export default {
     updatePwd() {
       this.$router.push(`/profile/index`)
     },
+    get_count(){
+      get_notifications_count().then(response => {
+        this.notifications_count = response.data.notifications_count;
+        this.notice_list = response.data.results;
+      })
+    },
+  },
+  created() {
+    this.get_count();
+  },
+  mounted() {
+      this.notice_timer = setInterval(this.get_count,6000*5)
+  },
+  beforeDestroy() {
+      clearInterval(notice_timer);
   }
 }
 </script>

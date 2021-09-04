@@ -20,7 +20,7 @@
         </el-menu>
       </el-scrollbar>
     </el-row>
-    <el-row style="height: 10%;margin-top: 18%;">
+    <el-row style="height: 10%;margin-top: 15%;">
       <el-col>
         <div>
           <el-menu
@@ -34,9 +34,11 @@
           mode="vertical"
           >
             <el-menu-item class="nest-menu" >
-              <div style="margin-left: 15%">
-                <i class="el-icon-collection-tag" style="color: rgb(191, 203, 217);"></i>
-                <span slot="title" style="color: rgb(191, 203, 217); ">  {{version}}</span>
+              <div>
+                <a href="https://github.com/fofapro/vulfocus" target="_blank">
+                  <img style="width: 60px;"  src="https://img.shields.io/github/stars/fofapro/vulfocus.svg?style=flat-square" />
+                  <img style="width: 90px;" src="https://img.shields.io/github/release/fofapro/vulfocus.svg?style=flat-square" />
+                </a>
               </div>
             </el-menu-item>
           </el-menu>
