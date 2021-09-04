@@ -21,12 +21,8 @@ DEFAULT_CONFIG = {
     "time": 30 * 60,
     "is_synchronization": 0,
     "del_container": 1,
-    'cancel_validation': 1,
-    'cancel_registration': 1,
     "version":"v0.3.2.7",
-    "url_name": "vulfocus",
-    "enterprise_bg": "",
-    "enterprise_logo": ""
+    "url_name": "vulfocus"
 }
 
 def get_version_config():
@@ -72,16 +68,6 @@ def get_setting_config():
             else:
                 config_value = False
         if config_key == 'del_container':
-            if config_value == 1 or config_value == '1':
-                config_value = True
-            else:
-                config_value = False
-        if config_key == 'cancel_validation':
-            if config_value == 1 or config_value == '1':
-                config_value = True
-            else:
-                config_value = False
-        if config_key == 'cancel_registration':
             if config_value == 1 or config_value == '1':
                 config_value = True
             else:

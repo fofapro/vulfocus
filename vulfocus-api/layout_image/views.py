@@ -43,10 +43,7 @@ def upload_img(request):
     user = request.user
     if not user.is_superuser:
         return JsonResponse(R.build(msg="权限不足"))
-    try:
-        img = request.data["img"]
-    except:
-        return JsonResponse(R.build(msg="上传失败"))
+    img = request.data["img"]
     if not img:
         return JsonResponse(R.build(msg="请上传图片"))
     img_name = img.name

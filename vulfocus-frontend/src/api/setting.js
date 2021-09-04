@@ -14,18 +14,3 @@ export function settingUpdate(data) {
     data
   })
 }
-
-export function settingimg() {
-  return request({
-    url: 'get/settingimg',
-    method: 'get'
-  })
-}
-
-export function enterpriseUpdate(data) {
-  return request({
-    url: '/enterprise/update/',
-    method: 'post',
-    data
-  })
-}

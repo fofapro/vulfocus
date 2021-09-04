@@ -58,8 +58,6 @@ INSTALLED_APPS = [
     'tasks',
     'layout_image',
     'captcha',
-    'notifications',
-    'notice',
 ]
 
 # redis host

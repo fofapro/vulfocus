@@ -218,8 +218,8 @@
       </el-table>
     </el-dialog>
     <el-dialog :visible.sync="editShow"  @close="closeDialog">
-      <el-tabs  v-model="activeName">
-        <el-tab-pane label="修改" name="first">
+      <el-tabs>
+        <el-tab-pane label="修改">
           <el-form label-width="80px" v-loading="editLoding" element-loading-text="修改中">
           <el-form-item label="漏洞名称">
             <el-input v-model="editVulInfo.image_vul_name" size="medium"></el-input>
@@ -345,7 +345,7 @@
           </el-form-item>
         </el-form>
         </el-tab-pane>
-        <el-tab-pane id="compose-update" label="Compose修改" name="second" v-if="editVulInfo.is_docker_compose === true">
+        <el-tab-pane id="compose-update" label="Compose修改" v-if="editVulInfo.is_docker_compose === true">
           <span slot="label"><i class="el-icon-document"></i>DockerCompose修改</span>
           <el-tabs value="dockerfile" ref="tab">
             <el-tab-pane name="dockerfile">
@@ -506,7 +506,6 @@
           devDatabase:[],
           devClassify:[],
         },
-        activeName: 'first',
         HoleType: [],
         devLanguage:[],
         devDatabase:[],
@@ -815,7 +814,6 @@
         },2000)
       },
       openEdit(row){
-        this.activeName = 'first'
         this.editShow = true
         this.editVulInfo = row
         this.compose_content = row.status.json_yml
