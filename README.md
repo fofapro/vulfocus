@@ -96,12 +96,6 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 </tr>
 </table>
 
-
-
-
-
-0verSp4ce.png
-
 ## FAQ
 
 **镜像启动后立即访问地址失败？**
