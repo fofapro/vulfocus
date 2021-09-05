@@ -95,6 +95,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 <td><a href="https://red-team.cn/" target="_blank"><img src="./cooperate/red-team.png" width="190px" height="80px" alt="公鸡队之家·知识星球"></a></td>
 <td><a href="https://www.sierting.com/" target="_blank"><img src="./cooperate/sierting.png" width="190px" height="80px" alt="克拉玛依市思而听网络科技有限公司"></a></td>
 <td><a href="https://wx.zsxq.com/dweb2/index/group/88512188158852" target="_blank">赛博回忆录</a></td>
+<td><a href="https://github.com/medicean/vulapps" target="_blank">VulApps</a></td>
 </tr>
 </table>
 
