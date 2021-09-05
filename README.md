@@ -87,7 +87,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 <table>
 <tr>
 <td><a href="http://www.sinorail.com/" target="_blank">中铁信网络技术研究院</a></td>
-<td><a href="http://www.snnu.edu.cn/" target="_blank"><img src="./cooperate/snnu.png"  width="190px" height="80px" alt="山西师范大学"></a></td>
+<td><a href="http://www.snnu.edu.cn/" target="_blank"><img src="./cooperate/snnu.png"  width="190px" height="80px" alt="陕西师范大学"></a></td>
 <td><a href="http://www.baimaohui.net/" target="_blank"><img src="./cooperate/baimaohui.png"  width="190px" height="80px" alt="白帽汇安全研究院"></a></td>
 <td><a href="https://github.com/0verSp4ce" target="_blank"><img src="./cooperate/0verSp4ce.png" width="190px" height="80px" alt="凌驭空间（OverSpace）安全团队"></a></td>
 </tr>
@@ -96,6 +96,10 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 <td><a href="https://www.sierting.com/" target="_blank"><img src="./cooperate/sierting.png" width="190px" height="80px" alt="克拉玛依市思而听网络科技有限公司"></a></td>
 <td><a href="https://wx.zsxq.com/dweb2/index/group/88512188158852" target="_blank">赛博回忆录</a></td>
 <td><a href="https://github.com/medicean/vulapps" target="_blank">VulApps</a></td>
+</tr>
+<tr>
+<td><a href="https://www.huoxian.cn" target="_blank"><img src="./cooperate/huoxian.png"  width="190px" height="80px" alt="火线平台"></a></td>
+<td><a href="https://dongtai.io/" target="_blank"><img src="./cooperate/dongtai.png"  width="190px" height="80px" alt="洞态"></a></td>
 </tr>
 </table>
 
