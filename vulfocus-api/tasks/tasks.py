@@ -1,8 +1,8 @@
-#!/usr/bin/env python 
-# -*- coding: UTF-8 -*- 
-# @Time :2020/4/27 20:41 
-# @Author :r4v3zn 
-# @Site : 
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+# @Time :2020/4/27 20:41
+# @Author :r4v3zn
+# @Site :
 # @File :tasks.py
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task, chain
@@ -882,8 +882,9 @@ def stop_container(task_id):
         docker_container_id = container_vul.docker_container_id
         try:
             # 连接 Docker 容器
-            docker_container = client.containers.get(docker_container_id)
-            docker_container.stop()
+            if docker_container_id:
+                docker_container = client.containers.get(docker_container_id)
+                docker_container.stop()
             container_vul.container_status = 'stop'
             container_vul.save()
             msg = R.ok(msg="停止成功")

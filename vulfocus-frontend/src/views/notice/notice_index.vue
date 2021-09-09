@@ -61,19 +61,23 @@
     </div>
     <div>
       <el-drawer v-if="second_draw" size="60%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer_sec" :visible="second_draw">
-        <el-button type="primary" icon="el-icon-edit-outline" @click="saveHandleMark(editNoticeInfo.title,editNoticeInfo.notice_id,editNoticeInfo.notice_content)" size="small" style="position:absolute;z-index: 9999;right:80px;top: 20px" >保存</el-button>
-        <el-input style="width: 600px;margin-left: 200px;margin-bottom: 20px" v-model="editNoticeInfo.title" >
-          <template slot="prepend" style="color: black">公告标题</template>
-        </el-input>
-        <markdown-editor ref="markdownEditor" v-model="editNoticeInfo.notice_content" :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="500px" />
+        <el-main v-loading="loading">
+          <el-button type="primary" icon="el-icon-edit-outline" @click="saveHandleMark(editNoticeInfo.title,editNoticeInfo.notice_id,editNoticeInfo.notice_content)" size="small" style="position:absolute;z-index: 9999;right:80px;top: 20px" v-if="loading != true">保存</el-button>
+          <el-input style="width: 600px;margin-bottom: 20px" v-model="editNoticeInfo.title" >
+            <template slot="prepend" style="color: black">公告标题</template>
+          </el-input>
+          <markdown-editor ref="markdownEditor" v-model="editNoticeInfo.notice_content" :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="500px" v-if="loading != true"/>
+        </el-main>
       </el-drawer>
     </div>
     <div>
-      <el-drawer v-if="view_show" size="60%" :direction="derection" modal="false" append-to-body="true" :before-close="closeViewDraw" :visible="view_show">
-        <el-input style="width: 600px;margin-left: 200px;margin-bottom: 20px" v-model="editNoticeInfo.title" disabled="disabled">
-          <template slot="prepend" style="color: black">公告标题</template>
-        </el-input>
-        <ViewerEditor v-model="editNoticeInfo.notice_content" ref="viewerEditor"  :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="500px" ></ViewerEditor>
+      <el-drawer v-if="view_show" size="60%" :direction="derection" modal="false" append-to-body="true" :before-close="closeViewDraw" :visible="view_show" >
+        <el-main v-loading="loading">
+          <el-input style="width: 600px;margin-left: 200px;margin-bottom: 20px" v-model="editNoticeInfo.title" disabled="disabled">
+            <template slot="prepend" style="color: black">公告标题</template>
+          </el-input>
+          <ViewerEditor v-model="editNoticeInfo.notice_content" ref="viewerEditor"  :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="500px" v-if="loading != true"></ViewerEditor>
+        </el-main>
       </el-drawer>
     </div>
     <div style="margin-top: 20px">
@@ -87,7 +91,7 @@
 <script>
 import MarkdownEditor from '@/components/MarkdownEditor'
 import ViewerEditor from '@/components/ViewerEditor'
-import {create_notice,get_notice,delete_notice,public_notice} from '@/api/notice'
+import {create_notice,get_notice,delete_notice,public_notice,get_content} from '@/api/notice'
 export default {
   name: "notice_index",
   components:{
@@ -120,12 +124,12 @@ export default {
         notice_content: '',
         is_newest: '',
         is_public: '',
-      }
+      },
+      loading:true,
     }
   },
   methods:{
     handleQuery(val){
-      console.log(val);
       get_notice(this.search,val).then(response=>{
         this.tableData = response.data.results;
         this.page.total = response.data.count;
@@ -139,7 +143,8 @@ export default {
       this.drawerFlag=false
     },
     closeDrawer(){
-      this.drawer=false
+      this.drawer=false;
+      this.loading=true;
     },
     createnotice(){
       let data = {};
@@ -180,11 +185,16 @@ export default {
       })
     },
     openEdit(row){
-        this.second_draw = true;
         this.editNoticeInfo = row;
+        this.second_draw = true;
+        get_content(row.notice_id).then(response => {
+          this.editNoticeInfo.notice_content = response.data.content;
+          this.loading=false;
+        })
       },
     closeDrawer_sec(){
       this.second_draw=false;
+      this.loading=true;
     },
     saveHandleMark(title,notice_id, notice_content){
       let data = {};
@@ -218,11 +228,16 @@ export default {
       })
     },
     onlyEdit(row){
-      this.view_show=true;
       this.editNoticeInfo = row;
+      this.view_show=true;
+      get_content(row.notice_id).then(response => {
+          this.editNoticeInfo.notice_content = response.data.content;
+          this.loading=false;
+      })
     },
     closeViewDraw(){
-      this.view_show=false
+      this.view_show=false;
+      this.loading=true;
     },
     handleDelete(id){
       this.$confirm('确认删除?', '提示',{

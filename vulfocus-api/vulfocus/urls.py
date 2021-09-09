@@ -23,7 +23,7 @@ from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
 from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose
 from user.views import refresh_captcha, AccessUpdataLinkView, upload_user_img
-from notice.views import NoticeViewset, publish_notice, get_notifications_count, get_public_notice, notice_detail
+from notice.views import NoticeViewset, publish_notice, get_notifications_count, get_public_notice, notice_detail, get_content
 import notifications.urls
 
 router = routers.DefaultRouter()
@@ -80,4 +80,5 @@ urlpatterns = [
     url(r"get_notices", get_public_notice),
     url(r"notice_detail", notice_detail),
     url(r'get_notifications_count',get_notifications_count),
+    url(r"get_content", get_content),
 ]
