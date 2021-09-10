@@ -914,19 +914,19 @@ def delete_container(task_id):
     args = json.loads(operation_args)
     container_id = args["container_id"]
     # 删除容器
-    container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
-                                                container_id=container_id).first()
+    container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), container_id=container_id).first()
     msg = R.ok(msg="删除成功")
     if container_vul:
         # docker 连接容器ID
         docker_container_id = container_vul.docker_container_id
         try:
             # 连接Docker容器
-            docker_container = client.containers.get(docker_container_id)
-            # 停止容器运行
-            docker_container.stop()
-            # 删除容器
-            docker_container.remove(force=True)
+            if docker_container_id:
+                docker_container = client.containers.get(docker_container_id)
+                # 停止容器运行
+                docker_container.stop()
+                # 删除容器
+                docker_container.remove(force=True)
         except Exception:
             pass
         finally:
