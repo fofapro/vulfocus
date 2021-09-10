@@ -69,7 +69,10 @@ export function sceneRank(layoutId,page){
  * @param page scene_tag
  * @returns
  */
-export function getSceneData(page,tag){
+export function getSceneData(query,page,tag){
+  if(query === undefined || query == null){
+    query = ""
+  }
   if (tag === undefined || tag === null){
     tag = "all"
   }
@@ -77,7 +80,7 @@ export function getSceneData(page,tag){
     page = 1
   }
   return request({
-    url: '/get/scenedata/?tag='+tag+'&page='+page,
+    url: '/get/scenedata/?tag='+tag+'&page='+page+'&query=' + query,
     method: 'get'
   })
 }

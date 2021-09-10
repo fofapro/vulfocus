@@ -147,7 +147,7 @@ export default {
       )
     },
     handleQuery(){
-      this.layoutList(1)
+      this.getScene(1)
     },
     handleInto(item){
       if (item.type === 'layoutScene'){
@@ -270,7 +270,7 @@ export default {
       this.getScene(1,this.activeName)
     },
     getScene(page){
-      getSceneData(page,this.activeName).then(response=>{
+      getSceneData(this.search,page,this.activeName).then(response=>{
         this.sceneTableData = []
         if (response.data.code === 200){
           response.data.result.forEach((info,index) => {
@@ -288,8 +288,8 @@ export default {
     }
   },
   created() {
-    this.handleQuery()
-    this.templist()
+    // this.handleQuery()
+    // this.templist()
     this.gettimelist()
     this.getScene()
   },

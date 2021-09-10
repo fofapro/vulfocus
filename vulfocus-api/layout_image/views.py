@@ -742,6 +742,7 @@ def get_scene_data(request):
     '''
     tag = request.GET.get("tag", "all")
     page = request.GET.get("page", 1)
+    query = request.GET.get("query", "")
     if page:
         min_size = (int(page) - 1) * 20
         max_size = int(page) * 20
@@ -751,7 +752,11 @@ def get_scene_data(request):
     all_list = []
     try:
         if tag == "hot" or tag == "all":
-            layout_data = Layout.objects.filter(is_release=True)
+            if query:
+                layout_data = Layout.objects.filter(Q(is_release=True),
+                                                    Q(layout_name__contains=query) | Q(layout_desc__contains=query))
+            else:
+                layout_data = Layout.objects.filter(is_release=True)
             if layout_data:
                 for lay in layout_data:
                     lay_dict = {}
@@ -764,7 +769,10 @@ def get_scene_data(request):
                     lay_dict['type'] = "layoutScene"
                     lay_dict['user_count'] = user_count
                     all_list.append(lay_dict)
-            temp_data = TimeTemp.objects.all()
+            if query:
+                temp_data = TimeTemp.objects.filter(Q(image_name__contains=query) | Q(time_desc__contains=query))
+            else:
+                temp_data = TimeTemp.objects.all()
             if temp_data:
                 for temp in temp_data:
                     temp_dict = {}
@@ -782,7 +790,10 @@ def get_scene_data(request):
             else:
                 all_list = all_list[min_size:max_size]
         else:
-            temp_data = TimeTemp.objects.all()
+            if query:
+                temp_data = TimeTemp.objects.filter(Q(image_name__contains=query) | Q(time_desc__contains=query))
+            else:
+                temp_data = TimeTemp.objects.all()
             if temp_data:
                 for temp in temp_data:
                     temp_dict = {}
