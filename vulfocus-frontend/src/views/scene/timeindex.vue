@@ -313,7 +313,7 @@ export default {
         })
     },
     StateChange(page){
-      this.page.currentPageNum=page
+      if(page == undefined || page == null || page == ""){page=1}
       let temp_id = this.$route.query.temp_id
       if (temp_id === undefined || temp_id == null || temp_id === ""){
         this.$message({
@@ -327,7 +327,7 @@ export default {
         this.page.total = response.data.count
         this.currentScore = response.data.current_score
         this.currentRank = response.data.current_rank
-        this.page.currentPageNum = 1
+        this.page.currentPageNum = page
       })
     },
   },
