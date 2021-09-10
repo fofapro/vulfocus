@@ -59,10 +59,10 @@
         </el-form-item>
         <div align="center">
           <el-button :loading="loading" type="primary" style="width:75%;margin-bottom:30px;margin-left: 10px" @click.native.prevent="handleLogin">登入</el-button>
-          <el-button  style="width:75%;margin-bottom:30px;" @click="jumpreg" >注册</el-button>
+          <el-button v-if="cancel_registration===true" style="width:75%;margin-bottom:30px;" @click="jumpreg" >注册</el-button>
         </div>
         <div>
-          <el-button type="text" @click="findPassword" style="color: #009ad6;margin-left: 70%;float:left">忘记密码
+          <el-button v-if="cancel_registration===true" type="text" @click="findPassword" style="color: #009ad6;margin-left: 70%;float:left">忘记密码
             <i class="el-icon-question"></i>
           </el-button>
         </div>
@@ -98,7 +98,7 @@ export default {
       redirect: undefined,
       displayInput:false,
       version: '',
-      bg: require('../../assets/loginbackground.png'),
+      bg: require('../../assets/loginbg02.png'),
       logoimg: require('../../assets/logintitle.png'),
       cancel_registration: true
     }
