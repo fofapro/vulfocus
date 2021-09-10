@@ -580,27 +580,30 @@ def stop_docker_compose(task_id):
     image_info = ImageInfo.objects.filter(image_name=image_name).first()
     container_vul = ContainerVul.objects.filter(container_id=container_id).first()
     compose_path = container_vul.docker_compose_path
-    try:
-        with transaction.atomic():
-            container_list = get_project(compose_path).stop()
-            if container_list:
-                for container in container_list:
-                    container_id = container.id
-                    container = ContainerVul.objects.filter(docker_container_id=container_id).update(
-                        container_status="stop")
-                    container.save()
-            all_container = ContainerVul.objects.filter(
-                Q(user_id=user_id) & Q(image_id=image_info.image_id) &
-                Q(container_status="running")).all()
-            if all_container:
-                for corrtlation_container in all_container:
-                    corrtlation_container.container_status = 'stop'
-                    corrtlation_container.save()
-            container_vul.container_status = 'stop'
-            container_vul.save()
-            msg = R.ok(msg="停止成功")
-    except Exception:
-        msg = R.err(msg="停止失败，服务器内部错误")
+    if container_vul.container_status != 'running':
+        pass
+    else:
+        try:
+            with transaction.atomic():
+                container_list = get_project(compose_path).stop()
+                if container_list:
+                    for container in container_list:
+                        container_id = container.id
+                        container = ContainerVul.objects.filter(docker_container_id=container_id).update(
+                            container_status="stop")
+                        container.save()
+                all_container = ContainerVul.objects.filter(
+                    Q(user_id=user_id) & Q(image_id=image_info.image_id) &
+                    Q(container_status="running")).all()
+                if all_container:
+                    for corrtlation_container in all_container:
+                        corrtlation_container.container_status = 'stop'
+                        corrtlation_container.save()
+                container_vul.container_status = 'stop'
+                container_vul.save()
+                msg = R.ok(msg="停止成功")
+        except Exception:
+            msg = R.err(msg="停止失败，服务器内部错误")
     task_info.task_status = 3
     task_info.task_msg = json.dumps(msg)
     task_info.update_date = timezone.now()

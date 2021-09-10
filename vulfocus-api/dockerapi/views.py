@@ -1124,8 +1124,7 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         expire = request.GET.get('expire', "")
         image_info = ImageInfo.objects.filter(image_id=container_vul.image_id_id).first()
         if image_info.is_docker_compose == True:
-            original_container = ContainerVul.objects.filter(Q(user_id=user_info.id) & Q(image_id=image_info.image_id) &
-                                                             Q(container_status="running") & ~Q(
+            original_container = ContainerVul.objects.filter(Q(user_id=user_info.id) & Q(image_id=image_info.image_id) & ~Q(
                 docker_compose_path="")).first()
             task_id = tasks.stop_container_task(container_vul=original_container, user_info=user_info,
                                                 request_ip=get_request_ip(request))
