@@ -21,7 +21,7 @@ from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView, MyCode, refresh_captcha
 from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
-from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose
+from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose, get_scene_data
 from user.views import refresh_captcha, AccessUpdataLinkView, upload_user_img
 from notice.views import NoticeViewset, publish_notice, get_notifications_count, get_public_notice, notice_detail
 import notifications.urls
@@ -57,6 +57,7 @@ urlpatterns = [
     url(r'enterprise/update', update_enterprise_setting),
     url(r'img/upload', upload_img),
     url(r'get/urlname', get_url_name),
+    url(r'get/scenedata', get_scene_data),
     url(r'^get/settingimg', get_setting_img),
     url(r'get/website/imgs', get_timing_imgs),
     url(r'^getcaptcha/', MyCode.as_view()),

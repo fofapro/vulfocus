@@ -122,6 +122,7 @@ class TimeRankSet(APIView):
     serializer_class = TimeRankSerializer
 
     def get(self, request):
+        user_name = request.user.username
         value = self.request.GET.get("value")
         page = self.request.GET.get("page", 1)
         if page:
@@ -130,16 +131,26 @@ class TimeRankSet(APIView):
         else:
             min_size = 0
             max_size = 20
-        time_data = TimeTemp.objects.all().filter(name=value).first()
+        time_data = TimeTemp.objects.all().filter(temp_id=value).first()
         if not time_data:
             time_data = TimeTemp.objects.all().filter(time_desc=value).first()
         count = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank").count()
+        all_temp_data = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank").all()
+        current_rank = 0
+        current_score = 0
+        for i, _score in enumerate(all_temp_data):
+            _score = TimeRankSerializer(_score).data
+            if user_name != _score['name']:
+                continue
+            current_rank = i + 1
+            current_score = _score["rank"]
+            break
         temp_data = TimeRank.objects.all().filter(time_temp_id=time_data.temp_id).order_by("-rank")[min_size:max_size]
         temp_list = []
         for tmp in temp_data:
             temp = TimeRankSerializer(tmp).data
             temp_list.append(temp)
-        return JsonResponse({'results': temp_list, 'count': count})
+        return JsonResponse({'results': temp_list, 'count': count, "current_rank": current_rank, 'current_score': current_score })
 
 
 class TimeMoudelSet(viewsets.ModelViewSet):
@@ -152,6 +163,14 @@ class TimeMoudelSet(viewsets.ModelViewSet):
         TimeMoudel.objects.all().filter(end_time__lt=now_time).update(status=False)
         data = TimeMoudel.objects.all().filter(user_id=self.request.user.id, status=True)
         return data
+
+    @action(methods=["get"], detail=True, url_path="get")
+    def get_layout(self, request, pk=None):
+        if not pk or pk == "undefined":
+            return JsonResponse(R.build(msg="环境不存在"))
+        time_info = TimeTemp.objects.filter(temp_id=pk).first()
+        data = TimeTempSerializer(time_info).data
+        return JsonResponse(data)
 
     '''
     删除时间模式，删除会所有该用户目前运行的容器

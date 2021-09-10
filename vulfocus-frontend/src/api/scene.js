@@ -63,3 +63,21 @@ export function sceneRank(layoutId,page){
     method: 'get'
   })
 }
+
+/**
+ * 场景数据
+ * @param page scene_tag
+ * @returns
+ */
+export function getSceneData(page,tag){
+  if (tag === undefined || tag === null){
+    tag = "all"
+  }
+  if (page === undefined || page === null || page < 1){
+    page = 1
+  }
+  return request({
+    url: '/get/scenedata/?tag='+tag+'&page='+page,
+    method: 'get'
+  })
+}

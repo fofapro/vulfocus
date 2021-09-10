@@ -666,7 +666,7 @@ def delete_docker_compose(task_id):
                 corrtlation_container.save()
         if os.path.exists(compose_path) == True:
             shutil.rmtree(compose_path)
-    container_vul.docker_compose_path = ""
+    # container_vul.docker_compose_path = ""
     container_vul.container_status = "delete"
     container_vul.save()
     msg = R.ok(msg="删除成功")

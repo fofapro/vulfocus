@@ -70,6 +70,18 @@ export function userranklist(page) {
   })
 }
 
+/**
+ * 获取计时模式信息
+ * @param tempId
+ * @returns
+ */
+export function sceneGetTemp(temp_id){
+  return request({
+    url: '/time/'+temp_id+'/get/',
+    method: 'get'
+  })
+}
+
 export function timeranklist(value,page) {
   if(page === undefined || page === null){
     page = 1

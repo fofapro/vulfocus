@@ -4,7 +4,8 @@ from .serializers import LayoutSerializer
 from django.core.paginator import Paginator
 from .models import Layout, LayoutService, LayoutServiceNetwork, LayoutData, LayoutServiceContainer, \
     LayoutServiceContainerScore
-from dockerapi.models import ImageInfo, ContainerVul, SysLog
+from dockerapi.models import ImageInfo, ContainerVul, SysLog, TimeTemp, TimeRank, TimeMoudel
+from dockerapi.serializers import TimeTempSerializer
 from dockerapi.views import get_request_ip
 from network.models import NetWorkInfo
 from django.http import JsonResponse
@@ -401,6 +402,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
             "layout": {
                 "name": layout_info.layout_name,
                 "desc": layout_info.layout_desc,
+                "image_name": layout_info.image_name
             },
             "open": open_host_list,
             "is_run": is_run
@@ -686,12 +688,20 @@ class LayoutViewSet(viewsets.ModelViewSet):
                                                                                                  ""), ).first()
         score_count = LayoutServiceContainerScore.objects.filter(layout_id=layout_info, user_id=user.id).count()
         score_total_count = LayoutServiceContainer.objects.filter(layout_user_id=layout_data).count()
+        layout_all_img = LayoutServiceContainer.objects.filter(layout_user_id=layout_data)
+        total_all_score = 0
+        for i in layout_all_img:
+            rank = i.image_id.rank
+            total_all_score += int(rank)
         result = []
+        adopt_count = 0
         for _data in list(page):
             user_info = UserProfile.objects.filter(id=_data["user_id"]).first()
             username = ""
             if user_info:
                 username = user_info.username
+            if _data["score"] >= total_all_score:
+                adopt_count += 1
             result.append({"score": _data["score"], "username": username})
         if score_count == 0:
             score = 0
@@ -703,7 +713,8 @@ class LayoutViewSet(viewsets.ModelViewSet):
             "current": current_rank,
             # "progress": "%s/%s" % (score_count, score_total_count,),
             "progress": "%s" % score,
-            "score": current_score
+            "score": current_score,
+            "adopt_count": adopt_count
         })
 
     @action(methods=["get"], detail=True, url_path="release")
@@ -722,6 +733,74 @@ class LayoutViewSet(viewsets.ModelViewSet):
         layout_info.is_release = True
         layout_info.save()
         return JsonResponse(R.ok())
+
+
+@api_view(http_method_names=["GET"])
+def get_scene_data(request):
+    '''
+    获取热门场景
+    '''
+    tag = request.GET.get("tag", "all")
+    page = request.GET.get("page", 1)
+    if page:
+        min_size = (int(page) - 1) * 20
+        max_size = int(page) * 20
+    else:
+        min_size = 0
+        max_size = 20
+    all_list = []
+    try:
+        if tag == "hot" or tag == "all":
+            layout_data = Layout.objects.filter(is_release=True)
+            if layout_data:
+                for lay in layout_data:
+                    lay_dict = {}
+                    user_count = LayoutServiceContainerScore.objects.filter(layout_id=lay).values('user_id').distinct().count()
+                    lay_data = LayoutSerializer(lay).data
+                    lay_dict['id'] = lay_data['layout_id']
+                    lay_dict['name'] = lay_data['layout_name']
+                    lay_dict['desc'] = lay_data['layout_desc']
+                    lay_dict['image_name'] = lay_data['image_name']
+                    lay_dict['type'] = "layoutScene"
+                    lay_dict['user_count'] = user_count
+                    all_list.append(lay_dict)
+            temp_data = TimeTemp.objects.all()
+            if temp_data:
+                for temp in temp_data:
+                    temp_dict = {}
+                    user_count = TimeRank.objects.filter(time_temp=temp).count()
+                    tem_data = TimeTempSerializer(temp).data
+                    temp_dict['id'] = tem_data['temp_id']
+                    temp_dict['name'] = tem_data['name']
+                    temp_dict['desc'] = tem_data['time_desc']
+                    temp_dict['image_name'] = tem_data['image_name']
+                    temp_dict['type'] = "timeScene"
+                    temp_dict['user_count'] = user_count
+                    all_list.append(temp_dict)
+            if tag == "hot":
+                all_list = sorted(all_list, key=lambda keys: keys['user_count'],reverse=True)[min_size:max_size]
+            else:
+                all_list = all_list[min_size:max_size]
+        else:
+            temp_data = TimeTemp.objects.all()
+            if temp_data:
+                for temp in temp_data:
+                    temp_dict = {}
+                    user_count = TimeRank.objects.filter(time_temp=temp).count()
+                    tem_data = TimeTempSerializer(temp).data
+                    temp_dict['id'] = tem_data['temp_id']
+                    temp_dict['name'] = tem_data['name']
+                    temp_dict['desc'] = tem_data['time_desc']
+                    temp_dict['image_name'] = tem_data['image_name']
+                    temp_dict['type'] = "timeScene"
+                    temp_dict['user_count'] = user_count
+                    all_list.append(temp_dict)
+            all_list = all_list[min_size:max_size]
+    except:
+        return JsonResponse(R.err())
+    count = len(all_list)
+    return JsonResponse({"code": 200, "result": all_list, "count": count})
+
 
 
 def get_random_port(env_content):
@@ -951,7 +1030,6 @@ def update_build_compose(request):
                      operation_value=image_vul_name, operation_args="")
     sys_log.save()
     return JsonResponse({"code": 200, "message": "修改{}镜像构建任务成功".format(tag)})
-
 
 
 @api_view(http_method_names=["GET"])
