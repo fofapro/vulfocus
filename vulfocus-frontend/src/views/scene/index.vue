@@ -378,6 +378,7 @@ export default {
       this.loadingFlag = true
       this.loadingText = "排行初始化中"
       this.page.page = page
+      this.page.currentPageNum = page
       sceneRank(this.layout.id, page).then(response => {
         this.loadingFlag = false
         let rsp = response.data

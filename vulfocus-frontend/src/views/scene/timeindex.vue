@@ -313,6 +313,7 @@ export default {
         })
     },
     StateChange(page){
+      this.page.currentPageNum=page
       let temp_id = this.$route.query.temp_id
       if (temp_id === undefined || temp_id == null || temp_id === ""){
         this.$message({
