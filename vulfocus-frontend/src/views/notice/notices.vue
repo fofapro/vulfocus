@@ -28,10 +28,11 @@
         </el-pagination>
       </div>
     </div>
-    <div v-if="show === false && content != ''">
-      <i class="el-icon-arrow-left" style="width:100px;height:20px;margin-left:40px;margin-top:20px;cursor:pointer;color:rgb(64, 158, 255)" @click="back_to_list">返回列表页</i>
-      <div style="width:80%;height 100px;color:black;font-size:40px;line-height:40px;margin:0 auto;text-align:center">{{title}}</div>
-      <ViewerEditor v-model="content" ref="viewerEditor"  :options="{hideModeSwitch:true, previewStyle:'vertical'}" style="width:80%;margin:20px auto;overflow:hidden;" ></ViewerEditor>
+    <div v-if="show === false" >
+      <div v-loading="loading">
+        <i class="el-icon-arrow-left" style="width:100px;height:20px;margin-left:40px;margin-top:20px;cursor:pointer;color:rgb(64, 158, 255)" @click="back_to_list">返回列表页</i>
+        <ViewerEditor v-model="content" ref="viewerEditor"  :options="{hideModeSwitch:true, previewStyle:'vertical'}" style="width:80%;margin:20px auto;overflow:hidden;" v-if="loading != true"></ViewerEditor>
+      </div>
     </div>
   </div>
 </template>
@@ -54,8 +55,8 @@ export default {
       taskCheckInterval:null,
       tabLoading:false,
       content:'',
-      title:'',
       show:true,
+      loading:true,
     }
   },
   components:{
@@ -92,20 +93,13 @@ export default {
         })
       }else{
           this.content = data.data;
-          this.title = data.title;
+          this.loading = false;
         }
       })
     },
-    closeDrawer(done){
-        this.show=false;
-        get_public_notice(undefined,1,this.read).then(response => {
-          this.notice_list = response.data.data.results;
-          this.tabLoading = false;
-          this.page.total = response.data.data.count;
-      });
-      },
     back_to_list(){
       this.show=true;
+      this.loading = true;
       location.reload();
     }
   }

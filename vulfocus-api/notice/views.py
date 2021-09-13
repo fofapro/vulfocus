@@ -157,3 +157,13 @@ def publish_notice(request):
         except Exception as e:
             return JsonResponse({"code": 400, "message": "发布失败"})
     return JsonResponse({"code": 400, "message": "发布失败"})
+
+
+@api_view(http_method_names=["GET"])
+def get_content(request):
+    notice_id = request.GET.get("notice_id","")
+    print(notice_id)
+    if not notice_id:
+        return JsonResponse({"code": 400, "msg": "公告不存在"})
+    notice_instance = Notice.objects.filter(notice_id=notice_id).first()
+    return JsonResponse({"code": 200, "content": json.loads(notice_instance.notice_content)})

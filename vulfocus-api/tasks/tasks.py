@@ -1,8 +1,8 @@
-#!/usr/bin/env python 
-# -*- coding: UTF-8 -*- 
-# @Time :2020/4/27 20:41 
-# @Author :r4v3zn 
-# @Site : 
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+# @Time :2020/4/27 20:41
+# @Author :r4v3zn
+# @Site :
 # @File :tasks.py
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task, chain
@@ -600,7 +600,7 @@ def stop_docker_compose(task_id):
             container_vul.save()
             msg = R.ok(msg="停止成功")
     except Exception:
-        msg = R.err(msg="停止失败，服务器内部错误")
+        msg = R.ok(msg="停止成功")
     task_info.task_status = 3
     task_info.task_msg = json.dumps(msg)
     task_info.update_date = timezone.now()
@@ -666,7 +666,7 @@ def delete_docker_compose(task_id):
                 corrtlation_container.save()
         if os.path.exists(compose_path) == True:
             shutil.rmtree(compose_path)
-    container_vul.docker_compose_path = ""
+    # container_vul.docker_compose_path = ""
     container_vul.container_status = "delete"
     container_vul.save()
     msg = R.ok(msg="删除成功")
@@ -882,8 +882,9 @@ def stop_container(task_id):
         docker_container_id = container_vul.docker_container_id
         try:
             # 连接 Docker 容器
-            docker_container = client.containers.get(docker_container_id)
-            docker_container.stop()
+            if docker_container_id:
+                docker_container = client.containers.get(docker_container_id)
+                docker_container.stop()
             container_vul.container_status = 'stop'
             container_vul.save()
             msg = R.ok(msg="停止成功")
@@ -913,19 +914,19 @@ def delete_container(task_id):
     args = json.loads(operation_args)
     container_id = args["container_id"]
     # 删除容器
-    container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
-                                                container_id=container_id).first()
+    container_vul = ContainerVul.objects.filter(Q(docker_container_id__isnull=False), container_id=container_id).first()
     msg = R.ok(msg="删除成功")
     if container_vul:
         # docker 连接容器ID
         docker_container_id = container_vul.docker_container_id
         try:
             # 连接Docker容器
-            docker_container = client.containers.get(docker_container_id)
-            # 停止容器运行
-            docker_container.stop()
-            # 删除容器
-            docker_container.remove(force=True)
+            if docker_container_id:
+                docker_container = client.containers.get(docker_container_id)
+                # 停止容器运行
+                docker_container.stop()
+                # 删除容器
+                docker_container.remove(force=True)
         except Exception:
             pass
         finally:

@@ -37,7 +37,7 @@ class TaskSet(viewsets.ReadOnlyModelViewSet):
                     msg["data"]["_now"] = int(timezone.now().timestamp())
                 return JsonResponse(msg, status=200)
             else:
-                return JsonResponse(msg, status=msg["status"])
+                return JsonResponse(msg, status=200)
         return JsonResponse(R.ok())
 
     @action(methods=["post"], detail=True, url_path='batch')

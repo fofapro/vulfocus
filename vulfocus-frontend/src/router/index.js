@@ -136,7 +136,22 @@ export const constantRoutes = [
         hidden: true,
         meta: { title: '场景', icon: 'table', noCache: true }
       },]
-  },
+    },
+    {
+    path: '/timelist',
+    component: Layout,
+    redirect: '/',
+    meta: {title: "场景模式", icon: 'form'},
+    hidden: true,
+    children: [
+      {
+        path: '/timelist/index',
+        component: () => import('@/views/scene/timeindex'),
+        name: 'TimeIndex',
+        hidden: true,
+        meta: { title: '计时场景', icon: 'table', noCache: true }
+      },]
+    },
    {
     path:'/notices',
     component:Layout,
