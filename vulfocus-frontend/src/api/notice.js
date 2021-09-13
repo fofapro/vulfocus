@@ -65,3 +65,10 @@ export function notice_detail(notice_id) {
 }
 
 
+export function get_content(notice_id) {
+  return request({
+    url: '/get_content/?notice_id='+ notice_id,
+    method: 'get',
+  })
+}
+

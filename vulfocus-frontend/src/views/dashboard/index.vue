@@ -493,35 +493,43 @@ export default {
         this.$set(raw.status, "stop_flag", true)
         this.$forceUpdate();
         ContainerStop(container_id,expire).then(response=>{
-          let taskId = response.data["data"]
-          let tmpStopContainerInterval = window.setInterval(() => {
-            setTimeout(()=>{
-              getTask(taskId).then(response=>{
-                let responseStatus = response.data["status"]
-                let responseData = response.data
-                if (responseStatus === 1001){
-                  // 一直轮训
-                }else{
-                  clearInterval(tmpStopContainerInterval)
-                  if (responseStatus === 200){
-                    this.$message({
-                      message: responseData["msg"],
-                      type: "success",
-                    })
-                    raw.status.status = "stop"
-                    raw.status.start_date = ""
-                    raw.status.stop_flag = false
-                    this.listData(1)
-                  }else{
-                    this.$message({
-                      message: responseData["msg"],
-                      type: "error",
-                    })
+          if (response.data.status === 201){
+            this.$message({
+              message: "该镜像正在停止中",
+              type: "warning",
+            })
+            this.reload()
+          }else {
+            let taskId = response.data["data"]
+            let tmpStopContainerInterval = window.setInterval(() => {
+              setTimeout(() => {
+                getTask(taskId).then(response => {
+                  let responseStatus = response.data["status"]
+                  let responseData = response.data
+                  if (responseStatus === 1001) {
+                    // 一直轮训
+                  } else {
+                    clearInterval(tmpStopContainerInterval)
+                    if (responseStatus === 200) {
+                      this.$message({
+                        message: responseData["msg"],
+                        type: "success",
+                      })
+                      raw.status.status = "stop"
+                      raw.status.start_date = ""
+                      raw.status.stop_flag = false
+                      this.listData(1)
+                    } else {
+                      this.$message({
+                        message: responseData["msg"],
+                        type: "error",
+                      })
+                    }
                   }
-                }
-              })
-            },1)
-          },2000)
+                })
+              }, 1)
+            }, 2000)
+          }
         })
       },
       deleteContainer(container_id,raw){

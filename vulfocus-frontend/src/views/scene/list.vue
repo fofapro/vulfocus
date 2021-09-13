@@ -1,74 +1,86 @@
 <template>
 <div class="app-container">
-  <div class="filter-container">
-    <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
-    <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery">
-      查询
-    </el-button>
-    <el-row :gutter="23">
-      <el-col :span="6" v-for="(item,index) in tableData" :key="index" style="padding-bottom: 18px;">
-        <el-card :body-style="{ padding: '8px'}" shadow="hover">
-          <div class="clearfix" style="margin-top: 5px">
-            <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
-              <svg-icon icon-class="bug"  style="font-size: 20px;"/>
-            </div>
-          </div>
-          <div style="padding: 5px; margin-top: 5px;" >
-            <img v-if="item.image_name !==imgpath" :src="item.image_name"  alt="" width="285px" height="300px;"/>
-            <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="285px" height="300px;"/>
-            <div class="container-title" style="margin-top: 5px;">
-              <span>{{item.layout_name}}</span>
-            </div>
-            <div class="bottom clearfix" style="margin-top: 10px;height: 80px;">
-              <span style="color:#999;font-size: 13px;" class="hoveDesc"> {{ item.layout_desc }}</span>
-            </div>
-            <span>编排模式</span>
-            <el-row style="margin-top: 5px;margin-bottom: 10px; float: right">
-              <el-button type="primary" size="mini" @click="handleInto(item)">进入</el-button>
-            </el-row>
-          </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6" v-for="(titem,index) in timelist" :key="index" style="padding-bottom: 18px;">
-        <el-card :body-style="{ padding: '8px'}" shadow="hover">
-          <div class="clearfix" style="margin-top: 5px">
-            <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
-              <svg-icon icon-class="bug"  style="font-size: 20px;"/>
-            </div>
-          </div>
-          <div style="padding: 5px; margin-top: 5px;" >
-            <img v-if="titem.image_name !== imgpath" :src= "titem.image_name"  alt="" width="285px" height="300px;"/>
-            <img v-else-if="titem.image_name===imgpath" :src= "modelimg"  alt="" width="285px" height="300px;"/>
-            <div class="container-title" style="margin-top: 5px;">
-              <span>{{titem.name}}</span>
-            </div>
-            <div class="bottom clearfix" style="margin-top: 10px;height: 80px;" >
-              <span style="color:#999;font-size: 13px;" class="hoveDesc"> 描述:{{ titem.time_desc }}</span>
-              <span style="color:#999;font-size: 13px;" class="hoveDesc"> 时间:{{ titem.time_range }}分钟</span>
-              <span style="color:#999;font-size: 14px;" class="hoveDesc" v-if="titem.rank_range !== undefined && titem.rank_range > 0"> rank:{{ titem.rank_range }}</span>
-              <span style="color:#999;font-size: 13px;" class="hoveDesc" v-if="countlist.length >0 && titem.temp_id === countlist[0].temp_time_id">倒计时
-              <count-down v-if="countlist.length >0 && countlist[0].temp_time_id === titem.temp_id" v-on:end_callback="autostop()" :currentTime="countlist[0].start_date" :startTime="countlist[0].start_date" :endTime="countlist[0].end_date" :dayTxt="'天'" :hourTxt="'小时'" :minutesTxt="'分钟'" :secondsTxt="'秒'">
-              </count-down>
-              </span>
-            </div>
-            <span>计时模式</span>
-            <el-row style="margin-top: 5px;margin-bottom: 10px; float: right" v-if="countlist.length !==0">
-              <el-button type="primary" size="mini" v-if="titem.temp_id!== countlist[0].temp_time_id" @click="handleOk(titem)" >开始</el-button>
-              <el-button type="primary" size="mini" v-if="titem.temp_id === countlist[0].temp_time_id" @click="stop()">关闭</el-button>
-            </el-row>
-            <el-row style="margin-top: 5px;margin-bottom: 10px; float: right" v-else-if="countlist.length===0">
-              <el-button type="primary" size="mini" @click="opendialog(titem)" >开始</el-button>
-            </el-row>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-  </div>
+  <el-input v-model="search" class="sceneSearch" size="medium" placeholder="请输入关键字进行搜索" @keyup.enter.native="handleQuery">
+    <i slot="prefix" class="el-input__icon el-icon-search"></i>
+  </el-input>
+  <el-tabs v-model="activeName" style="margin-top: 10px" @tab-click="currentTabs">
+    <el-tab-pane label="全部" name="all">
+      <div class="filter-container">
+        <el-row :gutter="23">
+          <el-col :span="6" v-for="(item,index) in sceneTableData" :key="index" style="padding-bottom: 18px;">
+            <el-card :body-style="{ padding: '0px'}">
+              <div style="position: relative">
+                <div class="main" style=" position: absolute">
+                  <span class="word" v-if="item.type === 'layoutScene'">普通场景</span>
+                  <span class="word" v-else-if="item.type === 'timeScene'">盲盒模式</span>
+                </div>
+                <img v-if="item.image_name !==imgpath" @click="handleInto(item)" :src="item.image_name"  alt="" width="100%" height="300px"/>
+                <img v-else-if="item.image_name===imgpath" @click="handleInto(item)" :src="modelimg"  alt="" width="100%" height="300px" />
+                <div class="container-title" style="margin-top: 5px;">
+                  <span style="color:#303133;margin-left: 5px;font-size: 14px;">{{item.name}}</span>
+                </div>
+                <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
+                  <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+    </el-tab-pane>
+    <el-tab-pane label="热门" name="hot">
+      <div class="filter-container">
+        <el-row :gutter="23">
+          <el-col :span="6" v-for="(item,index) in sceneTableData" :key="index" style="padding-bottom: 18px;">
+            <el-card :body-style="{ padding: '0px'}">
+              <div style="position: relative">
+                <div class="main" style=" position: absolute">
+                  <span class="word" v-if="item.type === 'layoutScene'">普通场景</span>
+                  <span class="word" v-else-if="item.type === 'timeScene'">盲盒模式</span>
+                </div>
+                <img v-if="item.image_name !==imgpath" @click="handleInto(item)" :src="item.image_name"  alt="" width="100%" height="300px"/>
+                <img v-else-if="item.image_name===imgpath" @click="handleInto(item)" :src="modelimg"  alt="" width="100%" height="300px" />
+                <div class="container-title" style="margin-top: 5px;">
+                  <span style="color:#303133;margin-left: 5px;font-size: 14px;">{{item.name}}</span>
+                </div>
+                <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
+                  <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+    </el-tab-pane>
+    <el-tab-pane label="计时场景" name="time">
+      <div class="filter-container">
+        <el-row :gutter="23">
+          <el-col :span="6" v-for="(item,index) in sceneTableData" :key="index" style="padding-bottom: 18px;">
+            <el-card :body-style="{ padding: '0px'}">
+              <div style="position: relative">
+                <div class="main" style=" position: absolute">
+                  <span class="word" v-if="item.type === 'layoutScene'">普通场景</span>
+                  <span class="word" v-else-if="item.type === 'timeScene'">盲盒模式</span>
+                </div>
+                <img v-if="item.image_name !==imgpath" @click="handleInto(item)" :src="item.image_name"  alt="" width="100%" height="300px"/>
+                <img v-else-if="item.image_name===imgpath" @click="handleInto(item)" :src="modelimg"  alt="" width="100%" height="300px" />
+                <div class="container-title" style="margin-top: 5px;">
+                  <span style="color:#303133;margin-left: 5px;font-size: 14px;">{{item.name}}</span>
+                </div>
+                <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
+                  <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+    </el-tab-pane>
+  </el-tabs>
   <div style="margin-top: 20px">
     <el-pagination
       :page-size="page.size"
-      @current-change="handleQuery"
+      @current-change="getScene"
       layout="total, prev, pager, next, jumper"
       :total="page.total">
     </el-pagination>
@@ -79,15 +91,18 @@
 <script>
 import { layoutList } from '@/api/layout'
 import CountDown from 'vue2-countdown'
+import { getSceneData } from '@/api/scene'
 import { start,timetemplist,timetempadd,stoptimetemp,gettimetemp,publicMethod } from '@/api/timemoudel'
 export default {
   name: 'index',
+  inject: ['reload'],
   components: {
     CountDown
   },
   data(){
     return {
       tableData: [],
+      sceneTableData:[],
       search: "",
       page:{
         total: 0,
@@ -97,8 +112,9 @@ export default {
       timelist:[],
       countlist:[],
       imgpath: '/images/',
-      modelimg: require("../../assets/modelbg.jpg")
+      modelimg: require("../../assets/modelbg.jpg"),
       // isAdmin: false
+      activeName:'all',
     }
   },
   methods: {
@@ -131,10 +147,16 @@ export default {
       )
     },
     handleQuery(){
-      this.layoutList(1)
+      this.getScene(1)
     },
     handleInto(item){
-      this.$router.push({path: "/scene/index", query: {"layout_id": item.layout_id}})
+      if (item.type === 'layoutScene'){
+        this.$router.push({path: "/scene/index", query: {"layout_id": item.id}})
+      }
+      if (item.type === 'timeScene'){
+        this.$router.push({path:"/timelist/index", query: {"temp_id": item.id}})
+      }
+
     },
     templist(){
         timetemplist().then(response =>{
@@ -147,7 +169,7 @@ export default {
         })
     },
     handleOk(titem){
-      if (this.countlist.length!=0){
+      if (this.countlist.length!==0){
         this.$message({
           message: '已有时间模式在运行，请先关闭',
           type: 'error'
@@ -242,12 +264,34 @@ export default {
             message: msg,
           });
         })
+    },
+    currentTabs(tab, event){
+      this.activeName = tab.name
+      this.getScene(1,this.activeName)
+    },
+    getScene(page){
+      getSceneData(this.search,page,this.activeName).then(response=>{
+        this.sceneTableData = []
+        if (response.data.code === 200){
+          response.data.result.forEach((info,index) => {
+            info.image_name = '/images/'+ info.image_name
+            this.sceneTableData.push(info)
+          })
+          this.page.total = response.data.count
+        }else {
+          this.$message({
+          type: 'error',
+          message: '数据返回失败!'
+        })
+        }
+      })
     }
   },
   created() {
-    this.handleQuery()
-    this.templist()
+    // this.handleQuery()
+    // this.templist()
     this.gettimelist()
+    this.getScene()
   },
   mounted: function() {
       var _this = this;
@@ -274,5 +318,33 @@ export default {
   display:block;
   word-break:keep-all;
   margin-top: 2px;
+}
+.sceneSearch{
+  width: 360px;
+  height: 32px;
+  background: #F2F4F7;
+  border-radius: 4px;
+}
+.word {
+  z-index: 53;
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  width: 28px;
+  display: block;
+  overflow-wrap: break-word;
+  color: rgba(255, 255, 255, 1);
+  font-size: 14px;
+  font-family: MicrosoftYaHei;
+  white-space: nowrap;
+  line-height: 14px;
+}
+.main {
+  z-index: 52;
+  width: 70px;
+  height: 24px;
+  margin-top: 20px;
+  border-radius: 12px 0 0 12px;
+  background-color: rgba(250, 63, 63, 1);
 }
 </style>

@@ -27,7 +27,7 @@ docker run -d -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=x
 - `-e EMAIL_HOST_PASSWORD="xxxxxxxx`  为邮箱密码
 - 默认账户密码为 `admin/admin`。
 
-![](./imgs/1.png)
+![](./imgs/login.png)
 
 ## 自定义安装
 
@@ -154,8 +154,6 @@ python manage.py createsuperuser
 
 #### 靶场配置：
 
-1. 配置 Docker URL（`vulfocus/settings.py`），默认为：`tcp://127.0.0.1:2375`，修改为 Docker 服务器的 IP。
-
 2. 配置 VUL_IP（`vulfocus/settings.py`），修改为 Docker 服务器的 IP。
 
 3. 修改 CELERY_BROKER_URL（`vulfocus/settings.py`），修改为 Redis 连接地址。
@@ -164,11 +162,12 @@ python manage.py createsuperuser
 #### 启动 Celery(Celery不需要操做后面有自启)
 在 `vulfocus-api` 中启动 Celery：
 ```
+systemctl start redis
 celery -A vulfocus worker -l info -E
 ```
 后端启动：
 ```
-celery multi start worker -A vulfocus -l info --logfile=celery.log
+celery multi start worker -B -A  vulfocus -l info --logfile=celery.log
 ```
 
 #### 安装uwsgi
@@ -176,7 +175,11 @@ celery multi start worker -A vulfocus -l info --logfile=celery.log
 ```shell
 pip install uwsgi -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-
+如果安装uwsgi报错（gcc error:libpython3.9.a No such file or directory）
+```
+find / -name libpython3.9.a
+cp #libpython3.9.a文件位置 #libpython3.9.a文件缺失位置
+```
 ##### uwsgi 配置
 
 **位置：** `/data/etc/vulfocus_uwsgi.ini`
@@ -212,7 +215,7 @@ vulfocus 前端项目，通过 Element-ui + VUE 构建。
 
 #### 项目构建
 
-安装依赖：
+安装依赖(假设本机已经安装node和npm)：
 
 ```shell script
 npm install 
@@ -220,6 +223,7 @@ npm install
 
 构建项目：
 ```
+cd /data/web/vulfocus-fronted
 npm run build:prod
 ```
 
