@@ -180,6 +180,7 @@ class TimeMoudelSet(viewsets.ModelViewSet):
         data = TimeTempSerializer(time_info).data
         return JsonResponse(data)
 
+
     '''
     删除时间模式，删除会所有该用户目前运行的容器
     '''
@@ -1139,6 +1140,8 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
             original_container = ContainerVul.objects.filter(Q(user_id=user_info.id) & Q(image_id=image_info.image_id) &
                                                              Q(container_status="running") & ~Q(
                 docker_compose_path="")).first()
+            if not original_container:
+                return JsonResponse({"status":201})
             task_id = tasks.stop_container_task(container_vul=original_container, user_info=user_info,
                                                 request_ip=get_request_ip(request))
             return JsonResponse(R.ok(task_id))

@@ -4,6 +4,12 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE-2018-10735 |`docker pull  vulfocus/nagiosxi-CVE-2018-10735 `|CVE-2018-10735 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-10736 |`docker pull  vulfocus/nagiosxi-CVE-2018-10736 `|CVE-2018-10736 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-10737 |`docker pull  vulfocus/nagiosxi-CVE-2018-10737 `|CVE-2018-10737 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-10738 |`docker pull  vulfocus/nagiosxi-CVE-2018-10738 `|CVE-2018-10738 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-16341 |`docker pull  vulfocus/nuxeo-CVE-2018-16341 `|CVE-2018-16341 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-14418 |`docker pull  vulfocus/msvod-CVE-2018-14418 `|CVE-2018-14418 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-9733 |`docker pull  vulfocus/artifactory-CVE-2019-9733 `|CVE-2019-9733 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2017-9506|`docker pull  vulfocus/jira-CVE-2017-9506`|CVE-2017-9506|[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-8451|`docker pull  vulfocus/jira-CVE-2019-8451`|CVE-2019-8451|[Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -214,6 +220,25 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 | CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 
 ## 镜像新增日志
+
+
+2021-09-10
+
+- vulfocus/nagiosxi-cve_2018_10735
+- vulfocus/nagiosxi-cve_2018_10736
+- vulfocus/nagiosxi-cve_2018_10737
+- vulfocus/nagiosxi-cve_2018_10738
+- vulfocus/nuxeo-cve_2018_16341
+- vulfocus/msvod-cve_2018_14418
+
+2021-08-27
+
+- vulfocus/jira-cve_2019_3403
+- vulfocus/jira-cve_2019_8442
+- vulfocus/jira-cve_2020_14181
+- vulfocus/jira-cve_2019_8451
+- vulfocus/jira-cve_2017_9506
+- vulfocus/artifactory-cve_2019_9733
 
 2021-07-24
 

@@ -600,7 +600,7 @@ def stop_docker_compose(task_id):
             container_vul.save()
             msg = R.ok(msg="停止成功")
     except Exception:
-        msg = R.err(msg="停止失败，服务器内部错误")
+        msg = R.ok(msg="停止成功")
     task_info.task_status = 3
     task_info.task_msg = json.dumps(msg)
     task_info.update_date = timezone.now()

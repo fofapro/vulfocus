@@ -566,6 +566,14 @@ export default {
           }
           else if(response.data.code ==200 && response.data.status == "running"){
             ContainerStop(container_id,expire).then(response=>{
+        ContainerStop(container_id,expire).then(response=>{
+          if (response.data.status === 201){
+            this.$message({
+              message: "该镜像正在停止中",
+              type: "warning",
+            })
+            this.reload()
+          }else {
             let taskId = response.data["data"]
             let tmpStopContainerInterval = window.setInterval(() => {
               setTimeout(() => {
