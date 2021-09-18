@@ -3,7 +3,7 @@ from django.db.models import Sum
 from django.contrib.auth.models import AnonymousUser
 from django.http import JsonResponse,HttpResponse
 from rest_framework import viewsets,mixins
-from user.serializers import UserProfileSerializer, User, UserRegisterSerializer,UpdatePassSerializer,LoginSerializer
+from user.serializers import UserProfileSerializer, User, UserRegisterSerializer, UpdatePassSerializer, LoginSerializer, CommentSerializer
 from user.serializers import SendEmailSerializer,ResetPasswordSerializer
 from rest_framework.views import APIView
 from django.contrib.auth import logout, login, authenticate
@@ -13,7 +13,7 @@ from email.header import Header
 from rest_framework.decorators import action
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from django.views.generic.base import View
-from user.models import UserProfile, EmailCode,  RegisterCode
+from user.models import UserProfile,EmailCode, RegisterCode, Comment
 from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from rest_framework import permissions, status
 from vulfocus.settings import EMAIL_FROM, EMAIL_HOST, EMAIL_HOST_USER
@@ -29,7 +29,9 @@ import smtplib
 import os
 from email.mime.text import MIMEText
 from time import sleep
+import time
 import uuid
+import json
 from rest_framework_jwt.serializers import JSONWebTokenSerializer
 from rest_framework_jwt.utils import jwt_response_payload_handler
 from rest_framework.response import Response
@@ -43,6 +45,7 @@ from vulfocus.settings import REDIS_USER_CACHE as red_user_cache
 from vulfocus.settings import ALLOWED_IMG_SUFFIX, BASE_DIR
 from dockerapi.views import get_local_ip, get_request_ip
 from vulfocus.settings import EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
+import django.utils.timezone as timezone
 
 class ListAndUpdateViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """
@@ -152,7 +155,7 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
         for single_key in keys:
             try:
                 single_user_info = red_user_cache.get(single_key)
-                redis_username, redis_password, redis_email = single_user_info.split("-")
+                redis_username, redis_password, redis_email = json.loads(single_user_info)
                 if username == redis_username:
                     return JsonResponse({"code": 400, "msg": "该用户已被注册"})
                 if redis_email == email:
@@ -170,7 +173,13 @@ class UserRegView(viewsets.mixins.CreateModelMixin, viewsets.GenericViewSet):
             send_activate_email(receiver_email=email, code=code, request=request)
         except smtplib.SMTPDataError as e:
             return JsonResponse({"code": 400, "msg": "邮件发送失败，请减缓发送频率"})
-        red_user_cache.set(code, username + "-" + password + "-" + email, ex=300)
+        except Exception as e:
+            return JsonResponse({"code": 400, "msg": "邮件发送失败"})
+        try:
+            user_info = [username, password, email]
+            red_user_cache.set(code, json.dumps(user_info), ex=300)
+        except Exception as e:
+            return JsonResponse({"code": 400, "msg": "注册失败"})
         return JsonResponse({"code": 200, "msg": "注册用户成功，请到邮箱激活您的账号"})
 
 # 定义一验证码
@@ -245,11 +254,14 @@ class LoginViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
         username = request.data["username"]
         password = request.data["password"]
         keys = red_user_cache.keys()
-        for single_key in keys:
-            user_info = red_user_cache.get(single_key)
-            redis_username, redis_password, redis_email = user_info.split("-")
-            if redis_username == username:
-                return Response({"non_field_errors": ["账号未激活，请先激活账号"]}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            for single_key in keys:
+                user_info = red_user_cache.get(single_key)
+                redis_username, redis_password, redis_email = json.loads(user_info)
+                if redis_username == username:
+                    return Response({"non_field_errors": ["账号未激活，请先激活账号"]}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            pass
         user = User.objects.filter(username=username).first()
         if not user:
             return Response({"non_field_errors": ["账号或者密码错误"]}, status=status.HTTP_400_BAD_REQUEST)
@@ -357,7 +369,7 @@ class AccessLinkView(View):
         code=request.GET.get("code","")
         try:
             user_info = red_user_cache.get(code)
-            redis_username, redis_password, redis_email = user_info.split("-")
+            redis_username, redis_password, redis_email = json.loads(user_info)
             user = UserProfile(username=redis_username, email=redis_email)
             user.set_password(redis_password)
             user.has_active = True
@@ -460,6 +472,41 @@ class AccessUpdataLinkView(View):
         return JsonResponse({"code": 200, "msg": "ok"})
 
 
+class CommentView(viewsets.ModelViewSet):
+    '''
+    评论增删改查
+    '''
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        scene_id = self.request.GET.get('sceneId', "")
+        if not scene_id:
+            return JsonResponse({"status": 201, "message": "错误的场景"})
+        scene_info = Comment.objects.filter(scene_id=scene_id).order_by('-create_time').all()
+        return scene_info
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        user = request.user
+        scene_id = data['scene_id']
+        content = data['content']
+        scene_type = data['scene_type']
+        if not content:
+            return JsonResponse({"status": 201, "message": "评论内容不能为空"})
+        if not scene_id:
+            return JsonResponse({"status": 201, "message": "错误的场景"})
+        if not scene_type:
+            return JsonResponse({"status": 201, "message": "场景类型是必须的"})
+        comment_info = Comment(comment_id=str(uuid.uuid4()))
+        comment_info.scene_id = scene_id
+        comment_info.user = user
+        comment_info.content = content
+        comment_info.scene_type = scene_type
+        comment_info.create_time = timezone.now()
+        comment_info.save()
+        return JsonResponse({"status": 200, "message": '评论成功'})
+
+
 @api_view(http_method_names=["POST"])
 def upload_user_img(request):
     user = request.user
@@ -484,3 +531,4 @@ def upload_user_img(request):
     user.avatar = '/images/user/' + img_name
     user.save()
     return JsonResponse({"code": 200, "msg": "上传成功", "image_path": img_name})
+

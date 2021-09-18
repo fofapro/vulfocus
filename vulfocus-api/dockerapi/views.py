@@ -71,6 +71,9 @@ class CreateTimeTemplate(viewsets.ModelViewSet):
         if not name:
             data = {"code": 2001, "message": "名称不能为空"}
             return JsonResponse(data=data)
+        if len(name) > 255:
+            data = {"code": 2001, "message": "名称过长"}
+            return JsonResponse(data=data)
         if request.data['time_range'].isdigit() != True or int(request.data['time_range']) % 30 != 0:
             data = {"code": 2001, "message": "时间范围不能为空，并且必须是整数，且是30的倍数"}
             return JsonResponse(data=data)
@@ -149,6 +152,11 @@ class TimeRankSet(APIView):
         temp_list = []
         for tmp in temp_data:
             temp = TimeRankSerializer(tmp).data
+            user_info = UserProfile.objects.filter(username=temp['name']).first()
+            avatar = ""
+            if user_info:
+                avatar = user_info.avatar
+            temp['avatar'] = avatar
             temp_list.append(temp)
         return JsonResponse({'results': temp_list, 'count': count, "current_rank": current_rank, 'current_score': current_score })
 
@@ -830,17 +838,21 @@ class DashboardView(APIView):
         degrees = ImageInfo.objects.all().values('degree').distinct()
         HoleType, devLanguage, devDatabase, devClassify = [], [], [], []
         for single_degree in degrees:
-            origin_degree = json.loads(single_degree["degree"]) if single_degree["degree"] else ""
+            try:
+                origin_degree = json.loads(single_degree["degree"]) if "degree" in single_degree and single_degree[
+                    "degree"] else ""
+            except Exception as e:
+                pass
             if isinstance(origin_degree, list):
                 HoleType += origin_degree
             elif isinstance(origin_degree, dict):
-                if origin_degree["HoleType"]:
+                if "HoleType" in origin_degree and origin_degree["HoleType"]:
                     HoleType += origin_degree["HoleType"]
-                if origin_degree["devLanguage"]:
+                if "devLanguage" in origin_degree and origin_degree["devLanguage"]:
                     devLanguage += origin_degree["devLanguage"]
-                if origin_degree["devDatabase"]:
+                if "devDatabase" in origin_degree and origin_degree["devDatabase"]:
                     devDatabase += origin_degree["devDatabase"]
-                if origin_degree["devClassify"]:
+                if "devClassify" in origin_degree and origin_degree["devClassify"]:
                     devClassify += origin_degree["devClassify"]
         return_degree_dict = {"HoleType": list(set(HoleType)), "devLanguage": list(set(devLanguage)),
                               "devDatabase": list(set(devDatabase)), "devClassify": list(set(devClassify))}
@@ -1171,7 +1183,7 @@ class ContainerVulViewSet(viewsets.ReadOnlyModelViewSet):
         :param pk:
         :return:
         """
-        
+
         request = self.request
         flag = request.GET.get('flag', "")
         container_vul = self.get_object()
@@ -1544,4 +1556,13 @@ def update_enterprise_setting(request):
     except:
         return JsonResponse(R.build('修改失败'))
     rsp_data = get_setting_config()
-    return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
+    return JsonResponse(R.ok(msg="修改成功", data=rsp_data)
+
+
+@api_view(http_method_names=["GET"])
+def get_container_status(request):
+    container_id = request.GET.get("container_id", "")
+    current_container = ContainerVul.objects.filter(container_id=container_id).first()
+    if not current_container:
+        return JsonResponse({"code": 400, "msg": "容器不存在"})
+    return JsonResponse({"code": 200,"status":current_container.container_status})

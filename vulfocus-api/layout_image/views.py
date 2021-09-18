@@ -4,6 +4,7 @@ from .serializers import LayoutSerializer
 from django.core.paginator import Paginator
 from .models import Layout, LayoutService, LayoutServiceNetwork, LayoutData, LayoutServiceContainer, \
     LayoutServiceContainerScore
+from django.views.decorators.csrf import csrf_exempt
 from dockerapi.models import ImageInfo, ContainerVul, SysLog, TimeTemp, TimeRank, TimeMoudel
 from dockerapi.serializers import TimeTempSerializer
 from dockerapi.views import get_request_ip
@@ -20,7 +21,7 @@ from dockerapi.common import R
 from rest_framework.decorators import api_view
 import os
 import uuid
-from vulfocus.settings import client, ALLOWED_IMG_SUFFIX, DOCKER_COMPOSE, BASE_DIR
+from vulfocus.settings import client, ALLOWED_IMG_SUFFIX, DOCKER_COMPOSE, BASE_DIR, COMPOSE_ZIP_PATH, DOWNLOAD_FILE_TYPE, UPLOAD_ZIP_PATH
 from django.db import transaction
 from .bridge import get_project
 from tasks import tasks
@@ -31,8 +32,13 @@ import docker
 from tasks.models import TaskInfo
 from tasks import tasks
 from tasks.serializers import TaskSetSerializer
+from django.http import StreamingHttpResponse
 import yaml
-from ruamel.yaml import YAML, YAMLContextManager
+import sys
+if sys.version_info >= (3,6):
+    import zipfile
+else:
+    import zipfile36 as zipfile
 # Create your views here.
 
 
@@ -117,7 +123,6 @@ def delete_file(request):
     return JsonResponse(R.ok(data='删除成功'))
 
 
-
 class LayoutViewSet(viewsets.ModelViewSet):
     serializer_class = LayoutSerializer
 
@@ -126,27 +131,34 @@ class LayoutViewSet(viewsets.ModelViewSet):
         查询
         """
         user = self.request.user
-        query = self.request.GET.get("query", "")
-        flag = self.request.GET.get("flag", "")
-        if not flag:
-            if user.is_superuser:
-                pass
-        else:
-            pass
-        if query:
-            if not flag:
-                if user.is_superuser:
-                    return Layout.objects.filter(Q(layout_name__contains=query) | Q(layout_desc__contains=query) |
-                                                 Q(raw_content__contains=query) | Q(yml_content__contains=query)) \
-                        .order_by('-create_date')
-            return Layout.objects.filter(Q(layout_name__contains=query) | Q(layout_desc__contains=query) |
-                                         Q(raw_content__contains=query) | Q(yml_content__contains=query),
-                                         is_release=True).order_by('-create_date')
-        else:
-            if not flag:
-                if user.is_superuser:
-                    return Layout.objects.all().order_by('-create_date')
-            return Layout.objects.filter(is_release=True).order_by('-create_date')
+        layout_id = self.request.GET.get("id", "")
+        if layout_id:
+            if not user.is_superuser:
+                return JsonResponse(R.err("权限不够"))
+            else:
+                layout_info = Layout.objects.filter(layout_id=layout_id)
+                return layout_info
+        # query = self.request.GET.get("query", "")
+        # flag = self.request.GET.get("flag", "")
+        # if not flag:
+        #     if user.is_superuser:
+        #         pass
+        # else:
+        #     pass
+        # if query:
+        #     if not flag:
+        #         if user.is_superuser:
+        #             return Layout.objects.filter(Q(layout_name__contains=query) | Q(layout_desc__contains=query) |
+        #                                          Q(raw_content__contains=query) | Q(yml_content__contains=query)) \
+        #                 .order_by('-create_date')
+        #     return Layout.objects.filter(Q(layout_name__contains=query) | Q(layout_desc__contains=query) |
+        #                                  Q(raw_content__contains=query) | Q(yml_content__contains=query),
+        #                                  is_release=True).order_by('-create_date')
+        # else:
+        #     if not flag:
+        #         if user.is_superuser:
+        #             return Layout.objects.all().order_by('-create_date')
+        #     return Layout.objects.filter(is_release=True).order_by('-create_date')
 
     def create(self, request, *args, **kwargs):
         """
@@ -364,7 +376,7 @@ class LayoutViewSet(viewsets.ModelViewSet):
                     shutil.rmtree(layout_path)
                 request_ip = get_request_ip(request)
                 sys_log = SysLog(user_id=user.id, operation_type="编排环境", operation_name="删除",
-                                 operation_value=layout_name, operation_args=json.dumps(LayoutSerializer(layout).data),
+                                 operation_value=layout_name, operation_args=json.dumps({}),
                                  ip=request_ip)
                 sys_log.save()
         except Exception as e:
@@ -698,15 +710,18 @@ class LayoutViewSet(viewsets.ModelViewSet):
         for _data in list(page):
             user_info = UserProfile.objects.filter(id=_data["user_id"]).first()
             username = ""
+            user_avatar = ""
             if user_info:
                 username = user_info.username
+                user_avatar = user_info.avatar
             if _data["score"] >= total_all_score:
                 adopt_count += 1
-            result.append({"score": _data["score"], "username": username})
+            result.append({"score": _data["score"], "username": username, "user_avatar": user_avatar})
+            # round(psutil.virtual_memory().total / 1073741824, 2)
         if score_count == 0:
             score = 0
         else:
-            score = (round(score_count/score_total_count, 2)*100)
+            score = (round(score_count / score_total_count, 2) * 100)
         return JsonResponse({
             "result": result,
             "count": pages.count,
@@ -734,83 +749,49 @@ class LayoutViewSet(viewsets.ModelViewSet):
         layout_info.save()
         return JsonResponse(R.ok())
 
-
-@api_view(http_method_names=["GET"])
-def get_scene_data(request):
-    '''
-    获取热门场景
-    '''
-    tag = request.GET.get("tag", "all")
-    page = request.GET.get("page", 1)
-    query = request.GET.get("query", "")
-    if page:
-        min_size = (int(page) - 1) * 20
-        max_size = int(page) * 20
-    else:
-        min_size = 0
-        max_size = 20
-    all_list = []
-    try:
-        if tag == "hot" or tag == "all":
-            if query:
-                layout_data = Layout.objects.filter(Q(is_release=True),
-                                                    Q(layout_name__contains=query) | Q(layout_desc__contains=query))
-            else:
-                layout_data = Layout.objects.filter(is_release=True)
-            if layout_data:
-                for lay in layout_data:
-                    lay_dict = {}
-                    user_count = LayoutServiceContainerScore.objects.filter(layout_id=lay).values('user_id').distinct().count()
-                    lay_data = LayoutSerializer(lay).data
-                    lay_dict['id'] = lay_data['layout_id']
-                    lay_dict['name'] = lay_data['layout_name']
-                    lay_dict['desc'] = lay_data['layout_desc']
-                    lay_dict['image_name'] = lay_data['image_name']
-                    lay_dict['type'] = "layoutScene"
-                    lay_dict['user_count'] = user_count
-                    all_list.append(lay_dict)
-            if query:
-                temp_data = TimeTemp.objects.filter(Q(image_name__contains=query) | Q(time_desc__contains=query))
-            else:
-                temp_data = TimeTemp.objects.all()
-            if temp_data:
-                for temp in temp_data:
-                    temp_dict = {}
-                    user_count = TimeRank.objects.filter(time_temp=temp).count()
-                    tem_data = TimeTempSerializer(temp).data
-                    temp_dict['id'] = tem_data['temp_id']
-                    temp_dict['name'] = tem_data['name']
-                    temp_dict['desc'] = tem_data['time_desc']
-                    temp_dict['image_name'] = tem_data['image_name']
-                    temp_dict['type'] = "timeScene"
-                    temp_dict['user_count'] = user_count
-                    all_list.append(temp_dict)
-            if tag == "hot":
-                all_list = sorted(all_list, key=lambda keys: keys['user_count'],reverse=True)[min_size:max_size]
-            else:
-                all_list = all_list[min_size:max_size]
-        else:
-            if query:
-                temp_data = TimeTemp.objects.filter(Q(image_name__contains=query) | Q(time_desc__contains=query))
-            else:
-                temp_data = TimeTemp.objects.all()
-            if temp_data:
-                for temp in temp_data:
-                    temp_dict = {}
-                    user_count = TimeRank.objects.filter(time_temp=temp).count()
-                    tem_data = TimeTempSerializer(temp).data
-                    temp_dict['id'] = tem_data['temp_id']
-                    temp_dict['name'] = tem_data['name']
-                    temp_dict['desc'] = tem_data['time_desc']
-                    temp_dict['image_name'] = tem_data['image_name']
-                    temp_dict['type'] = "timeScene"
-                    temp_dict['user_count'] = user_count
-                    all_list.append(temp_dict)
-            all_list = all_list[min_size:max_size]
-    except:
-        return JsonResponse(R.err())
-    count = len(all_list)
-    return JsonResponse({"code": 200, "result": all_list, "count": count})
+    @action(methods=["get"], detail=True, url_path="download")
+    def download_layout(self, request, pk=None):
+        """
+        下载环境编排压缩包
+        :param request:
+        :param pk:
+        :return:
+        """
+        if not pk:
+            return JsonResponse(R.build(msg="环境不存在"))
+        user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build(msg="权限不足"))
+        layout_instance = Layout.objects.filter(layout_id=pk).first()
+        if not layout_instance:
+            return JsonResponse(R.build(msg="环境不存在"))
+        zip_file_path = os.path.join(COMPOSE_ZIP_PATH, str(layout_instance.layout_name))
+        if not os.path.exists(zip_file_path):
+            os.makedirs(zip_file_path)
+        raw_path = os.path.join(zip_file_path, "raw-content.json")
+        with open(raw_path, "w", encoding="utf-8") as f:
+            f.write(layout_instance.raw_content)
+        layout_info = {}
+        layout_info["layout_name"] = layout_instance.layout_name
+        layout_info["layout_desc"] = layout_instance.layout_desc
+        layout_info_path = os.path.join(zip_file_path, "layout_info.json")
+        with open(layout_info_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(layout_info))
+        image_path = os.path.join(zip_file_path, layout_instance.image_name)
+        with open(os.path.join(BASE_DIR, 'static', layout_instance.image_name), "rb") as f:
+            download_image = open(image_path, "wb")
+            download_image.write(f.read())
+            download_image.close()
+        download_zip = zipfile.ZipFile("{}.zip".format(zip_file_path), "w", zipfile.ZIP_DEFLATED)
+        download_zip.write(filename=raw_path, arcname="{dir_path}/raw-content.json".format(dir_path=layout_instance.layout_name))
+        download_zip.write(filename=image_path, arcname="{dir_path}/{image_name}".format(dir_path=layout_instance.layout_name, image_name=layout_instance.image_name))
+        download_zip.write(filename=layout_info_path, arcname="{dir_path}/layout_info.json".format(dir_path=layout_instance.layout_name))
+        download_zip.close()
+        response = StreamingHttpResponse(file_iterator("{}.zip".format(zip_file_path)))
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename={file_name}{format}'.format(
+            file_name=layout_instance.layout_name, format=DOWNLOAD_FILE_TYPE)
+        return response
 
 
 
@@ -897,6 +878,17 @@ def build_yml(container_list, network_dict, connector_list):
     return yml_content
 
 
+def file_iterator(file_path, chunk_size=1024):
+    with open(file_path, "rb") as f:
+        while True:
+            c = f.read(chunk_size)
+            if c:
+                yield c
+            else:
+                break
+
+
+
 @api_view(http_method_names=["POST"])
 def build_compose(request):
     '''
@@ -909,11 +901,11 @@ def build_compose(request):
     tag = request.data['tag']
     args = request.data['compose_content']
     try:
-        new_yaml = YAML(typ='safe')
-        new_yaml.allow_duplicate_keys = True
-        args_yaml = new_yaml.load(args)
+        args_yaml = yaml.load(args, Loader=yaml.FullLoader)
     except Exception as e:
         return JsonResponse({"code": 2001, "message": "格式错误"})
+    local_images = [i.tags[0] for i in client.images.list() if i.tags]  # 本地所有镜像
+    image_list = []
     env_list = []
     vul_port = []
     compose_env_port = []
@@ -965,7 +957,7 @@ def build_compose(request):
                                rank=rank, degree=json.dumps(degree), is_ok=False, create_date=timezone.now()
                                , update_date=timezone.now(), is_docker_compose=True, docker_compose_yml=json.dumps(args_yaml)
                                , docker_compose_env=json.dumps(env_list), image_port=json.dumps(vul_port)
-                               , compose_env_port=json.dumps(compose_env_port), original_yml=json.dumps(args))
+                               , compose_env_port=json.dumps(compose_env_port), original_yml=json.dumps(yaml.load(args,Loader=yaml.FullLoader)))
 
         image_info.save()
         image_list = tasks.create_compose_task(user_info, image_info, tag, get_request_ip(request))
@@ -991,9 +983,7 @@ def update_build_compose(request):
     if not image_id:
         return JsonResponse({"code": 2001, "message": "错误的image_id"})
     try:
-        new_yaml = YAML(typ='safe')
-        new_yaml.allow_duplicate_keys = True
-        args_yaml = new_yaml.load(args)
+        args_yaml = yaml.load(args, Loader=yaml.FullLoader)
     except Exception as e:
         return JsonResponse({"code": 2001, "message": "格式错误"})
     image_infos = ImageInfo.objects.filter(image_id=image_id).first()
@@ -1030,7 +1020,7 @@ def update_build_compose(request):
         image_infos.docker_compose_env = json.dumps(env_list)
         image_infos.image_port = json.dumps(vul_port)
         image_infos.compose_env_port = json.dumps(compose_env_port)
-        image_infos.original_yml = json.dumps(args)
+        image_infos.original_yml = json.dumps(yaml.load(args, Loader=yaml.FullLoader))
         image_infos.save()
         tag = image_infos.image_name
         image_vul_name = image_infos.image_vul_name
@@ -1060,3 +1050,420 @@ def show_compose(request):
         return JsonResponse({"code": 200, "message": "正在构建相关镜像", "data": args_yaml, "img_name": tag})
     else:
         return JsonResponse({"code": 202, "message": ""})
+
+
+@api_view(http_method_names=["GET"])
+def get_scene_data(request):
+    '''
+    获取场景
+    '''
+    tag = request.GET.get("tag", "all")
+    page = request.GET.get("page", 1)
+    query = request.GET.get("query", "")
+    backstage = request.GET.get("backstage", "")
+    user = request.user
+    if backstage:
+        if not user.is_superuser:
+            return JsonResponse({"code": 200, "result": '权限不足'})
+    if page:
+        min_size = (int(page) - 1) * 20
+        max_size = int(page) * 20
+    else:
+        min_size = 0
+        max_size = 20
+    all_list = []
+    try:
+        if tag == "hot" or tag == "all":
+            if query:
+                if backstage:
+                    layout_data = Layout.objects.filter(Q(layout_name__contains=query) | Q(layout_desc__contains=query))
+                else:
+                    layout_data = Layout.objects.filter(Q(is_release=True), Q(layout_name__contains=query) | Q(layout_desc__contains=query))
+            else:
+                if backstage:
+                    layout_data = Layout.objects.all()
+                else:
+                    layout_data = Layout.objects.filter(is_release=True)
+            if layout_data:
+                for lay in layout_data:
+                    lay_dict = {}
+                    user_count = LayoutServiceContainerScore.objects.filter(layout_id=lay).values('user_id').distinct().count()
+                    lay_data = LayoutSerializer(lay).data
+                    lay_dict['id'] = lay_data['layout_id']
+                    lay_dict['name'] = lay_data['layout_name']
+                    lay_dict['desc'] = lay_data['layout_desc']
+                    lay_dict['image_name'] = lay_data['image_name']
+                    lay_dict['is_release'] = lay_data['is_release']
+                    lay_dict['is_uesful'] = lay_data['is_uesful']
+                    lay_dict['status'] = lay_data['status']
+                    lay_dict['type'] = "layoutScene"
+                    lay_dict['user_count'] = user_count
+                    all_list.append(lay_dict)
+            if query:
+                temp_data = TimeTemp.objects.filter(Q(name__contains=query) | Q(time_desc__contains=query))
+            else:
+                temp_data = TimeTemp.objects.all()
+            if temp_data:
+                for temp in temp_data:
+                    temp_dict = {}
+                    user_count = TimeRank.objects.filter(time_temp=temp).count()
+                    tem_data = TimeTempSerializer(temp).data
+                    temp_dict['id'] = tem_data['temp_id']
+                    temp_dict['name'] = tem_data['name']
+                    temp_dict['desc'] = tem_data['time_desc']
+                    temp_dict['image_name'] = tem_data['image_name']
+                    temp_dict['type'] = "timeScene"
+                    temp_dict['user_count'] = user_count
+                    all_list.append(temp_dict)
+            if tag == "hot":
+                all_list = sorted(all_list, key=lambda keys: keys['user_count'],reverse=True)[min_size:max_size]
+            else:
+                all_list = all_list[min_size:max_size]
+        elif tag == 'layout':
+            if query:
+                if backstage:
+                    layout_data = Layout.objects.filter(Q(layout_name__contains=query) | Q(layout_desc__contains=query))
+                else:
+                    layout_data = Layout.objects.filter(Q(is_release=True),
+                                                        Q(layout_name__contains=query) | Q(layout_desc__contains=query))
+            else:
+                if backstage:
+                    layout_data = Layout.objects.all()
+                else:
+                    layout_data = Layout.objects.filter(is_release=True)
+            if layout_data:
+                for lay in layout_data:
+                    lay_dict = {}
+                    user_count = LayoutServiceContainerScore.objects.filter(layout_id=lay).values('user_id').distinct().count()
+                    lay_data = LayoutSerializer(lay).data
+                    lay_dict['id'] = lay_data['layout_id']
+                    lay_dict['name'] = lay_data['layout_name']
+                    lay_dict['desc'] = lay_data['layout_desc']
+                    lay_dict['image_name'] = lay_data['image_name']
+                    lay_dict['is_release'] = lay_data['is_release']
+                    lay_dict['is_uesful'] = lay_data['is_uesful']
+                    lay_dict['status'] = lay_data['status']
+                    lay_dict['type'] = "layoutScene"
+                    lay_dict['user_count'] = user_count
+                    all_list.append(lay_dict)
+            all_list = all_list[min_size:max_size]
+        else:
+            if query:
+                temp_data = TimeTemp.objects.filter(Q(name__contains=query) | Q(time_desc__contains=query))
+            else:
+                temp_data = TimeTemp.objects.all()
+            if temp_data:
+                for temp in temp_data:
+                    temp_dict = {}
+                    user_count = TimeRank.objects.filter(time_temp=temp).count()
+                    tem_data = TimeTempSerializer(temp).data
+                    temp_dict['id'] = tem_data['temp_id']
+                    temp_dict['name'] = tem_data['name']
+                    temp_dict['desc'] = tem_data['time_desc']
+                    temp_dict['image_name'] = tem_data['image_name']
+                    temp_dict['type'] = "timeScene"
+                    temp_dict['user_count'] = user_count
+                    all_list.append(temp_dict)
+            all_list = all_list[min_size:max_size]
+    except:
+        return JsonResponse(R.err())
+    count = len(all_list)
+    return JsonResponse({"code": 200, "result": all_list, "count": count})
+
+
+@api_view(http_method_names=["POST"])
+def upload_zip_file(request):
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse({"code": 400, "msg": "权限不足"})
+    zip_file = request.data.get("zip_file", "")
+    if not zip_file:
+        return JsonResponse({"code": 400, "msg": "请上传文件"})
+    file_name = zip_file.name
+    if file_name.split(".")[-1] != "zip":
+        return JsonResponse({"code": 400, "msg": "请上传zip格式的文件"})
+    if not os.path.exists(UPLOAD_ZIP_PATH):
+        os.makedirs(UPLOAD_ZIP_PATH)
+    try:
+        with open(os.path.join(UPLOAD_ZIP_PATH, file_name), "wb") as f:
+            for chunk in zip_file.chunks():
+                f.write(chunk)
+    except Exception as e:
+        return JsonResponse({"code": 400, "msg": "文件上传失败"})
+    zf = zipfile.ZipFile(os.path.join(UPLOAD_ZIP_PATH, file_name))
+    try:
+        file_list = list(map(lambda file: file.replace(file_name.replace(".zip", "")+"/", ""), zf.namelist()))
+    except Exception as e:
+        return JsonResponse({"code": 400, "msg": "文件数据被修改，请重新上传"})
+    # 判断压缩文件中文件数据是否丢失
+    if "raw-content.json" not in file_list:
+        return JsonResponse({"code": 400, "msg": "编排环境原数据丢失请重新上传"})
+    if "layout_info.json" not in file_list:
+        return JsonResponse({"code": 400, "msg": "编排环境相关信息数据丢失请重新上传"})
+    flag = False
+    layout_name, layout_desc, layout_image = "", "", ""
+    for file in file_list:
+        for suffix in ALLOWED_IMG_SUFFIX:
+            if suffix in file:
+                flag = True
+    if flag == False:
+        return JsonResponse({"code": 400, "msg": "编排环境图片数据丢失请重新上传"})
+    # 获取数据包中编排环境名称，编排环境描述,编排环境图片数据
+    for file_name in zf.namelist():
+        if "layout_info.json" in file_name:
+            data = zf.read(file_name).decode("utf-8")
+            layout_info = json.loads(data)
+            layout_name = layout_info["layout_name"]
+            layout_desc = layout_info["layout_name"]
+        elif file_name.split(".")[-1] in ALLOWED_IMG_SUFFIX:
+            image_name = str(uuid.uuid4())
+            image_data = zf.read(file_name)
+            static_url = os.path.join(BASE_DIR, "static")
+            if not os.path.exists(static_url):
+                os.makedirs(static_url)
+            with open(os.path.join(static_url, "{image_name}.{suffix}".format(image_name=image_name, suffix=file_name.split(".")[-1])), "wb") as f:
+                f.write(image_data)
+            layout_image = "{image_name}.{suffic}".format(image_name=image_name, suffic=file_name.split(".")[-1])
+    # 读取压缩包中原始编排环境信息
+    for file_name in zf.namelist():
+        if "raw-content.json" in file_name:
+            data = zf.read(file_name).decode("utf8")
+            raw_data = json.loads(data)
+            if not raw_data:
+                return JsonResponse({"code": 400, "msg": "编排环境中数据为空"})
+            nodes = raw_data["nodes"]
+            if not nodes or len(nodes) == 0:
+                return JsonResponse({"code": 400, "msg": "编排环境中节点为空"})
+            connectors = raw_data["connectors"]
+            check_open = False
+            container_list = []
+            network_dict = {}
+            check_network_name_list = []
+            for node in nodes:
+                node_id = node["id"]
+                node_type = node["type"]
+                node_attrs = node["attrs"]
+                if len(node_attrs) == 0:
+                    return JsonResponse({"code": 400, "msg": "编排环境中节点属性为空"})
+                if node_type == "Container":
+                    node_open = node_attrs["open"]
+                    node_port = node_attrs["port"]
+                    if node_open and node_port:
+                        check_open = True
+                    if node["attrs"]['raw']["is_docker_compose"]:
+                        return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
+                    image_name = node_attrs["name"]
+                    image_desc = node_attrs["desc"]
+                    image_vul_name = node_attrs["vul_name"]
+                    image_port = node_attrs["port"]
+                    rank = float(node_attrs["raw"]["rank"])
+                    degree = node_attrs["raw"]["degree"]
+                    image_info = ImageInfo.objects.filter(image_name=image_name).first()
+                    if not image_info:
+                        image_info = ImageInfo(image_id=str(uuid.uuid4()), image_name=image_name, image_desc=image_desc,
+                                               image_port=image_port, image_vul_name=image_vul_name, rank=rank,
+                                               degree=degree, is_ok=False)
+                        image_info.save()
+                    container_list.append(node)
+                elif node_type == "Network":
+                    network_name = node_attrs["name"]
+                    subnet = node_attrs["subnet"]
+                    gateway = node_attrs["gateway"]
+                    net_work_scope = node_attrs["raw"]["net_work_scope"]
+                    net_work_driver = node_attrs['raw']["net_work_driver"]
+                    enable_ipv6 = node_attrs["raw"]["enable_ipv6"]
+                    network_name_temp, subnet_temp = "", ""
+                    created = True
+                    if not network_name:
+                        return JsonResponse({"code": 400, "msg": "编排环境中网卡名称为空"})
+                    if network_name in check_network_name_list:
+                        return JsonResponse({"code": 400, "msg": "编排环境中重复设置了网卡"})
+                    network_info_by_name = NetWorkInfo.objects.filter(net_work_name=network_name).first()
+                    network_info_by_net = NetWorkInfo.objects.filter(net_work_subnet=subnet, net_work_gateway=gateway).first()
+                    if network_info_by_name and network_info_by_net and network_info_by_name == network_info_by_net:
+                        created = False
+                    # 网卡名称相同，网关和网段不同，上传时修改网卡名称
+                    elif network_info_by_name and not network_info_by_net:
+                        network_name_temp = network_name
+                        network_name = str(uuid.uuid4())
+                    # 网卡名称不同，网关和网段相同，修改网关
+                    elif not network_info_by_name and network_info_by_net:
+                        subnet_code = int(subnet.split("/")[-1])
+                        if subnet_code > 1:
+                            subnet_code = subnet_code - 1
+                            new_subnet = subnet.split("/")[0]+"/"+str(subnet_code)
+                            while NetWorkInfo.objects.filter(net_work_subnet=new_subnet, net_work_gateway=gateway).count() and subnet_code > 1:
+                                subnet_code = subnet_code - 1
+                                new_subnet = subnet.split("/")[0] + "/" + str(subnet_code)
+                            subnet_temp = subnet
+                            subnet = new_subnet
+                        else:
+                            return JsonResponse({"code": 400, "msg": "编排环境中网关和网段已经被使用"})
+                    if subnet == "192.168.10.10/24":
+                        return JsonResponse({"code": 400, "msg": "编排环境中的网段已经被使用"})
+                    if gateway == "192.168.10.10":
+                        return JsonResponse({"code": 400, "msg": "编排环境中的网关已经被使用"})
+                    # 网卡名称，网段，网关不同，直接创建
+                    try:
+                        if created:
+                            ipam_pool = docker.types.IPAMPool(subnet=subnet, gateway=gateway)
+                            ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
+                            try:
+                                # 创建docker网卡之前需要判断是主机上否有同名网卡存在，有则移除
+                                net_work = client.networks.create(network_name, driver=net_work_driver,
+                                                                  ipam=ipam_config, scope=net_work_scope)
+                            except Exception as e:
+                                return JsonResponse({"code": 400, "msg": "编排环境中子网或者网关设置错误"})
+                            net_work_client_id = str(net_work.id)
+                            if not gateway:
+                                gateway = net_work.attrs['IPAM']['Config']['Gateway']
+                            created_network = NetWorkInfo(net_work_id=str(uuid.uuid4()),
+                                                          net_work_client_id=net_work_client_id, create_user=user.id,
+                                                          net_work_name=network_name, net_work_driver=net_work_driver,
+                                                          net_work_subnet=subnet,
+                                                          net_work_gateway=gateway, net_work_scope=net_work_scope,
+                                                          enable_ipv6=enable_ipv6)
+                            created_network.save()
+                    except Exception as e:
+                        return JsonResponse({"code": 400, "msg": "服务器内部错误"})
+                    check_network_name_list.append(network_name)
+                    network_dict[node_id] = node
+                    str_network_dict = json.dumps(network_dict)
+                    str_check_network_name_list = json.dumps(check_network_name_list)
+                    if network_name_temp and network_name_temp != "":
+                        str_check_network_name_list = str_check_network_name_list.replace(network_name_temp, network_name)
+                        str_network_dict = str_network_dict.replace(network_name_temp, network_name)
+                    if subnet_temp and subnet_temp != "":
+                        str_network_dict = str_network_dict.replace(subnet_temp, subnet)
+                    network_dict = json.loads(str_network_dict)
+                    check_network_name_list = json.loads(str_check_network_name_list)
+            if not check_open:
+                return JsonResponse({"code": 400, "msg": "编排环境中未开放访问路口"})
+            if len(container_list) == 0:
+                return JsonResponse({"code": 400, "msg": "编排环境中容器为空"})
+            if len(network_dict) == 0:
+                for container in container_list:
+                    if not container["attrs"]["open"]:
+                        return JsonResponse({"code": 400, "msg": "编排环境中未配置网卡且未开放访问路口"})
+            else:
+                if not connectors or len(connectors) == 0:
+                    return JsonResponse({"code": 400, "msg": "编排环境中连接点为空"})
+            try:
+                yml_content = build_yml(container_list=container_list, network_dict=network_dict, connector_list=connectors)
+                yml_data = yml_content["content"]
+                env_data = yml_content["env"]
+                env_content = ""
+                if len(env_data) > 0:
+                    env_content = "\n".join(env_data)
+                with transaction.atomic():
+                    operation_name = "创建"
+                    layout_instance = Layout.objects.filter(layout_name=layout_name,layout_desc=layout_desc).first()
+                    if layout_instance:
+                        operation_name = "修改"
+                        return JsonResponse({"code": 400, "msg": "已经有同名编排环境存在"})
+                    else:
+                        layout_instance = Layout(layout_id=str(uuid.uuid4()), create_date=timezone.now(), update_date=timezone.now(), is_uesful=False)
+                    layout_data = LayoutData.objects.filter(layout_id=layout_instance).first()
+                    if layout_data and layout_data.status == "running":
+                        return JsonResponse({"code": 400, "msg": "环境正在运行中，请先停止相关环境"})
+                    layout_instance.layout_name = layout_name
+                    layout_instance.layout_desc = layout_desc
+                    layout_instance.create_user_id = user.id
+                    layout_instance.image_name = layout_image
+                    layout_instance.raw_content = json.dumps(raw_data, ensure_ascii=False)
+                    layout_instance.yml_content = yaml.dump(yml_content["content"])
+                    layout_instance.env_content = env_content
+                    layout_instance.save()
+                    # 修改相关编排环境的相关服务信息
+                    layout_service_list = list(LayoutService.objects.filter(layout_id=layout_instance).values("service_id"))
+                    services = yml_data["services"]
+                    for service_name in services:
+                        service = services[service_name]
+                        image = service["image"]
+                        image_info = ImageInfo.objects.filter(image_name=image).first()
+                        is_exposed = False
+                        ports = ""
+                        if "ports" in service and len(service["ports"]) > 0:
+                            is_exposed = True
+                        if image_info.image_port:
+                            ports = ",".join(str(image_info.image_port).split(","))
+                        layout_service = LayoutService.objects.filter(layout_id=layout_instance,service_name=service_name).first()
+                        if not layout_service:
+                            layout_service = LayoutService(service_id=str(uuid.uuid4()),layout_id=layout_instance,service_name=service_name,
+                            create_date = timezone.now(), update_date=timezone.now())
+                        if {"service_id": layout_service.service_id} in layout_service_list:
+                            layout_service_list.remove({"service_id": layout_service.service_id})
+                        layout_service.image_id = image_info
+                        layout_service.service_name = service_name
+                        layout_service.is_exposed = is_exposed
+                        layout_service.exposed_source_port = ports
+                        layout_service.save()
+                        if "networks" not in service:
+                            continue
+                        networks = service["networks"]
+                        service_network_list = list(LayoutServiceNetwork.objects.filter(service_id=layout_service)
+                                                    .values('layout_service_network_id'))
+                        for network in networks:
+                            network_info = NetWorkInfo.objects.filter(net_work_name=network).first()
+                            service_network = LayoutServiceNetwork.objects.filter(service_id=layout_service,network_id=network_info).first()
+                            if not service_network:
+                                service_network = LayoutServiceNetwork(layout_service_network_id=str(uuid.uuid4()),
+                                                                       service_id=layout_service,
+                                                                       network_id=network_info,
+                                                                       create_date=timezone.now(),
+                                                                       update_date=timezone.now())
+                            if {"layout_service_network_id": service_network.layout_service_network_id} in service_network_list:
+                                service_network_list.remove({"layout_service_network_id": service_network.
+                                                            layout_service_network_id})
+                            service_network.save()
+                        #  删除不存在的网卡
+                        if len(service_network_list)>0:
+                            for service_network in service_network_list:
+                                LayoutServiceNetwork.objects.filter(layout_service_network_id=
+                                                                    service_network[
+                                                                        "layout_service_network_id"]).delete()
+                    # 删除服务数据
+                    for layout_service in layout_service_list:
+                        service_id = layout_service['service_id']
+                        LayoutService.objects.filter(service_id=service_id, layout_id=layout_instance).delete()
+                        if layout_data:
+                            LayoutServiceContainer.objects.filter(service_id=service_id,layout_user_id=layout_data).delete()
+                            LayoutServiceContainerScore.objects.filter(layout_id=layout_instance, layout_data_id=layout_data,
+                                                                       service_id=service_id).delete()
+                        else:
+                            LayoutServiceContainer.objects.filter(service_id=service_id).delete()
+                            LayoutServiceContainerScore.objects.filter(layout_id=layout_instance, service_id=service_id).delete()
+            except Exception as e:
+                return JsonResponse({"code": 400, "msg": "服务器内部错误"})
+        else:
+            continue
+    return JsonResponse({"code": 200, "msg": "上传成功"})
+
+
+@api_view(http_method_names=["POST"])
+def download_layout_image(request):
+    user = request.user
+    if not user.is_superuser:
+        return JsonResponse({"status": 400, "msg": "权限不足"})
+    layout_image_id = request.data.get("layout_image_id", "")
+    if not layout_image_id:
+        return JsonResponse({"status": 400, "msg": "编排环境id不能为空"})
+    layout_instance = Layout.objects.filter(layout_id=layout_image_id).first()
+    if not layout_instance:
+        return JsonResponse({"status": 400, "msg": "不存在该编排环境"})
+    yml_data = yaml.load(layout_instance.yml_content, Loader=yaml.Loader)
+    services = yml_data["services"]
+    try:
+        for service in services:
+            image_name = services[service]["image"]
+            image_info = ImageInfo.objects.filter(image_name=image_name).first()
+            if not image_info:
+                image_vul_name = image_name[:image_name.rfind(":")]
+                image_info = ImageInfo(image_name=image_name, image_vul_name=image_vul_name, image_desc=image_vul_name,
+                                       rank=2.5, is_ok=False, create_date=timezone.now(), update_date=timezone.now())
+                image_info.save()
+        tasks.create_layout_image_download_task(layout_instance, user)
+        return JsonResponse({"code": 200, "msg": "开始下载"})
+    except Exception as e:
+        return JsonResponse({"code": 400, "msg": "服务器内部错误"})
+

@@ -50,18 +50,9 @@ export function uploadImage(data) {
  * @param flag 是否发布
  * @returns
  */
-export function layoutList(query, page, flag){
-  if(page === undefined || page === null){
-    page = 1
-  }
-  if(query === undefined || query == null){
-    query = ""
-  }
-  if (flag === undefined || flag === null || flag === ""){
-    flag = ""
-  }
+export function layoutList(id){
   return request({
-    url: '/layout/?query='+query+"&page="+page+"&flag="+flag,
+    url: '/layout/?id='+id,
     method: 'get'
   })
 }
@@ -87,7 +78,6 @@ export function build_compose(data) {
   })
 }
 
-
 export function update_build_compose(data) {
   return request({
     url: 'update/compose/',
@@ -97,14 +87,12 @@ export function update_build_compose(data) {
 }
 
 
-
 export function show_build_status() {
   return request({
     url: 'show/compose/',
     method: 'get',
   })
 }
-
 
 export function uploadFile(data) {
   return request({
@@ -117,7 +105,6 @@ export function uploadFile(data) {
   })
 }
 
-
 export function deleteFile(data) {
   return request({
     url: '/file/delete/',
@@ -126,5 +113,32 @@ export function deleteFile(data) {
       'Content-Type': 'multipart/form-data'
     },
     data
+  })
+}
+
+export function download_layout_image(data) {
+  return request({
+    url: '/download_layout_image/',
+    method: 'post',
+    data,
+  })
+}
+
+export function upload_zip_file(data) {
+  return request({
+    url: '/upload_zip_file/',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    data
+  })
+}
+
+export function layoutDownload(layoutId){
+  return request({
+    url:'/layout/'+layoutId+'/download/',
+    method: 'get',
+    responseType: 'blob'
   })
 }

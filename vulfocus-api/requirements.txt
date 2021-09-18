@@ -19,3 +19,4 @@ dnspython==2.1.0
 ruamel.yaml==0.17.10
 django-simple-captcha==0.5.14
 django-notifications-hq==1.6.0
+zipfile36==0.1.3

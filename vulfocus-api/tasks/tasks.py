@@ -31,7 +31,7 @@ import redis
 import requests
 import os
 import yaml
-from layout_image.models import LayoutData, LayoutServiceContainer, LayoutService
+from layout_image.models import LayoutData, LayoutServiceContainer, LayoutService,Layout
 from dockerapi.common import get_setting_config
 r = redis.Redis(connection_pool=REDIS_POOL)
 from django.db import transaction
@@ -1585,3 +1585,127 @@ def get_request_ip(request):
         request_ip = request.META.get("REMOTE_ADDR")
     return request_ip
 
+
+def create_layout_image_download_task(layout_info, user_info):
+    yml_data = yaml.load(layout_info.yml_content, Loader=yaml.Loader)
+    services = yml_data["services"]
+    if not user_info.is_superuser:
+        return
+    for service in services:
+        image_name = services[service]["image"]
+        image_info = ImageInfo.objects.filter(image_name=image_name).first()
+        if not image_info:
+            image_vul_name = image_name[:image_name.rfind(":")]
+            image_info = ImageInfo(image_name=image_name, image_vul_name=image_vul_name, image_desc=image_vul_name,
+                                   rank=2.5, is_ok=False, create_date=timezone.now(), update_date=timezone.now())
+            image_info.save()
+        operation_args = {"layout_name": layout_info.layout_name, "image_name": image_name}
+        task_info = TaskInfo(user_id=user_info.id, task_name="环境编排相关镜像下载:"+image_name, task_status=1,
+                             task_start_date=timezone.now(), operation_type=8, operation_args=json.dumps(operation_args),
+                             task_msg=json.dumps({}), create_date=timezone.now(), update_date=timezone.now())
+        task_info.save()
+        layout_image_download.delay(str(task_info.task_id))
+
+
+@shared_task(name="tasks.layout_download")
+def layout_image_download(task_id):
+    """
+    环境编排相关镜像下载
+    :return:
+    """
+    task_info = TaskInfo.objects.filter(task_id=task_id, task_status=1).first()
+    if not task_info:
+        return
+    operation_args = task_info.operation_args
+    args = json.loads(operation_args)
+    layout_name = args["layout_name"]
+    image_name = args["image_name"]
+    image_info = ImageInfo.objects.filter(image_name=image_name).first()
+    layout_info = Layout.objects.filter(layout_name=layout_name).first()
+    download_images = []
+    yml_data = yaml.load(layout_info.yml_content,Loader=yaml.Loader)
+    services = yml_data["services"]
+    image = None
+    msg = {}
+    for service in services:
+        single_image_name = services[service]["image"]
+        download_images.append(single_image_name)
+    try:
+        image = client.images.get(image_name)
+    except Exception as e:
+        try:
+            last_info = {}
+            progress_info = {
+                "total": 0,
+                "progress_count": 0,
+                "progress": round(0.0, 2),
+            }
+            black_list = ["total", "progress_count", "progress"]
+            for line in api_docker_client.pull(image_name, stream=True, decode=True):
+                print(line)
+                if "status" in line and "progressDetail" in line and "id" in line:
+                    id = line["id"]
+                    status = line["status"]
+                    if len(line["progressDetail"]) > 0:
+                        try:
+                            current = line["progressDetail"]["current"]
+                            total = line["progressDetail"]["total"]
+                            line["progress"] = round((current / total) * 100, 2)
+                            if (current / total) > 1:
+                                line["progress"] = round(0.99 * 100, 2)
+                        except:
+                            line["progress"] = round(1 * 100, 2)
+                    else:
+                        if (("Download" in status or "Pull" in status) and ("complete" in status)) or ("Verifying" in status) or \
+                                ("Layer" in status and "already" in status and "exists" in status):
+                            line["progress"] = round(100.00, 2)
+                        else:
+                            line["progress"] = round(0.00, 2)
+                    progress_info[id] = line
+                    progress_info["total"] = len(progress_info) - len(black_list)
+                    progress_count = 0
+                    for key in progress_info:
+                        if key in black_list:
+                            continue
+                        if 100.00 != progress_info[key]["progress"]:
+                            continue
+                        progress_count += 1
+                    progress_info["progress_count"] = progress_count
+                    progress_info["progress"] = round((progress_count/progress_info["total"])*100, 2)
+                    r.set(str(task_id), json.dumps(progress_info,ensure_ascii=False))
+                    print(json.dumps(progress_info, ensure_ascii=False))
+                last_info = line
+            if "status" in last_info and (
+                    "Downloaded newer image for" in last_info["status"] or "Image is up to date for" in last_info[
+                "status"]):
+                image = client.images.get(image_name)
+            else:
+                raise Exception
+        except ImageNotFound as e:
+            task_info.task_status = 4
+            traceback.print_exc()
+            msg = R.build(msg="%s 不存在" % (image_name,))
+        except Exception:
+            task_info.task_status = 4
+            traceback.print_exc()
+            msg = R.build(msg="%s 下载失败" % (image_name,))
+    # 查询相关镜像是否全部下载完成，全部下载完成则更新layout的is_userful字段
+    try:
+        count = len(download_images)
+        for single_image_name in download_images:
+            image = client.images.get(single_image_name)
+            if image:
+                count -= 1
+            if count == 0:
+                layout_info.is_uesful = True
+                layout_info.save()
+    except Exception as e:
+        pass
+    if image:
+        image_info.is_ok = True
+        image_info.save()
+        task_info.task_status = 3
+    else:
+        task_info.task_status = 4
+    task_info.task_msg = json.dumps(msg)
+    task_info.save()

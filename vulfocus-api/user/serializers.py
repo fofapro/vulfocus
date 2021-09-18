@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from dockerapi.models import ContainerVul,ImageInfo
 from dockerapi.serializers import ImageInfoSerializer
-from user.models import UserProfile, RegisterCode
+from user.models import UserProfile, RegisterCode, Comment
 import datetime
 User = get_user_model()
 
@@ -106,3 +106,23 @@ class ResetPasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
         fields=["code","password"]
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    create_time = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
+    username = serializers.SerializerMethodField('a_user_name')
+    user_avatar = serializers.SerializerMethodField('a_user_avatar')
+
+    def a_user_name(self, obj):
+        user = obj.user
+        name = user.username
+        return name
+
+    def a_user_avatar(self, obj):
+        user = obj.user
+        avatar = user.avatar
+        return avatar
+
+    class Meta:
+        model = Comment
+        fields = "__all__"

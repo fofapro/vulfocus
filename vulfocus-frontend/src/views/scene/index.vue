@@ -101,6 +101,46 @@
             </el-main>
           </el-container>
         </el-card>
+        <el-card style="margin-top: 20px;">
+          <el-row>
+            <el-col>
+              <span>评论</span>
+              <el-divider></el-divider>
+              <el-input rows="5" type="textarea" placeholder="既然来了就说点什么吧～" v-model="contentText" maxlength="500" show-word-limit></el-input>
+              <el-button size="small" @click="handleText" type="primary" style="float: right;margin-top: 10px">发表</el-button>
+            </el-col>
+          </el-row>
+          <el-row >
+            <el-col v-for="(item,index) in contentList" :key="index">
+              <el-card style="margin-top: 10px">
+              <el-container>
+                <el-aside width="48px" style="margin-top: 7px">
+                  <template>
+                    <img :src="item.user_avatar" style="width: 48px;height: 48px;border-radius: 50%;float: left;margin-top: 10px">
+                  </template>
+                </el-aside>
+                <el-main>
+                  <el-row>
+                    <el-col :span="3">
+                      <span class="span7">
+                        {{item.username}}
+                      </span>
+                    </el-col>
+                    <el-col :span="20">
+                      <span class="span8">
+                        {{item.create_time}}
+                      </span>
+                    </el-col>
+                  </el-row>
+                  <el-row style="margin-top: 5px">
+                    <span>{{item.content}}</span>
+                  </el-row>
+                </el-main>
+              </el-container>
+            </el-card>
+            </el-col>
+          </el-row>
+        </el-card>
       </el-col>
       <el-col style="margin-left: 10px" :span="7">
         <el-card>
@@ -118,7 +158,12 @@
                   <svg-icon icon-class="trophy3" v-if="page.currentPageNum*page.size+scope.$index+1-page.size===3"  style="margin-left: 15px;height: 48px"/>
                 </template>
               </el-table-column>
-              <el-table-column prop="username" :show-overflow-tooltip=true label="用户"></el-table-column>
+              <el-table-column prop="username" :show-overflow-tooltip=true label="用户">
+                <template slot-scope="scope">
+                  <img :src="scope.row.user_avatar" style="width: 30px;height: 30px;border-radius: 50%;float: left;margin-top: 10px">
+                  <p style="float: left;margin-left: 5px;margin-top: 14px">{{scope.row.username}}</p>
+                </template>
+              </el-table-column>
               <el-table-column prop="score" label="积分" width="80"></el-table-column>
             </el-table>
           </div>
@@ -134,6 +179,26 @@
       </el-col>
     </el-row>
     <div style="margin-top: 20px">
+    <el-dialog :visible.sync="dialogVisible" title="请输入验证码" width="400px">
+      <el-form>
+        <el-form-item>
+          <el-row :span="24">
+            <el-col :span="8">
+              <el-input v-model="commentCode" auto-complete="off" placeholder="请输入验证码"></el-input>
+            </el-col>
+            <el-col :span="12">
+              <div class="login-code">
+                  <!--验证码组件-->
+                  <v-sidentify @getIdentifyCode="identifyCode"></v-sidentify>
+              </div>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-button type="primary" style="float: right" @click="commitText">确认</el-button>
+          </el-row>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
     </div>
   </div>
 </template>
@@ -142,9 +207,13 @@
 
 import { mapGetters } from 'vuex'
 import {sceneGet, sceneStart, sceneStop,sceneFlag, sceneRank} from '@/api/scene'
+import { commitComment, getComment } from '@/api/user'
 import CountDown from "vue2-countdown";
+import verification from "./verification";
+
 
 export default {
+  inject: ['reload'],
   name: 'timeindex.vue',
   data(){
     return {
@@ -178,7 +247,12 @@ export default {
       drawerFlag:false,
       derection:"btt",
       imgpath:'/images/',
-      difvalue: 3.5
+      difvalue: 3.5,
+      contentText:"",
+      contentList:[],
+      dialogVisible:false,
+      verificationCode:"",
+      commentCode:"",
     }
   },
   computed: {
@@ -195,8 +269,15 @@ export default {
     }
     this.initModelInfo()
     this.handleRank(1)
+    this.initComment()
+  },
+  components:{
+    'v-sidentify':verification
   },
   methods:{
+    identifyCode(data){
+      this.verificationCode = data
+    },
     /**
      * 初始化模式信息
      */
@@ -402,6 +483,43 @@ export default {
     },
     computeTableIndex(index){
       return (this.page.page - 1) * this.page.size + index + 1
+    },
+    handleText(){
+      this.dialogVisible = true
+    },
+    commitText(){
+      if (this.commentCode===this.verificationCode) {
+        let commentDict = new FormData()
+        commentDict.set("scene_id", this.$route.query.layout_id)
+        commentDict.set("content", this.contentText)
+        commentDict.set("scene_type", "layout")
+        commitComment(commentDict).then(response => {
+          if (response.data.status === 200) {
+            this.$message({
+              message: response.data.message,
+              type: "success",
+            })
+            this.dialogVisible = false
+            this.reload()
+          } else {
+            this.$message({
+              message: response.data.message,
+              type: "error",
+            })
+          }
+        })
+      }else {
+        this.$message({
+          message: '验证码错误',
+          type: "error",
+        })
+      }
+    },
+    initComment(){
+      let sceneId = this.$route.query.layout_id
+      getComment(sceneId).then(response=>{
+        this.contentList = response.data.results
+      })
     }
   }
 }
@@ -500,5 +618,20 @@ export default {
   line-height: 24px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.span7{
+  width: 87px;
+  height: 14px;
+  font-size: 16px;
+  color: #303133;
+  line-height: 14px;
+}
+.span8{
+  width: 88px;
+  height: 14px;
+  font-size: 14px;
+  color: #999999;
+  line-height: 14px;
+
 }
 </style>

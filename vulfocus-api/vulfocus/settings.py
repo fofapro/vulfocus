@@ -260,3 +260,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 CAPTCHA_IMAGE_SIZE = (90, 45)   # 设置 captcha 图片大小
 CAPTCHA_LENGTH = 4   # 字符个数
 CAPTCHA_TIMEOUT = 1   # 过期时间(minutes)
+
+
+COMPOSE_ZIP_PATH = os.path.join(BASE_DIR, "compose-zip-store")
+# docker-compose文件下载格式
+DOWNLOAD_FILE_TYPE = ".zip"
+UPLOAD_ZIP_PATH = os.path.join(BASE_DIR, "upload_zip")
