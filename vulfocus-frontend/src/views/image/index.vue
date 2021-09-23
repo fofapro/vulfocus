@@ -326,7 +326,7 @@
             </div>
           </el-form-item>
           <el-form-item label="Rank">
-            <el-input-number v-model="editVulInfo.rank" :min="0.5" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
+            <el-input-number v-model="editVulInfo.rank" :min="0.0" :max="5.0" :precision="1" :step="0.5" size="medium"></el-input-number>
             <el-tooltip content="默认分数为2.5分，可根据漏洞的利用难度进行评判" placement="top">
               <i class="el-icon-question"></i>
             </el-tooltip>
@@ -858,7 +858,6 @@
         try {
           clearInterval(this.progress.progressInterval)
         }catch (e) {
-
         }
       },
       changeType(){
@@ -884,7 +883,6 @@
           'devDatabase':this.vulInfo.devDatabase,
           'devClassify':this.vulInfo.devClassify,
         }
-
         formData.set("rank", this.vulInfo.rank)
         formData.set("image_name", this.vulInfo.name)
         formData.set("image_vul_name", this.vulInfo.vul_name)
@@ -1060,7 +1058,6 @@
                       this.taskDict[key].status.progress_status = ""
                     }
                   }catch (e) {
-
                   }
                   this.$notify({
                     message: taskMsg["data"]["msg"],
@@ -1073,7 +1070,6 @@
                       this.taskDict[key].status.progress_status = ""
                     }
                   }catch (e) {
-
                   }
                   this.$notify({
                     message: taskMsg["data"]["msg"],
@@ -1119,7 +1115,6 @@
         if(name === "local"){
           this.loadLocalImages()
         }else{
-
         }
       },
       handleLocalRemove(name){
@@ -1152,7 +1147,6 @@
               let msg = data[i]
               let tmpMsg = msg.replace(" ", "").replace("拉取镜像", "").replace("任务下发成功", "")
               this.tmpImageNameList.push(tmpMsg)
-
               this.$notify({
                 title: '成功',
                 message: msg,
@@ -1361,7 +1355,6 @@
           this.$refs.saveTagInput1.$refs.input.focus();
         });
       },
-
       showInput2() {
         this.inputVisible2 = true;
         this.$nextTick(_ => {
@@ -1444,7 +1437,6 @@
         this.inputVisible4 = false;
         this.inputValue4 = '';
       }
-
     }
   }
 </script>
@@ -1465,5 +1457,4 @@
     margin-left: 10px;
     vertical-align: bottom;
   }
-
 </style>

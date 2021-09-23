@@ -319,11 +319,11 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                 if rank == 0.5:
                     min_rank = 0.0
                 if rank == 2.0:
-                    min_rank = 0.5
+                    min_rank = 1.0
                 if rank == 3.5:
-                    min_rank = 2.0
+                    min_rank = 2.5
                 if rank == 5.0:
-                    min_rank = 3.5
+                    min_rank = 4.0
         except:
             rank = 0.0
         img_t = self.request.GET.get("type", "")
@@ -346,7 +346,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
         if user_info.greenhand == True:
             rank_range_greenhand = Q()
             rank_range_greenhand.children.append(('rank__lte', 0.5))
-            rank_range_greenhand.children.append(('rank__gt', 0.0))
+            rank_range_greenhand.children.append(('rank__gte', 0.0))
             return ImageInfo.objects.filter(rank_range_greenhand).order_by('-create_date')
         elif user.is_superuser:
             if query:
@@ -365,7 +365,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if rank_range != "":
                         rank_range_q = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
-                        rank_range_q.children.append(('rank__gt', min_rank))
+                        rank_range_q.children.append(('rank__gte', min_rank))
                     image_q = Q()
                     image_q.connector = "OR"
                     image_q.children.append(('image_name__contains', query))
@@ -388,13 +388,13 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if rank == 0.0:
                         rank = 5
                     if not img_t:
-                        image_info_list = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()
+                        image_info_list = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all()
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
                         rank_q.connector = "AND"
                         rank_q.children.append(('rank__lte', rank))
-                        rank_q.children.append(('rank__gt', min_rank))
+                        rank_q.children.append(('rank__gte', min_rank))
                         degree_q = Q()
                         if len(img_t_list) > 0:
                             degree_q.connector = 'OR'
@@ -413,7 +413,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if rank_range != "":
                         rank_range_q.connector = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
-                        rank_range_q.children.append(('rank__gt', min_rank))
+                        rank_range_q.children.append(('rank__gte', min_rank))
                     query_q = Q()
                     if len(time_img_type_q) > 0:
                         query_q.add(time_img_type_q, 'AND')
@@ -442,7 +442,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                 if rank_range != "":
                     rank_range_q = 'AND'
                     rank_range_q.children.append(('rank__lte', rank_range))
-                    rank_range_q.children.append(('rank__gt', min_rank))
+                    rank_range_q.children.append(('rank__gte', min_rank))
                 image_q = Q()
                 image_q.connector = "OR"
                 image_q.children.append(('image_name__contains', query))
@@ -465,13 +465,13 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if rank == 0.0:
                         rank = 5
                     if not img_t:
-                        image_info_list = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()
+                        image_info_list = ImageInfo.objects.filter(Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all()
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
                         rank_q.connector = 'AND'
                         rank_q.children.append(('rank__lte', rank))
-                        rank_q.children.append(('rank__gt', min_rank))
+                        rank_q.children.append(('rank__gte', min_rank))
                         degree_q = Q()
                         if len(img_t_list) > 0:
                             degree_q.connector = 'OR'
@@ -488,7 +488,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                     if rank_range != "":
                         rank_range_q.connector = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
-                        rank_range_q.children.append(('rank__gt', min_rank))
+                        rank_range_q.children.append(('rank__gte', min_rank))
                     query_q = Q()
                     if len(time_img_type_q) > 0:
                         query_q.add(time_img_type_q, 'AND')
@@ -821,11 +821,11 @@ class DashboardView(APIView):
                 if rank == 0.5:
                     min_rank = 0.0
                 if rank == 2.0:
-                    min_rank = 0.5
+                    min_rank = 1.0
                 if rank == 3.5:
-                    min_rank = 2.0
+                    min_rank = 2.5
                 if rank == 5.0:
-                    min_rank = 3.5
+                    min_rank = 4.0
         except:
             rank = 0.0
         if page:
@@ -875,7 +875,7 @@ class DashboardView(APIView):
         if user_info.greenhand == True:
             rank_range_greenhand = Q()
             rank_range_greenhand.children.append(('rank__lte', 0.5))
-            rank_range_greenhand.children.append(('rank__gt', 0.0))
+            rank_range_greenhand.children.append(('rank__gte', 0.0))
             count = ImageInfo.objects.filter(rank_range_greenhand).count()
             image_info_list = ImageInfo.objects.filter(rank_range_greenhand)[min_size:max_size]
         elif user.is_superuser:
@@ -899,7 +899,7 @@ class DashboardView(APIView):
                     if rank_range != "":
                         rank_range_q = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
-                        rank_range_q.children.append(('rank__gt', min_rank))
+                        rank_range_q.children.append(('rank__gte', min_rank))
                     image_q = Q()
                     image_q.connector = "OR"
                     image_q.children.append(('image_name__contains', query))
@@ -924,15 +924,15 @@ class DashboardView(APIView):
                         rank = 5
                     if not img_t:
                         count = ImageInfo.objects.filter(
-                            Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all().count()
+                            Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all().count()
                         image_info_list = ImageInfo.objects.filter(
-                            Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
+                            Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
                         rank_q.connector = "AND"
                         rank_q.children.append(('rank__lte', rank))
-                        rank_q.children.append(('rank__gt', min_rank))
+                        rank_q.children.append(('rank__gte', min_rank))
                         degree_q = Q()
                         if len(img_t_list) > 0:
                             degree_q.connector = 'AND'
@@ -955,7 +955,7 @@ class DashboardView(APIView):
                     if rank_range != "":
                         rank_range_q.connector = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
-                        rank_range_q.children.append(('rank__gt', min_rank))
+                        rank_range_q.children.append(('rank__gte', min_rank))
                     query_q = Q()
                     if len(time_img_type_q) > 0:
                         query_q.add(time_img_type_q, 'AND')
@@ -986,7 +986,7 @@ class DashboardView(APIView):
                 if rank_range != "":
                     rank_range_q = 'AND'
                     rank_range_q.children.append(('rank__lte', rank_range))
-                    rank_range_q.children.append(('rank__gt', min_rank))
+                    rank_range_q.children.append(('rank__gte', min_rank))
                 image_q = Q()
                 image_q.connector = "OR"
                 image_q.children.append(('image_name__contains', query))
@@ -1011,15 +1011,15 @@ class DashboardView(APIView):
                         rank = 5
                     if not img_t:
                         count = ImageInfo.objects.filter(
-                            Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all().count()
+                            Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all().count()
                         image_info_list = ImageInfo.objects.filter(
-                            Q(rank__lte=rank) & Q(rank__gt=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
+                            Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
                         rank_q.connector = 'AND'
                         rank_q.children.append(('rank__lte', rank))
-                        rank_q.children.append(('rank__gt', min_rank))
+                        rank_q.children.append(('rank__gte', min_rank))
                         degree_q = Q()
                         if len(img_t_list) > 0:
                             degree_q.connector = 'AND'
@@ -1039,7 +1039,7 @@ class DashboardView(APIView):
                     if rank_range != "":
                         rank_range_q.connector = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
-                        rank_range_q.children.append(('rank__gt', min_rank))
+                        rank_range_q.children.append(('rank__gte', min_rank))
                     query_q = Q()
                     if len(time_img_type_q) > 0:
                         query_q.add(time_img_type_q, 'AND')

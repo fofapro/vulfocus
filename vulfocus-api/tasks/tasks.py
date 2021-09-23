@@ -1702,8 +1702,6 @@ def layout_image_download(task_id):
     except Exception as e:
         pass
     if image:
-        image_info.is_ok = True
-        image_info.save()
         task_info.task_status = 3
     else:
         task_info.task_status = 4

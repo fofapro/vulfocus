@@ -21,8 +21,7 @@ from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView, MyCode, refresh_captcha, CommentView
 from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
-from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose, get_scene_data, upload_zip_file, download_layout_image
-from writeup.views import WriteHandler, publish_writeup
+from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose, get_scene_data, upload_zip_file, download_layout_image,get_layout_det, download_official_website_layout,get_official_website_layout
 from user.views import refresh_captcha, AccessUpdataLinkView, upload_user_img
 from notice.views import NoticeViewset, publish_notice, get_notifications_count, get_public_notice, notice_detail, get_content
 from dockerapi.views import get_container_status
@@ -88,5 +87,7 @@ urlpatterns = [
     url(r"get_container_status",get_container_status),
     url(r"upload_zip_file", upload_zip_file),
     url(r"download_layout_image", download_layout_image),
-
+    url(r'^layoutinfodet', get_layout_det),
+    url(r"^download/official/website/layout", download_official_website_layout),
+    url(r"^get/official/website/layout", get_official_website_layout),
 ]

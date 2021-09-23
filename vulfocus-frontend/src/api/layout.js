@@ -142,3 +142,29 @@ export function layoutDownload(layoutId){
     responseType: 'blob'
   })
 }
+
+export function downloadWebsiteLayout(data) {
+  return request({
+    url: '/download/official/website/layout/',
+    method: 'post',
+    data,
+  })
+}
+
+
+export function getOfficialWebsiteLayout() {
+  return request({
+    url: 'get/official/website/layout',
+    method: 'get',
+  })
+}
+
+
+export function downloadWebsiteLayout(data) {
+  return request({
+    url: '/download/official/website/layout/',
+    method: 'post',
+    data,
+  })
+}
+

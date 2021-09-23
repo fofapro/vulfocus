@@ -29,6 +29,7 @@ from rest_framework.decorators import action
 from user.models import UserProfile
 import shutil
 import docker
+import requests
 from tasks.models import TaskInfo
 from tasks import tasks
 from tasks.serializers import TaskSetSerializer
@@ -1180,10 +1181,13 @@ def upload_zip_file(request):
     if not zip_file:
         return JsonResponse({"code": 400, "msg": "请上传文件"})
     file_name = zip_file.name
-    if file_name.split(".")[-1] != "zip":
-        return JsonResponse({"code": 400, "msg": "请上传zip格式的文件"})
-    if not os.path.exists(UPLOAD_ZIP_PATH):
-        os.makedirs(UPLOAD_ZIP_PATH)
+    try:
+        if file_name.split(".")[-1] != "zip":
+            return JsonResponse({"code": 400, "msg": "请上传zip格式的文件"})
+        if not os.path.exists(UPLOAD_ZIP_PATH):
+            os.makedirs(UPLOAD_ZIP_PATH)
+    except Exception as e:
+        return JsonResponse({"code": 400, "msg": "文件上传失败"})
     try:
         with open(os.path.join(UPLOAD_ZIP_PATH, file_name), "wb") as f:
             for chunk in zip_file.chunks():
@@ -1206,15 +1210,36 @@ def upload_zip_file(request):
         for suffix in ALLOWED_IMG_SUFFIX:
             if suffix in file:
                 flag = True
+                break
     if flag == False:
         return JsonResponse({"code": 400, "msg": "编排环境图片数据丢失请重新上传"})
     # 获取数据包中编排环境名称，编排环境描述,编排环境图片数据
+    try:
+        for file_name in zf.namelist():
+            if "layout_info.json" in file_name:
+                data = zf.read(file_name).decode("utf-8")
+                layout_info = json.loads(data)
+                layout_name = layout_info["layout_name"]
+                layout_desc = layout_info["layout_desc"]
+            elif file_name.split(".")[-1] in ALLOWED_IMG_SUFFIX:
+                image_name = str(uuid.uuid4())
+                image_data = zf.read(file_name)
+                static_url = os.path.join(BASE_DIR, "static")
+                if not os.path.exists(static_url):
+                    os.makedirs(static_url)
+                with open(os.path.join(static_url, "{image_name}.{suffix}".format(image_name=image_name,
+                                                                                  suffix=file_name.split(".")[-1])),
+                          "wb") as f:
+                    f.write(image_data)
+                layout_image = "{image_name}.{suffic}".format(image_name=image_name, suffic=file_name.split(".")[-1])
+    except Exception as e:
+        return JsonResponse({"code": 400, "msg": "文件上传失败"})
     for file_name in zf.namelist():
         if "layout_info.json" in file_name:
             data = zf.read(file_name).decode("utf-8")
             layout_info = json.loads(data)
             layout_name = layout_info["layout_name"]
-            layout_desc = layout_info["layout_name"]
+            layout_desc = layout_info["layout_desc"]
         elif file_name.split(".")[-1] in ALLOWED_IMG_SUFFIX:
             image_name = str(uuid.uuid4())
             image_data = zf.read(file_name)
@@ -1227,217 +1252,237 @@ def upload_zip_file(request):
     # 读取压缩包中原始编排环境信息
     for file_name in zf.namelist():
         if "raw-content.json" in file_name:
-            data = zf.read(file_name).decode("utf8")
-            raw_data = json.loads(data)
-            if not raw_data:
-                return JsonResponse({"code": 400, "msg": "编排环境中数据为空"})
-            nodes = raw_data["nodes"]
-            if not nodes or len(nodes) == 0:
-                return JsonResponse({"code": 400, "msg": "编排环境中节点为空"})
-            connectors = raw_data["connectors"]
-            check_open = False
-            container_list = []
-            network_dict = {}
-            check_network_name_list = []
-            for node in nodes:
-                node_id = node["id"]
-                node_type = node["type"]
-                node_attrs = node["attrs"]
-                if len(node_attrs) == 0:
-                    return JsonResponse({"code": 400, "msg": "编排环境中节点属性为空"})
-                if node_type == "Container":
-                    node_open = node_attrs["open"]
-                    node_port = node_attrs["port"]
-                    if node_open and node_port:
-                        check_open = True
-                    if node["attrs"]['raw']["is_docker_compose"]:
-                        return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
-                    image_name = node_attrs["name"]
-                    image_desc = node_attrs["desc"]
-                    image_vul_name = node_attrs["vul_name"]
-                    image_port = node_attrs["port"]
-                    rank = float(node_attrs["raw"]["rank"])
-                    degree = node_attrs["raw"]["degree"]
-                    image_info = ImageInfo.objects.filter(image_name=image_name).first()
-                    if not image_info:
-                        image_info = ImageInfo(image_id=str(uuid.uuid4()), image_name=image_name, image_desc=image_desc,
-                                               image_port=image_port, image_vul_name=image_vul_name, rank=rank,
-                                               degree=degree, is_ok=False)
-                        image_info.save()
-                    container_list.append(node)
-                elif node_type == "Network":
-                    network_name = node_attrs["name"]
-                    subnet = node_attrs["subnet"]
-                    gateway = node_attrs["gateway"]
-                    net_work_scope = node_attrs["raw"]["net_work_scope"]
-                    net_work_driver = node_attrs['raw']["net_work_driver"]
-                    enable_ipv6 = node_attrs["raw"]["enable_ipv6"]
-                    network_name_temp, subnet_temp = "", ""
-                    created = True
-                    if not network_name:
-                        return JsonResponse({"code": 400, "msg": "编排环境中网卡名称为空"})
-                    if network_name in check_network_name_list:
-                        return JsonResponse({"code": 400, "msg": "编排环境中重复设置了网卡"})
-                    network_info_by_name = NetWorkInfo.objects.filter(net_work_name=network_name).first()
-                    network_info_by_net = NetWorkInfo.objects.filter(net_work_subnet=subnet, net_work_gateway=gateway).first()
-                    if network_info_by_name and network_info_by_net and network_info_by_name == network_info_by_net:
-                        created = False
-                    # 网卡名称相同，网关和网段不同，上传时修改网卡名称
-                    elif network_info_by_name and not network_info_by_net:
-                        network_name_temp = network_name
-                        network_name = str(uuid.uuid4())
-                    # 网卡名称不同，网关和网段相同，修改网关
-                    elif not network_info_by_name and network_info_by_net:
-                        subnet_code = int(subnet.split("/")[-1])
-                        if subnet_code > 1:
-                            subnet_code = subnet_code - 1
-                            new_subnet = subnet.split("/")[0]+"/"+str(subnet_code)
-                            while NetWorkInfo.objects.filter(net_work_subnet=new_subnet, net_work_gateway=gateway).count() and subnet_code > 1:
-                                subnet_code = subnet_code - 1
-                                new_subnet = subnet.split("/")[0] + "/" + str(subnet_code)
-                            subnet_temp = subnet
-                            subnet = new_subnet
-                        else:
-                            return JsonResponse({"code": 400, "msg": "编排环境中网关和网段已经被使用"})
-                    if subnet == "192.168.10.10/24":
-                        return JsonResponse({"code": 400, "msg": "编排环境中的网段已经被使用"})
-                    if gateway == "192.168.10.10":
-                        return JsonResponse({"code": 400, "msg": "编排环境中的网关已经被使用"})
-                    # 网卡名称，网段，网关不同，直接创建
-                    try:
-                        if created:
+            try:
+                data = zf.read(file_name).decode("utf8")
+                raw_data = json.loads(data)
+                if not raw_data:
+                    return JsonResponse({"code": 400, "msg": "编排环境中数据为空"})
+                nodes = raw_data["nodes"]
+                if not nodes or len(nodes) == 0:
+                    return JsonResponse({"code": 400, "msg": "编排环境中节点为空"})
+                connectors = raw_data["connectors"]
+                check_open = False
+                container_list = []
+                network_dict = {}
+                check_network_name_list = []
+                for node in nodes:
+                    node_id = node["id"]
+                    node_type = node["type"]
+                    node_attrs = node["attrs"]
+                    if len(node_attrs) == 0:
+                        return JsonResponse({"code": 400, "msg": "编排环境中节点属性为空"})
+                    if node_type == "Container":
+                        node_open = node_attrs["open"]
+                        node_port = node_attrs["port"]
+                        if node_open and node_port:
+                            check_open = True
+                        if node["attrs"]['raw']["is_docker_compose"]:
+                            return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
+                        image_name = node_attrs["name"]
+                        image_desc = node_attrs["desc"]
+                        image_vul_name = node_attrs["vul_name"]
+                        image_port = node_attrs["port"]
+                        rank = float(node_attrs["raw"]["rank"])
+                        degree = node_attrs["raw"]["degree"]
+                        image_info = ImageInfo.objects.filter(image_name=image_name).first()
+                        if not image_info:
+                            image_info = ImageInfo(image_id=str(uuid.uuid4()), image_name=image_name,
+                                                   image_desc=image_desc,
+                                                   image_port=image_port, image_vul_name=image_vul_name, rank=rank,
+                                                   degree=degree, is_ok=False)
+                            image_info.save()
+                        container_list.append(node)
+                    elif node_type == "Network":
+                        network_name = node_attrs["name"]
+                        subnet = node_attrs["subnet"]
+                        gateway = node_attrs["gateway"]
+                        net_work_scope = node_attrs["raw"]["net_work_scope"]
+                        net_work_driver = node_attrs['raw']["net_work_driver"]
+                        enable_ipv6 = node_attrs["raw"]["enable_ipv6"]
+                        network_name_temp, subnet_temp, gateway_temp = "", "", ""
+                        if not network_name:
+                            return JsonResponse({"code": 400, "msg": "编排环境中网卡名称为空"})
+                        if network_name in check_network_name_list:
+                            return JsonResponse({"code": 400, "msg": "编排环境中重复设置了网卡"})
+                        docker_networks = client.networks.list()
+                        for single_network in docker_networks:
+                            config_dict = {'Subnet': subnet, 'Gateway': gateway}
+                            config_list = single_network.attrs['IPAM']['Config']
+                            for single_config in config_list:
+                                if gateway.split(".")[0:2] == single_config["Gateway"].split(".")[0:2]:
+                                    gateway_list = list(map(int, gateway.split(".")))
+                                    if gateway_list[1] < 255:
+                                        gateway_list[1] += 1
+                                    else:
+                                        gateway_list[1] -= 1
+                                    gateway_temp = gateway
+                                    gateway_list = list(map(str, gateway_list))
+                                    gateway = ".".join(gateway_list)
+                                    subnet_temp = subnet
+                                    new_subnet_list = gateway.split(".")[0:2]+subnet.split(".")[2:]
+                                    subnet = ".".join(new_subnet_list)
+                            if single_network.name == network_name:
+                                network_name_temp = network_name
+                                network_name = str(uuid.uuid4())
+                        try:
                             ipam_pool = docker.types.IPAMPool(subnet=subnet, gateway=gateway)
                             ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
                             try:
                                 # 创建docker网卡之前需要判断是主机上否有同名网卡存在，有则移除
                                 net_work = client.networks.create(network_name, driver=net_work_driver,
-                                                                  ipam=ipam_config, scope=net_work_scope)
+                                                                    ipam=ipam_config, scope=net_work_scope)
                             except Exception as e:
                                 return JsonResponse({"code": 400, "msg": "编排环境中子网或者网关设置错误"})
                             net_work_client_id = str(net_work.id)
                             if not gateway:
                                 gateway = net_work.attrs['IPAM']['Config']['Gateway']
                             created_network = NetWorkInfo(net_work_id=str(uuid.uuid4()),
-                                                          net_work_client_id=net_work_client_id, create_user=user.id,
-                                                          net_work_name=network_name, net_work_driver=net_work_driver,
-                                                          net_work_subnet=subnet,
-                                                          net_work_gateway=gateway, net_work_scope=net_work_scope,
-                                                          enable_ipv6=enable_ipv6)
+                                                            net_work_client_id=net_work_client_id,
+                                                            create_user=user.id,
+                                                            net_work_name=network_name,
+                                                            net_work_driver=net_work_driver,
+                                                            net_work_subnet=subnet,
+                                                            net_work_gateway=gateway, net_work_scope=net_work_scope,
+                                                            enable_ipv6=enable_ipv6)
                             created_network.save()
-                    except Exception as e:
-                        return JsonResponse({"code": 400, "msg": "服务器内部错误"})
-                    check_network_name_list.append(network_name)
-                    network_dict[node_id] = node
-                    str_network_dict = json.dumps(network_dict)
-                    str_check_network_name_list = json.dumps(check_network_name_list)
-                    if network_name_temp and network_name_temp != "":
-                        str_check_network_name_list = str_check_network_name_list.replace(network_name_temp, network_name)
-                        str_network_dict = str_network_dict.replace(network_name_temp, network_name)
-                    if subnet_temp and subnet_temp != "":
-                        str_network_dict = str_network_dict.replace(subnet_temp, subnet)
-                    network_dict = json.loads(str_network_dict)
-                    check_network_name_list = json.loads(str_check_network_name_list)
-            if not check_open:
-                return JsonResponse({"code": 400, "msg": "编排环境中未开放访问路口"})
-            if len(container_list) == 0:
-                return JsonResponse({"code": 400, "msg": "编排环境中容器为空"})
-            if len(network_dict) == 0:
-                for container in container_list:
-                    if not container["attrs"]["open"]:
-                        return JsonResponse({"code": 400, "msg": "编排环境中未配置网卡且未开放访问路口"})
-            else:
-                if not connectors or len(connectors) == 0:
-                    return JsonResponse({"code": 400, "msg": "编排环境中连接点为空"})
-            try:
-                yml_content = build_yml(container_list=container_list, network_dict=network_dict, connector_list=connectors)
-                yml_data = yml_content["content"]
-                env_data = yml_content["env"]
-                env_content = ""
-                if len(env_data) > 0:
-                    env_content = "\n".join(env_data)
-                with transaction.atomic():
-                    operation_name = "创建"
-                    layout_instance = Layout.objects.filter(layout_name=layout_name,layout_desc=layout_desc).first()
-                    if layout_instance:
-                        operation_name = "修改"
-                        return JsonResponse({"code": 400, "msg": "已经有同名编排环境存在"})
-                    else:
-                        layout_instance = Layout(layout_id=str(uuid.uuid4()), create_date=timezone.now(), update_date=timezone.now(), is_uesful=False)
-                    layout_data = LayoutData.objects.filter(layout_id=layout_instance).first()
-                    if layout_data and layout_data.status == "running":
-                        return JsonResponse({"code": 400, "msg": "环境正在运行中，请先停止相关环境"})
-                    layout_instance.layout_name = layout_name
-                    layout_instance.layout_desc = layout_desc
-                    layout_instance.create_user_id = user.id
-                    layout_instance.image_name = layout_image
-                    layout_instance.raw_content = json.dumps(raw_data, ensure_ascii=False)
-                    layout_instance.yml_content = yaml.dump(yml_content["content"])
-                    layout_instance.env_content = env_content
-                    layout_instance.save()
-                    # 修改相关编排环境的相关服务信息
-                    layout_service_list = list(LayoutService.objects.filter(layout_id=layout_instance).values("service_id"))
-                    services = yml_data["services"]
-                    for service_name in services:
-                        service = services[service_name]
-                        image = service["image"]
-                        image_info = ImageInfo.objects.filter(image_name=image).first()
-                        is_exposed = False
-                        ports = ""
-                        if "ports" in service and len(service["ports"]) > 0:
-                            is_exposed = True
-                        if image_info.image_port:
-                            ports = ",".join(str(image_info.image_port).split(","))
-                        layout_service = LayoutService.objects.filter(layout_id=layout_instance,service_name=service_name).first()
-                        if not layout_service:
-                            layout_service = LayoutService(service_id=str(uuid.uuid4()),layout_id=layout_instance,service_name=service_name,
-                            create_date = timezone.now(), update_date=timezone.now())
-                        if {"service_id": layout_service.service_id} in layout_service_list:
-                            layout_service_list.remove({"service_id": layout_service.service_id})
-                        layout_service.image_id = image_info
-                        layout_service.service_name = service_name
-                        layout_service.is_exposed = is_exposed
-                        layout_service.exposed_source_port = ports
-                        layout_service.save()
-                        if "networks" not in service:
-                            continue
-                        networks = service["networks"]
-                        service_network_list = list(LayoutServiceNetwork.objects.filter(service_id=layout_service)
-                                                    .values('layout_service_network_id'))
-                        for network in networks:
-                            network_info = NetWorkInfo.objects.filter(net_work_name=network).first()
-                            service_network = LayoutServiceNetwork.objects.filter(service_id=layout_service,network_id=network_info).first()
-                            if not service_network:
-                                service_network = LayoutServiceNetwork(layout_service_network_id=str(uuid.uuid4()),
-                                                                       service_id=layout_service,
-                                                                       network_id=network_info,
-                                                                       create_date=timezone.now(),
-                                                                       update_date=timezone.now())
-                            if {"layout_service_network_id": service_network.layout_service_network_id} in service_network_list:
-                                service_network_list.remove({"layout_service_network_id": service_network.
-                                                            layout_service_network_id})
-                            service_network.save()
-                        #  删除不存在的网卡
-                        if len(service_network_list)>0:
-                            for service_network in service_network_list:
-                                LayoutServiceNetwork.objects.filter(layout_service_network_id=
-                                                                    service_network[
-                                                                        "layout_service_network_id"]).delete()
-                    # 删除服务数据
-                    for layout_service in layout_service_list:
-                        service_id = layout_service['service_id']
-                        LayoutService.objects.filter(service_id=service_id, layout_id=layout_instance).delete()
-                        if layout_data:
-                            LayoutServiceContainer.objects.filter(service_id=service_id,layout_user_id=layout_data).delete()
-                            LayoutServiceContainerScore.objects.filter(layout_id=layout_instance, layout_data_id=layout_data,
-                                                                       service_id=service_id).delete()
+                        except Exception as e:
+                            return JsonResponse({"code": 400, "msg": "服务器内部错误"})
+                        check_network_name_list.append(network_name)
+                        network_dict[node_id] = node
+                        str_network_dict = json.dumps(network_dict)
+                        str_check_network_name_list = json.dumps(check_network_name_list)
+                        str_raw_data = json.dumps(raw_data)
+                        if network_name_temp and network_name_temp != "":
+                            str_check_network_name_list = str_check_network_name_list.replace(json.dumps(network_name_temp),
+                                                                                              '"{}"'.format(network_name))
+                            str_network_dict = str_network_dict.replace(json.dumps(network_name_temp), '"{}"'.format(network_name))
+                            str_raw_data = str_raw_data.replace(json.dumps(network_name_temp), '"{}"'.format(network_name))
+                        if subnet_temp and subnet_temp != "":
+                            str_network_dict = str_network_dict.replace(subnet_temp, subnet)
+                            str_raw_data = str_raw_data.replace(subnet_temp, subnet)
+                        if gateway_temp and gateway_temp != "":
+                            str_network_dict = str_network_dict.replace(gateway_temp, gateway)
+                            str_raw_data = str_raw_data.replace(gateway_temp, gateway)
+                        network_dict = json.loads(str_network_dict)
+                        check_network_name_list = json.loads(str_check_network_name_list)
+                        raw_data = json.loads(str_raw_data)
+                if not check_open:
+                    return JsonResponse({"code": 400, "msg": "编排环境中未开放访问路口"})
+                if len(container_list) == 0:
+                    return JsonResponse({"code": 400, "msg": "编排环境中容器为空"})
+                if len(network_dict) == 0:
+                    for container in container_list:
+                        if not container["attrs"]["open"]:
+                            return JsonResponse({"code": 400, "msg": "编排环境中未配置网卡且未开放访问路口"})
+                else:
+                    if not connectors or len(connectors) == 0:
+                        return JsonResponse({"code": 400, "msg": "编排环境中连接点为空"})
+                try:
+                    yml_content = build_yml(container_list=container_list, network_dict=network_dict,
+                                            connector_list=connectors)
+                    yml_data = yml_content["content"]
+                    env_data = yml_content["env"]
+                    env_content = ""
+                    if len(env_data) > 0:
+                        env_content = "\n".join(env_data)
+                    with transaction.atomic():
+                        operation_name = "创建"
+                        layout_instance = Layout.objects.filter(layout_name=layout_name,
+                                                                layout_desc=layout_desc).first()
+                        if layout_instance:
+                            operation_name = "修改"
+                            return JsonResponse({"code": 400, "msg": "已经有同名编排环境存在"})
                         else:
-                            LayoutServiceContainer.objects.filter(service_id=service_id).delete()
-                            LayoutServiceContainerScore.objects.filter(layout_id=layout_instance, service_id=service_id).delete()
+                            layout_instance = Layout(layout_id=str(uuid.uuid4()), create_date=timezone.now(),
+                                                     update_date=timezone.now(), is_uesful=False)
+                        layout_data = LayoutData.objects.filter(layout_id=layout_instance).first()
+                        if layout_data and layout_data.status == "running":
+                            return JsonResponse({"code": 400, "msg": "环境正在运行中，请先停止相关环境"})
+                        layout_instance.layout_name = layout_name
+                        layout_instance.layout_desc = layout_desc
+                        layout_instance.create_user_id = user.id
+                        layout_instance.image_name = layout_image
+                        layout_instance.raw_content = json.dumps(raw_data, ensure_ascii=False)
+                        layout_instance.yml_content = yaml.dump(yml_content["content"])
+                        layout_instance.env_content = env_content
+                        layout_instance.save()
+                        # 修改相关编排环境的相关服务信息
+                        layout_service_list = list(
+                            LayoutService.objects.filter(layout_id=layout_instance).values("service_id"))
+                        services = yml_data["services"]
+                        for service_name in services:
+                            service = services[service_name]
+                            image = service["image"]
+                            image_info = ImageInfo.objects.filter(image_name=image).first()
+                            is_exposed = False
+                            ports = ""
+                            if "ports" in service and len(service["ports"]) > 0:
+                                is_exposed = True
+                            if image_info.image_port:
+                                ports = ",".join(str(image_info.image_port).split(","))
+                            layout_service = LayoutService.objects.filter(layout_id=layout_instance,
+                                                                          service_name=service_name).first()
+                            if not layout_service:
+                                layout_service = LayoutService(service_id=str(uuid.uuid4()), layout_id=layout_instance,
+                                                               service_name=service_name,
+                                                               create_date=timezone.now(), update_date=timezone.now())
+                            if {"service_id": layout_service.service_id} in layout_service_list:
+                                layout_service_list.remove({"service_id": layout_service.service_id})
+                            layout_service.image_id = image_info
+                            layout_service.service_name = service_name
+                            layout_service.is_exposed = is_exposed
+                            layout_service.exposed_source_port = ports
+                            layout_service.save()
+                            if "networks" not in service:
+                                continue
+                            networks = service["networks"]
+                            service_network_list = list(LayoutServiceNetwork.objects.filter(service_id=layout_service)
+                                                        .values('layout_service_network_id'))
+                            for network in networks:
+                                network_info = NetWorkInfo.objects.filter(net_work_name=network).first()
+                                service_network = LayoutServiceNetwork.objects.filter(service_id=layout_service,
+                                                                                      network_id=network_info).first()
+                                if not service_network:
+                                    service_network = LayoutServiceNetwork(layout_service_network_id=str(uuid.uuid4()),
+                                                                           service_id=layout_service,
+                                                                           network_id=network_info,
+                                                                           create_date=timezone.now(),
+                                                                           update_date=timezone.now())
+                                if {
+                                    "layout_service_network_id": service_network.layout_service_network_id} in service_network_list:
+                                    service_network_list.remove({"layout_service_network_id": service_network.
+                                                                layout_service_network_id})
+                                service_network.save()
+                            #  删除不存在的网卡
+                            try:
+                                if len(service_network_list) > 0:
+                                    for service_network in service_network_list:
+                                        LayoutServiceNetwork.objects.filter(layout_service_network_id=
+                                                                            service_network[
+                                                                                "layout_service_network_id"]).delete()
+                            except:
+                                pass
+                        # 删除服务数据
+                        for layout_service in layout_service_list:
+                            service_id = layout_service['service_id']
+                            LayoutService.objects.filter(service_id=service_id, layout_id=layout_instance).delete()
+                            if layout_data:
+                                LayoutServiceContainer.objects.filter(service_id=service_id,
+                                                                      layout_user_id=layout_data).delete()
+                                LayoutServiceContainerScore.objects.filter(layout_id=layout_instance,
+                                                                           layout_data_id=layout_data,
+                                                                           service_id=service_id).delete()
+                            else:
+                                LayoutServiceContainer.objects.filter(service_id=service_id).delete()
+                                LayoutServiceContainerScore.objects.filter(layout_id=layout_instance,
+                                                                           service_id=service_id).delete()
+                except Exception as e:
+                    return JsonResponse({"code": 400, "msg": "服务器内部错误"})
             except Exception as e:
-                return JsonResponse({"code": 400, "msg": "服务器内部错误"})
+                return JsonResponse({"code": 400, "msg": "文件上传失败"})
         else:
             continue
-    return JsonResponse({"code": 200, "msg": "上传成功"})
+    return JsonResponse({"code": 200, "msg": "上传成功", 'layout_id': layout_instance.layout_id})
 
 
 @api_view(http_method_names=["POST"])
@@ -1466,4 +1511,292 @@ def download_layout_image(request):
         return JsonResponse({"code": 200, "msg": "开始下载"})
     except Exception as e:
         return JsonResponse({"code": 400, "msg": "服务器内部错误"})
+
+
+@csrf_exempt
+def get_layout_det(req):
+    '''
+    返回编排场景详情（官网）
+    '''
+    if req.method == "GET":
+        id = req.GET.get("layout_id")
+        layout_info = Layout.objects.filter(is_release=True, layout_id=id).first()
+        try:
+            if layout_info:
+                layout_dict = dict()
+                layout_dict['layout_name'] = layout_info.layout_name
+                layout_dict['layout_desc'] = layout_info.layout_desc
+                layout_dict['layout_raw_content'] = layout_info.raw_content
+                # layout_dict['image_name'] = 'http://vulfocus.fofa.so/images/'+layout_info.image_name
+                layout_dict['image_name'] = 'http://vulfocus.fofa.so/images/'+layout_info.image_name  # 测试
+                data = layout_dict
+            else:
+                data = []
+        except:
+            data = []
+        return JsonResponse(R.ok(data=data))
+
+
+@api_view(http_method_names=["POST"])
+def download_official_website_layout(request):
+    '''
+    下载官网编排场景（社区）
+    '''
+    data = request.data
+    id = data['layout_id']    # 真实官网id
+    user = request.user
+    # id = 'c4a22b44-e4d9-460d-b650-4cb94b08c055'  # 测试id
+    url = "http://vulfocus.fofa.so/api/layoutinfodet?layout_id={}".format(id)
+    res = requests.get(url, verify=False).content
+    req = json.loads(res)
+    raw_data = req['data']['layout_raw_content']
+    raw_data = yaml.load(raw_data, Loader=yaml.Loader)
+    static_url = os.path.join(BASE_DIR, "static")
+    img_url = req['data']['image_name']   # 官网图片
+    # img_url = 'http://vulfocus.fofa.so/images/51880ddc18b8461aa14ec79264f7fcf5.jpg'  # 测试拼接照片地址
+    con = requests.get(img_url, verify=False).content  # 下载官网图片写入文件夹
+    imagename = str(uuid.uuid4())   # 图片名称随机uuid
+    if not os.path.exists(static_url):
+        os.makedirs(static_url)
+    with open(os.path.join(static_url, "{image_name}.png".format(image_name=imagename)), "wb") as f:
+        f.write(con)
+    layout_image = "{image_name}.png".format(image_name=imagename)
+    if not raw_data:
+        return JsonResponse({"code": 400, "msg": "编排环境中数据为空"})
+    nodes = raw_data["nodes"]
+    if not nodes or len(nodes) == 0:
+        return JsonResponse({"code": 400, "msg": "编排环境中节点为空"})
+    connectors = raw_data["connectors"]
+    check_open = False
+    container_list = []
+    network_dict = {}
+    check_network_name_list = []
+    for node in nodes:
+        node_id = node["id"]
+        node_type = node["type"]
+        node_attrs = node["attrs"]
+        if len(node_attrs) == 0:
+            return JsonResponse({"code": 400, "msg": "编排环境中节点属性为空"})
+        if node_type == "Container":
+            node_open = node_attrs["open"]
+            node_port = node_attrs["port"]
+            if node_open and node_port:
+                check_open = True
+            if node["attrs"]['raw']["is_docker_compose"]:
+                return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
+            image_name = node_attrs["name"]
+            image_desc = node_attrs["desc"]
+            image_vul_name = node_attrs["vul_name"]
+            image_port = node_attrs["port"]
+            rank = float(node_attrs["raw"]["rank"])
+            degree = node_attrs["raw"]["degree"]
+            image_info = ImageInfo.objects.filter(image_name=image_name).first()
+            if not image_info:
+                image_info = ImageInfo(image_id=str(uuid.uuid4()), image_name=image_name, image_desc=image_desc,
+                                       image_port=image_port, image_vul_name=image_vul_name, rank=rank,
+                                       degree=degree, is_ok=False)
+                image_info.save()
+            container_list.append(node)
+        elif node_type == "Network":
+            network_name = node_attrs["name"]
+            subnet = node_attrs["subnet"]
+            gateway = node_attrs["gateway"]
+            net_work_scope = node_attrs["raw"]["net_work_scope"]
+            net_work_driver = node_attrs['raw']["net_work_driver"]
+            enable_ipv6 = node_attrs["raw"]["enable_ipv6"]
+            network_name_temp, subnet_temp, gateway_temp = "", "", ""
+            if not network_name:
+                return JsonResponse({"code": 400, "msg": "编排环境中网卡名称为空"})
+            if network_name in check_network_name_list:
+                return JsonResponse({"code": 400, "msg": "编排环境中重复设置了网卡"})
+            docker_networks = client.networks.list()
+            for single_network in docker_networks:
+                config_list = single_network.attrs['IPAM']['Config']
+                for single_config in config_list:
+                    if gateway.split(".")[0:2] == single_config["Gateway"].split(".")[0:2]:
+                        gateway_list = list(map(int, gateway.split(".")))
+                        if gateway_list[1] < 255:
+                            gateway_list[1] += 1
+                        else:
+                            gateway_list[1] -= 1
+                        gateway_temp = gateway
+                        gateway_list = list(map(str, gateway_list))
+                        gateway = ".".join(gateway_list)
+                        subnet_temp = subnet
+                        new_subnet_list = gateway.split(".")[0:2] + subnet.split(".")[2:]
+                        subnet = ".".join(new_subnet_list)
+                if single_network.name == network_name:
+                    network_name_temp = network_name
+                    network_name = str(uuid.uuid4())
+            if subnet == "192.168.10.10/24":
+                return JsonResponse({"code": 400, "msg": "编排环境中的网段已经被使用"})
+            if gateway == "192.168.10.10":
+                return JsonResponse({"code": 400, "msg": "编排环境中的网关已经被使用"})
+            # 网卡名称，网段，网关不同，直接创建
+            try:
+                ipam_pool = docker.types.IPAMPool(subnet=subnet, gateway=gateway)
+                ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
+                try:
+                    # 创建docker网卡之前需要判断是主机上否有同名网卡存在，有则移除
+                    net_work = client.networks.create(network_name, driver=net_work_driver,
+                                                          ipam=ipam_config, scope=net_work_scope)
+                except Exception as e:
+                    return JsonResponse({"code": 400, "msg": "编排环境中子网或者网关设置错误"})
+                net_work_client_id = str(net_work.id)
+                if not gateway:
+                    gateway = net_work.attrs['IPAM']['Config']['Gateway']
+                created_network = NetWorkInfo(net_work_id=str(uuid.uuid4()),
+                                                net_work_client_id=net_work_client_id, create_user=user.id,
+                                                net_work_name=network_name, net_work_driver=net_work_driver,
+                                                net_work_subnet=subnet,
+                                                net_work_gateway=gateway, net_work_scope=net_work_scope,
+                                                enable_ipv6=enable_ipv6)
+                created_network.save()
+            except Exception as e:
+                return JsonResponse({"code": 400, "msg": "服务器内部错误"})
+            check_network_name_list.append(network_name)
+            network_dict[node_id] = node
+            str_network_dict = json.dumps(network_dict)
+            str_check_network_name_list = json.dumps(check_network_name_list)
+            str_raw_data = json.dumps(raw_data)
+            if network_name_temp and network_name_temp != "":
+                str_check_network_name_list = str_check_network_name_list.replace(json.dumps(network_name_temp),
+                                                                                  '"{}"'.format(network_name))
+                str_network_dict = str_network_dict.replace(json.dumps(network_name_temp), '"{}"'.format(network_name))
+                str_raw_data = str_raw_data.replace(json.dumps(network_name_temp), '"{}"'.format(network_name))
+            if subnet_temp and subnet_temp != "":
+                str_network_dict = str_network_dict.replace(subnet_temp, subnet)
+                str_raw_data = str_raw_data.replace(subnet_temp, subnet)
+            if gateway_temp and gateway_temp != "":
+                str_network_dict = str_network_dict.replace(gateway_temp, gateway)
+                str_raw_data = str_raw_data.replace(gateway_temp, gateway)
+            network_dict = json.loads(str_network_dict)
+            check_network_name_list = json.loads(str_check_network_name_list)
+            raw_data = json.loads(str_raw_data)
+    if not check_open:
+        return JsonResponse({"code": 400, "msg": "编排环境中未开放访问路口"})
+    if len(container_list) == 0:
+        return JsonResponse({"code": 400, "msg": "编排环境中容器为空"})
+    if len(network_dict) == 0:
+        for container in container_list:
+            if not container["attrs"]["open"]:
+                return JsonResponse({"code": 400, "msg": "编排环境中未配置网卡且未开放访问路口"})
+    else:
+        if not connectors or len(connectors) == 0:
+            return JsonResponse({"code": 400, "msg": "编排环境中连接点为空"})
+    try:
+        yml_content = build_yml(container_list=container_list, network_dict=network_dict, connector_list=connectors)
+        yml_data = yml_content["content"]
+        env_data = yml_content["env"]
+        env_content = ""
+        if len(env_data) > 0:
+            env_content = "\n".join(env_data)
+        with transaction.atomic():
+            operation_name = "创建"
+            layout_instance = Layout.objects.filter(layout_name=req['data']['layout_name'], layout_desc=req['data']['layout_desc']).first()
+            if layout_instance:
+                operation_name = "修改"
+                return JsonResponse({"code": 400, "msg": "已经有同名编排环境存在"})
+            else:
+                layout_instance = Layout(layout_id=str(uuid.uuid4()), create_date=timezone.now(),
+                                         update_date=timezone.now(), is_uesful=False)
+            layout_data = LayoutData.objects.filter(layout_id=layout_instance).first()
+            if layout_data and layout_data.status == "running":
+                return JsonResponse({"code": 400, "msg": "环境正在运行中，请先停止相关环境"})
+            layout_instance.layout_name = req['data']['layout_name']
+            layout_instance.layout_desc = req['data']['layout_desc']
+            layout_instance.create_user_id = user.id
+            layout_instance.image_name = layout_image
+            layout_instance.raw_content = json.dumps(raw_data, ensure_ascii=False)
+            layout_instance.yml_content = yaml.dump(yml_content["content"])
+            layout_instance.env_content = env_content
+            layout_instance.save()
+            # 修改相关编排环境的相关服务信息
+            layout_service_list = list(LayoutService.objects.filter(layout_id=layout_instance).values("service_id"))
+            services = yml_data["services"]
+            for service_name in services:
+                service = services[service_name]
+                image = service["image"]
+                image_info = ImageInfo.objects.filter(image_name=image).first()
+                is_exposed = False
+                ports = ""
+                if "ports" in service and len(service["ports"]) > 0:
+                    is_exposed = True
+                if image_info.image_port:
+                    ports = ",".join(str(image_info.image_port).split(","))
+                layout_service = LayoutService.objects.filter(layout_id=layout_instance,
+                                                              service_name=service_name).first()
+                if not layout_service:
+                    layout_service = LayoutService(service_id=str(uuid.uuid4()), layout_id=layout_instance,
+                                                   service_name=service_name,
+                                                   create_date=timezone.now(), update_date=timezone.now())
+                if {"service_id": layout_service.service_id} in layout_service_list:
+                    layout_service_list.remove({"service_id": layout_service.service_id})
+                layout_service.image_id = image_info
+                layout_service.service_name = service_name
+                layout_service.is_exposed = is_exposed
+                layout_service.exposed_source_port = ports
+                layout_service.save()
+                if "networks" not in service:
+                    continue
+                networks = service["networks"]
+                service_network_list = list(LayoutServiceNetwork.objects.filter(service_id=layout_service)
+                                            .values('layout_service_network_id'))
+                for network in networks:
+                    network_info = NetWorkInfo.objects.filter(net_work_name=network).first()
+                    service_network = LayoutServiceNetwork.objects.filter(service_id=layout_service,
+                                                                          network_id=network_info).first()
+                    if not service_network:
+                        service_network = LayoutServiceNetwork(layout_service_network_id=str(uuid.uuid4()),
+                                                               service_id=layout_service,
+                                                               network_id=network_info,
+                                                               create_date=timezone.now(),
+                                                               update_date=timezone.now())
+                    if {"layout_service_network_id": service_network.layout_service_network_id} in service_network_list:
+                        service_network_list.remove({"layout_service_network_id": service_network.
+                                                    layout_service_network_id})
+                    service_network.save()
+                #  删除不存在的网卡
+                if len(service_network_list) > 0:
+                    for service_network in service_network_list:
+                        LayoutServiceNetwork.objects.filter(layout_service_network_id=
+                                                            service_network[
+                                                                "layout_service_network_id"]).delete()
+            # 删除服务数据
+            for layout_service in layout_service_list:
+                service_id = layout_service['service_id']
+                LayoutService.objects.filter(service_id=service_id, layout_id=layout_instance).delete()
+                if layout_data:
+                    LayoutServiceContainer.objects.filter(service_id=service_id, layout_user_id=layout_data).delete()
+                    LayoutServiceContainerScore.objects.filter(layout_id=layout_instance, layout_data_id=layout_data,
+                                                               service_id=service_id).delete()
+                else:
+                    LayoutServiceContainer.objects.filter(service_id=service_id).delete()
+                    LayoutServiceContainerScore.objects.filter(layout_id=layout_instance,
+                                                               service_id=service_id).delete()
+    except Exception as e:
+        return JsonResponse({"code": 400, "msg": "服务器内部错误"})
+    return JsonResponse({'code': 200, 'msg': '下载完成'})
+
+@api_view(http_method_names=["GET"])
+def get_official_website_layout(request):
+    '''
+    获取官网编排场景信息（社区）
+    '''
+
+    # url = "http://vulfocus.fofa.so/api/get/layoutinfo/"  # 官网地址
+    url = "http://vulfocus.fofa.so/api/get/layoutinfo/"
+    try:
+        res = requests.get(url, verify=False).content
+        req = json.loads(res)
+        if req and 'data' in req:
+            if req['data']:
+                data = req['data']
+            else:
+                data = []
+        else:
+            data = []
+    except:
+        data = []
+    return JsonResponse(R.ok(data))
 

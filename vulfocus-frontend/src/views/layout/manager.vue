@@ -7,47 +7,16 @@
     </div>
     <div style="margin-top: 10px">
       <span>场景商店</span>
-      <span v-if="senceStoreList.length>5" style="color: #999999;float: right" >{{ showBtnSence?"查看更多":"收起" }}</span>
-<!--      <el-tag style="display: inline-block;float: left;line-height: 28px;height: 28px; margin-left: 5px;"-->
-<!--              effect="dark" v-if="row.is_uesful === false && row.status.task_id !== '' && row.status.progress < 100">-->
-<!--        <div style="display: inline-block;float: left"><span>下载中</span></div>-->
-<!--        <div style="display: inline-block;float: left">-->
-<!--          <el-progress style="margin-left: 3px;margin-top:3px;" type="circle" :stroke-width="3"-->
-<!--                       :show-text="false" :text-inside="false" :percentage="row.status.progress"-->
-<!--                       :width="20"></el-progress>-->
-<!--        </div>-->
-<!--      </el-tag>-->
-<!--      <el-button size="mini" type="primary" icon="el-icon-video-play" v-if="row.is_uesful === false" @click="downloadImage(row)">下载镜像</el-button>-->
+      <span v-if="senceStoreList.length>5" @click="showactive" style="color: #999999;float: right" >{{ showBtnSence?"查看更多":"收起" }}</span>
     </div>
-          <el-upload class="upload_zip" action="" :http-request="uploadlayout" :show-file-list="false" :before-upload="beforeAvatarUploadLayout"><el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-upload">11111</el-button></el-upload>
-
     <div class="filter-container">
       <el-row style="margin-top: 10px">
-        <el-col  :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+        <el-col :class="activeSceneClass === index1 ? 'current':''"  :xs="12" :sm="12" :lg="{span: '4-8'}" v-for="(item,index1) in senceStoreList" v-if="index1 < sceneLength" :key="index1" style="width: 20%">
           <el-card :body-style="{ padding: '0px'}" shadow="hover">
-            <el-tooltip class="item" effect="dark" content="华为设备软模拟" placement="top">
-              <img fit="contain" :src="modelimg" height="180px" width="100%">
+            <el-tooltip class="item" effect="dark" :content="item.layout_name" placement="top">
+<!--              <img fit="contain" :src="item.image_name" height="180px" width="100%">-->
+              <img fit="contain" @click="download_website_layout(item.layout_id)" :src="item.image_name" height="180px" width="100%">
             </el-tooltip>
-          </el-card>
-        </el-col>
-        <el-col  :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-          <el-card :body-style="{ padding: '0px'}" shadow="hover">
-            <img fit="contain" :src="modelimg" height="180px" width="100%">
-          </el-card>
-        </el-col>
-        <el-col  :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-          <el-card :body-style="{ padding: '0px'}" shadow="hover">
-            <img fit="contain" :src="modelimg" height="180px" width="100%">
-          </el-card>
-        </el-col>
-        <el-col  :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-          <el-card :body-style="{ padding: '0px'}" shadow="hover">
-            <img fit="contain" :src="modelimg" height="180px" width="100%">
-          </el-card>
-        </el-col>
-        <el-col  :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-          <el-card :body-style="{ padding: '0px'}" shadow="hover">
-            <img fit="contain" :src="modelimg" height="180px" width="100%">
           </el-card>
         </el-col>
       </el-row>
@@ -99,8 +68,8 @@
                         <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="margin-top: -50px;" icon="el-icon-download">下载</el-link>
                       </el-col>
                       <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link v-if="item.status.task_id ===''" type="info" @click="handleRelease(item.id,item.is_uesful)" :underline="false" style="margin-top: -50px;" icon="el-icon-position">发布</el-link>
-                        <el-link v-if="item.status.task_id!==''" type="info" @click="openProgress(item,1)" :underline="false" style="margin-top: -50px;" icon="el-icon-loading">下载中</el-link>
+                        <el-link v-if="item.status.task_id === ''" type="info" @click="handleRelease(item.id,item.is_uesful)" :underline="false" style="margin-top: -50px;" icon="el-icon-position">发布</el-link>
+                        <el-link v-if="item.status.task_id !== ''" type="info" @click="openProgress(item,1)" :underline="false" style="margin-top: -50px;" icon="el-icon-loading">下载中</el-link>
                       </el-col>
                     </el-row>
                   </div>
@@ -122,9 +91,9 @@
                   </div>
                   <div v-else-if="item.type !== 'layoutScene'">
                     <el-row>
-                      <el-col :span="6" :offset="6">
-                        <el-link type="info" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>
-                      </el-col>
+<!--                      <el-col :span="6" :offset="6">-->
+<!--                        <el-link type="info" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>-->
+<!--                      </el-col>-->
                       <el-col :span="12">
                         <el-link type="info" @click="delSceneTemp(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
                       </el-col>
@@ -165,10 +134,11 @@
                         <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
                       </el-col>
                       <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="margin-top: -50px;" icon="el-icon-download">分享</el-link>
+                        <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="margin-top: -50px;" icon="el-icon-download">下载</el-link>
                       </el-col>
                       <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleRelease(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-position">发布</el-link>
+                        <el-link v-if="item.status.task_id === ''" type="info" @click="handleRelease(item.id,item.is_uesful)" :underline="false" style="margin-top: -50px;" icon="el-icon-position">发布</el-link>
+                        <el-link v-if="item.status.task_id !== ''" type="info" @click="openProgress(item,1)" :underline="false" style="margin-top: -50px;" icon="el-icon-loading">下载中</el-link>
                       </el-col>
                     </el-row>
                   </div>
@@ -184,7 +154,7 @@
                         <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
                       </el-col>
                       <el-col :span="6" style="position: relative">
-                        <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="margin-top: -50px;" icon="el-icon-download">分享</el-link>
+                        <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="margin-top: -50px;" icon="el-icon-download">下载</el-link>
                       </el-col>
                     </el-row>
                   </div>
@@ -210,9 +180,9 @@
                   <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="100%" height="250px" />
                   <div v-if="item.type !== 'layoutScene'">
                     <el-row>
-                      <el-col :span="6" :offset="6">
-                        <el-link type="info" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>
-                      </el-col>
+<!--                      <el-col :span="6" :offset="6">-->
+<!--                        <el-link type="info" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>-->
+<!--                      </el-col>-->
                       <el-col :span="12">
                         <el-link type="info" @click="delSceneTemp(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
                       </el-col>
@@ -269,7 +239,7 @@
 </template>
 
 <script>
-import {layoutList, layoutRelease, layoutDelete,layoutDownload,upload_zip_file,download_layout_image} from '@/api/layout'
+import {layoutList, layoutRelease, layoutDelete,layoutDownload,upload_zip_file,download_layout_image,getOfficialWebsiteLayout,downloadWebsiteLayout } from '@/api/layout'
 import { getSceneData } from '@/api/scene'
 import { timetemplist,timetempadd,timetempdelete } from '@/api/timemoudel'
 import {layoutbathchTask} from '@/api/tasks'
@@ -277,6 +247,7 @@ import timetemp from "../manager/timetemp";
 import { getTask,batchTask,progressTask } from '@/api/tasks'
 export default {
   name: 'manager',
+  inject: ['reload'],
   data(){
     return {
       tableData: [],
@@ -297,7 +268,7 @@ export default {
       selectSceneDialog:false,
       createSceneTempDialog:false,
       showBtnSence:true,
-      senceStoreList:[1,2,3,4,5,6,7,8,9,10],
+      senceStoreList:[],
       newLayoutFile: new FormData(),
       taskCheckInterval :null,
       taskList: [],
@@ -312,6 +283,8 @@ export default {
       },
       progressShow: false,
       progressLoading: false,
+      activeSceneClass:0,
+      sceneLength:5,
     }
   },
   components:{
@@ -320,6 +293,7 @@ export default {
   created() {
     // this.layoutListData(1)
     this.getScene()
+    this.get_official_website()
   },
   methods:{
     layoutListData(page){
@@ -513,30 +487,6 @@ export default {
         link.click()
       })
     },
-    beforeAvatarUploadLayout(file){
-      if(file){
-        this.newLayoutFile.set('zip_file', file)
-      }else {
-        return false
-      }
-    },
-    uploadlayout(){
-      upload_zip_file(this.newLayoutFile).then(response => {
-        let data = response.data;
-        if(data.code === 400){
-          this.$message({
-            message:data.msg,
-            type:'error'
-          })
-        };
-        if(data.code === 200){
-          this.$message({
-            message:'上传成功',
-            type: 'success'
-          })
-        };
-      })
-    },
     checkTask(tableData){
       tableData.forEach((item,index, arr) => {
         let isUserful = item["is_uesful"]
@@ -649,6 +599,57 @@ export default {
 
       }
     },
+    get_official_website(){
+      getOfficialWebsiteLayout().then(response=>{
+        this.senceStoreList = response.data.data
+      })
+    },
+    download_website_layout(id){
+      let layoutdata = new FormData()
+      if (id){
+        let ids = String(id)
+        layoutdata.set("layout_id",ids)
+        this.$confirm('是否下载官网场景信息?', '提示', {
+        center: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+        }).then(() => {
+          downloadWebsiteLayout(layoutdata).then(response=>{
+            if (response.data.code===200){
+              this.$message({
+                type: 'success',
+                message: response.data.msg
+              });
+              this.reload()
+            }else {
+              this.$message({
+                type: 'error',
+                message: response.data.msg
+              });
+            }
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消下载'
+          });
+        });
+      }else {
+        this.$message({
+          type: 'error',
+          message: '错误的场景id'
+        });
+      }
+    },
+    showactive(){
+      if (!this.showBtnSence){
+        this.sceneLength = 5
+      }else {
+        this.sceneLength = this.senceStoreList.length
+      }
+      this.showBtnSence = !this.showBtnSence;
+    }
   }
 }
 </script>
