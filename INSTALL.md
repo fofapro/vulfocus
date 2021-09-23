@@ -159,7 +159,7 @@ python manage.py createsuperuser
 3. 修改 CELERY_BROKER_URL（`vulfocus/settings.py`），修改为 Redis 连接地址。
 
 4. 配置 EMAIL_HOST;EMAIL_HOST_USER;EMAIL_HOST_PASSWORD,修改为自己的邮箱配置
-#### 启动 Celery(Celery不需要操做后面有自启)
+#### 启动 Celery(Celery不需要操作后面有自启)
 在 `vulfocus-api` 中启动 Celery：
 ```
 systemctl start redis
