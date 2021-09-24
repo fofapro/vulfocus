@@ -83,7 +83,7 @@
       </div>
       <div class="filter-line">
         <div class="filter-name">
-          开发框架
+          数据库
         </div>
         <div class="filter-content">
           <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" v-if="index <= taglength4">{{item.value}}</span>
@@ -92,7 +92,7 @@
       </div>
       <div class="filter-line">
         <div class="filter-name">
-          数据库
+          框架
         </div>
         <div class="filter-content">
           <span :class="activeClass5 === index ? 'current':''" @click="selectSql(index,item)" v-for="(item,index) in databaseList" v-if="index <= taglength5" >{{item.value}}</span>
