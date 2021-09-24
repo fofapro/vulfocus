@@ -88,10 +88,12 @@
             <el-main>
               <el-row>
                 <span class="span2">环境描述</span>
-<!--                <el-link type="primary" size="mini">编辑</el-link>-->
+                <el-link v-if="isAdmin===true" @click="openDrawer" type="primary" size="mini">编辑</el-link>
               </el-row>
-              <el-row style="margin-top: 24px">
-                <span class="span3"> {{layout.desc}} </span>
+              <el-row>
+                <div class="container" style="margin-top: 24px">
+                  <ViewerEditor v-if="loadingData" v-model="scene_writeup_date" ref="viewerEditor1"  :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="500px" ></ViewerEditor>
+                </div>
               </el-row>
               <el-row style="margin-top: 24px">
                 <span class="span2">访问地址</span>
@@ -204,6 +206,22 @@
       </el-form>
     </el-dialog>
     </div>
+    <div style="margin-top: 20px">
+      <el-drawer v-if="drawer" :visible="drawer" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" >
+        <div style="margin-right: 10px">
+          <el-button icon="el-icon-edit-outline" size="small" style="position:absolute;z-index: 9999;right:60px;top: 21px;" @click="createSceneWriteup">修改</el-button>
+        </div>
+        <div>
+          <el-row>
+            <el-col :span="22" :offset="1">
+              <div class="container">
+                <markdown-editor ref="markdownEditor1" v-model="scene_update_date" :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="400px" />
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+      </el-drawer>
+    </div>
   </div>
 </template>
 
@@ -213,7 +231,10 @@ import { mapGetters } from 'vuex'
 import {sceneGet, sceneStart, sceneStop,sceneFlag, sceneRank} from '@/api/scene'
 import { commitComment, getComment, CommentDelete  } from '@/api/user'
 import CountDown from "vue2-countdown";
+import { updateLayoutDesc } from '@/api/layout'
 import verification from "./verification";
+import MarkdownEditor from '@/components/MarkdownEditor'
+import ViewerEditor from '@/components/ViewerEditor'
 
 
 export default {
@@ -246,7 +267,8 @@ export default {
       incompletePeple:0,
       open: [],
       rankList:[],
-      writeup_date:'',
+      scene_writeup_date:'',
+      scene_update_date:'',
       drawer:false,
       drawerFlag:false,
       derection:"btt",
@@ -258,6 +280,7 @@ export default {
       verificationCode:"",
       commentCode:"",
       userAuth:"",
+      loadingData:false
     }
   },
   computed: {
@@ -278,7 +301,9 @@ export default {
     this.initComment()
   },
   components:{
-    'v-sidentify':verification
+    'v-sidentify':verification,
+    MarkdownEditor,
+    ViewerEditor,
   },
   methods:{
     identifyCode(data){
@@ -308,6 +333,8 @@ export default {
         if (status === 200){
           this.layout.name = rsp.data["layout"]["name"]
           this.layout.desc = rsp.data["layout"]["desc"]
+          this.scene_writeup_date = rsp.data["layout"]["desc"]
+          this.loadingData = true
           if (!rsp.data["layout"]["image_name"]){
             this.layout.image_name = require("../../assets/modelbg.jpg")
           }else {
@@ -543,6 +570,33 @@ export default {
         }
       })
     },
+    closeDrawer(){
+      this.drawer=false
+      this.initModelInfo()
+    },
+    openDrawer(){
+      this.scene_update_date = this.scene_writeup_date
+      this.drawer=true
+    },
+    createSceneWriteup(){
+      let sceneId = this.$route.query.layout_id
+      let data = {"data":this.scene_update_date}
+      updateLayoutDesc(sceneId,data).then(response=>{
+        if (response.data.status === 200){
+          this.$message({
+            message: "编辑成功",
+            type: 'success'
+          })
+          this.drawer = false
+          this.reload()
+        }else {
+          this.$message({
+            message: response.data.msg,
+            type: 'error'
+          })
+        }
+      })
+    }
   }
 }
 </script>

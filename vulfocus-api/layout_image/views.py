@@ -794,6 +794,24 @@ class LayoutViewSet(viewsets.ModelViewSet):
             file_name=layout_instance.layout_name, format=DOWNLOAD_FILE_TYPE)
         return response
 
+    @action(methods=["post"], detail=True, url_path="update_desc")
+    def update_layout_desc(self, request, pk=None):
+        if not pk:
+            return JsonResponse(R.build(msg="环境不存在"))
+        user = request.user
+        if not user.is_superuser:
+            return JsonResponse(R.build(msg="权限不足"))
+        layout_info = Layout.objects.filter(layout_id=pk).first()
+        if not layout_info:
+            return JsonResponse(R.build(msg="环境不存在"))
+        try:
+            desc = request.data['data']
+            layout_info.layout_desc = desc
+            layout_info.save()
+        except:
+            return JsonResponse(R.build(msg="编辑失败"))
+        return JsonResponse(R.ok())
+
 
 
 def get_random_port(env_content):

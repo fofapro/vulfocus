@@ -168,3 +168,12 @@ export function downloadWebsiteLayout(data) {
   })
 }
 
+export function updateLayoutDesc(layoutId,data){
+  return request({
+    url:'/layout/'+layoutId+'/update_desc/',
+    method: 'post',
+    data
+  })
+}
+
+
