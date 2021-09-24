@@ -506,6 +506,20 @@ class CommentView(viewsets.ModelViewSet):
         comment_info.save()
         return JsonResponse({"status": 200, "message": '评论成功'})
 
+    @action(methods=["get"], detail=True, url_path="delete")
+    def del_comment(self, request, pk=None):
+        user = request.user
+        if not pk:
+            return JsonResponse(R.build(msg="参数不能为空"))
+        comment_info = Comment.objects.filter(comment_id=pk).first()
+        if not comment_info:
+            return JsonResponse(R.build(msg="评论不存在"))
+        if not user.is_superuser and comment_info.user != user:
+            return JsonResponse(R.build(msg="权限不足"))
+        comment_info.delete()
+        return JsonResponse(R.ok())
+
+
 
 @api_view(http_method_names=["POST"])
 def upload_user_img(request):

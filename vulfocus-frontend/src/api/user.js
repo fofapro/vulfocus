@@ -149,4 +149,13 @@ export function getComment(sceneId) {
   })
 }
 
+/**
+ * 删除评论
+ */
+export function CommentDelete(id) {
+  return request({
+    url: '/comment/'+id+'/delete/'
+  })
+}
+
 

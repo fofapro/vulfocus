@@ -88,6 +88,7 @@
             <el-main>
               <el-row>
                 <span class="span2">环境描述</span>
+<!--                <el-link type="primary" size="mini">编辑</el-link>-->
               </el-row>
               <el-row style="margin-top: 24px">
                 <span class="span3"> {{layout.desc}} </span>
@@ -134,6 +135,9 @@
                   </el-row>
                   <el-row style="margin-top: 5px">
                     <span>{{item.content}}</span>
+                    <el-button size="mini" v-if="isAdmin===true || userAuth===item.username" @click="delComment(item.comment_id)" style="float: right;margin-top: -5px">
+                      删除
+                    </el-button>
                   </el-row>
                 </el-main>
               </el-container>
@@ -207,7 +211,7 @@
 
 import { mapGetters } from 'vuex'
 import {sceneGet, sceneStart, sceneStop,sceneFlag, sceneRank} from '@/api/scene'
-import { commitComment, getComment } from '@/api/user'
+import { commitComment, getComment, CommentDelete  } from '@/api/user'
 import CountDown from "vue2-countdown";
 import verification from "./verification";
 
@@ -253,6 +257,7 @@ export default {
       dialogVisible:false,
       verificationCode:"",
       commentCode:"",
+      userAuth:"",
     }
   },
   computed: {
@@ -267,6 +272,7 @@ export default {
     if (this.roles.length >0 &&this.roles[0] === "admin"){
       this.isAdmin = true
     }
+    this.userAuth = this.name
     this.initModelInfo()
     this.handleRank(1)
     this.initComment()
@@ -520,7 +526,23 @@ export default {
       getComment(sceneId).then(response=>{
         this.contentList = response.data.results
       })
-    }
+    },
+    delComment(id){
+      CommentDelete(id).then(response=>{
+        if (response.data.status === 200){
+          this.$message({
+            message: "删除成功",
+            type: 'success'
+          })
+          this.initComment()
+        }else {
+          this.$message({
+            message: response.data.msg,
+            type: "error",
+          })
+        }
+      })
+    },
   }
 }
 </script>

@@ -1527,8 +1527,7 @@ def get_layout_det(req):
                 layout_dict['layout_name'] = layout_info.layout_name
                 layout_dict['layout_desc'] = layout_info.layout_desc
                 layout_dict['layout_raw_content'] = layout_info.raw_content
-                # layout_dict['image_name'] = 'http://vulfocus.fofa.so/images/'+layout_info.image_name
-                layout_dict['image_name'] = 'http://vulfocus.fofa.so/images/'+layout_info.image_name  # 测试
+                layout_dict['image_name'] = 'http://vulfocus.fofa.so/images/'+layout_info.image_name
                 data = layout_dict
             else:
                 data = []
@@ -1545,7 +1544,6 @@ def download_official_website_layout(request):
     data = request.data
     id = data['layout_id']    # 真实官网id
     user = request.user
-    # id = 'c4a22b44-e4d9-460d-b650-4cb94b08c055'  # 测试id
     url = "http://vulfocus.fofa.so/api/layoutinfodet?layout_id={}".format(id)
     res = requests.get(url, verify=False).content
     req = json.loads(res)
@@ -1553,7 +1551,6 @@ def download_official_website_layout(request):
     raw_data = yaml.load(raw_data, Loader=yaml.Loader)
     static_url = os.path.join(BASE_DIR, "static")
     img_url = req['data']['image_name']   # 官网图片
-    # img_url = 'http://vulfocus.fofa.so/images/51880ddc18b8461aa14ec79264f7fcf5.jpg'  # 测试拼接照片地址
     con = requests.get(img_url, verify=False).content  # 下载官网图片写入文件夹
     imagename = str(uuid.uuid4())   # 图片名称随机uuid
     if not os.path.exists(static_url):
@@ -1783,8 +1780,6 @@ def get_official_website_layout(request):
     '''
     获取官网编排场景信息（社区）
     '''
-
-    # url = "http://vulfocus.fofa.so/api/get/layoutinfo/"  # 官网地址
     url = "http://vulfocus.fofa.so/api/get/layoutinfo/"
     try:
         res = requests.get(url, verify=False).content
