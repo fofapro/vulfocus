@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     <el-dialog :visible.sync="centerDialogVisible" @close="handleDialogClose"  title="镜像信息">
-      <i  class="el-icon-reading"  v-if="this.countlist.length===0"  v-model="drawer" @click="openDrawer" style="position:absolute;z-index: 9999;color: rgb(140, 197, 255);left:100px;top: 21px;font-size: 20px"></i>
+      <i  class="el-icon-reading" v-if="this.countlist.length===0" v-model="drawer" @click="openDrawer" style="position:absolute;z-index: 9999;color: rgb(140, 197, 255);left:100px;top: 21px;font-size: 20px"></i>
       <div class="text item" v-loading="startCon" element-loading-text="环境启动中" >
         <div class="text item">
           访问地址: {{vul_host}}
@@ -27,69 +27,34 @@
           </el-form-item>
         </el-form>
         <div>
-          <el-drawer v-if="writeup_date!==''" :title="images_name+'  writeup'+'   from  '+writeup_date_name"  :visible="drawer" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" >
-            <div style="margin-right: 10px">
-              <el-button v-if="drawerFlag===false && writeup_date!==''" icon="el-icon-edit" type="primary" size="small" style="position:absolute;z-index: 9999;right:60px;top: 21px;" @click="editorButton">编辑</el-button>
-              <el-button v-if="drawerFlag===true" icon="el-icon-back" size="small" style="position:absolute;z-index: 9999;right:140px;top: 21px;" @click="closeEditorButton">返回</el-button>
-              <el-button v-if="drawerFlag===true" icon="el-icon-edit-outline" size="small" style="position:absolute;z-index: 9999;right:60px;top: 21px;" @click="createWriteup(writeup_date,images_id,)">提交</el-button>
-            </div>
-            <div>
-              <el-row>
-                <el-col :span="1"></el-col>
-                <el-col :span="22">
-                  <div class="container" v-if="drawerFlag===false && writeup_date !== ''">
-                    <ViewerEditor v-if="drawer" v-model="writeup_date" ref="myset" height="600px" ></ViewerEditor>
-                  </div>
-                  <div class="container" v-if="drawerFlag===false && writeup_date === ''">
-                    <ViewerEditor ref="myset" height="600px" v-if="drawer" ></ViewerEditor>
-                    <el-empty description="当前环境还没有writeup，赶紧发表解题思路吧">
-                      <el-button type="primary" size="small" icon="el-icon-edit" @click="editorButton" >投稿</el-button>
-                    </el-empty>
-                  </div>
-                  <div class="container" v-if="drawerFlag===true">
-                    <markdown-editor ref="markdownEditor" v-model="writeup_date" :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="400px" />
-                  </div>
-                </el-col>
-              </el-row>
-            </div>
-          </el-drawer>
-          <el-drawer v-else-if="writeup_date===''" :visible="drawer" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" >
-            <div style="margin-right: 10px">
-              <el-button v-if="drawerFlag===false && writeup_date!==''" icon="el-icon-edit" type="primary" size="small" style="position:absolute;z-index: 9999;right:60px;top: 21px;" @click="editorButton">编辑</el-button>
-              <el-button v-if="drawerFlag===true" icon="el-icon-back" size="small" style="position:absolute;z-index: 9999;right:140px;top: 21px;" @click="closeEditorButton">返回</el-button>
-              <el-button v-if="drawerFlag===true" icon="el-icon-edit-outline" size="small" style="position:absolute;z-index: 9999;right:60px;top: 21px;" @click="createWriteup(writeup_date,images_id,)">提交</el-button>
-            </div>
-            <div>
-              <el-row>
-                <el-col :span="1"></el-col>
-                <el-col :span="22">
-                  <div class="container" v-if="drawerFlag===false && writeup_date !== ''">
-                    <ViewerEditor v-if="drawer" v-model="writeup_date" ref="myset" height="600px" ></ViewerEditor>
-                  </div>
-                  <div class="container" v-if="drawerFlag===false && writeup_date === ''">
-                    <ViewerEditor ref="myset" height="600px" v-if="drawer" ></ViewerEditor>
-                    <el-empty description="当前环境还没有writeup，赶紧发表解题思路吧">
-                      <el-button type="primary" size="small" icon="el-icon-edit" @click="editorButton" >投稿</el-button>
-                    </el-empty>
-                  </div>
-                  <div class="container" v-if="drawerFlag===true">
-                    <markdown-editor ref="markdownEditor" v-model="writeup_date" :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="400px" />
-                  </div>
-                </el-col>
-              </el-row>
-            </div>
+          <el-drawer :title="images_name+'  writeup'"  :visible="drawer" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" >
+              <div>
+                <el-row>
+                  <el-col :span="1"></el-col>
+                  <el-col :span="22">
+                    <div class="container" v-if="drawerFlag===false && writeup_date !== ''">
+                      <ViewerEditor v-model="writeup_date" ref="myset" height="600px" ></ViewerEditor>
+                    </div>
+                    <div class="container" v-else-if="drawerFlag===false && writeup_date === ''">
+                      <ViewerEditor v-model="writeup_date" ref="myset" height="600px" ></ViewerEditor>
+                      <el-empty description="当前环境还没有writeup，赶紧去官网发表解题思路吧">
+                      </el-empty>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
           </el-drawer>
         </div>
       </div>
     </el-dialog>
-    <el-card class="box-card" v-if="this.countlist.length===0">
+    <el-card class="box-card"  v-if="this.countlist.length===0">
       <div style="margin-left: 10px">
-          <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
-          <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
-            查询
-          </el-button>
-          <el-button  id="first-bmh" type="primary" style="left: 10px;display:none" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
-        </div>
+        <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
+        <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
+          查询
+        </el-button>
+        <el-button  id="first-bmh" type="primary" style="left: 10px;display:none" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
+      </div>
       <div class="filter-line">
         <div class="filter-name" style="width: 150px">
           难易程度
@@ -103,17 +68,26 @@
           开发语言
         </div>
         <div class="filter-content">
-          <span :class="activeClass2 === index ? 'current':''" @click="selectLan(index,item)" v-for="(item,index) in languageList" v-if="index <= taglength2" >{{item.value}}</span>
-          <span v-if="languageList.length>10" style="color: #36a3f7" @click="showactive('taglength2')" >{{ showBtnTag2?"更多...":"收起" }}</span>
+            <span :class="activeClass2 === index ? 'current':''" @click="selectLan(index,item)" v-for="(item,index) in languageList" v-if="index <= taglength2" >{{item.value}}</span>
+            <span v-if="languageList.length>10" style="color: #36a3f7" @click="showactive('taglength2')" >{{ showBtnTag2?"更多...":"收起" }}</span>
         </div>
       </div>
       <div class="filter-line">
-        <div class="filter-name" >
+        <div class="filter-name">
           漏洞类型
         </div>
         <div class="filter-content">
           <span :class="activeClass3 === index ? 'current':''" @click="selectDeg(index,item)" v-for="(item,index) in degreeList" v-if="index <= taglength3" >{{item.value}}</span>
           <span v-if="degreeList.length>10" style="color: #36a3f7" @click="showactive('taglength3')" >{{ showBtnTag3?"更多...":"收起" }}</span>
+        </div>
+      </div>
+      <div class="filter-line">
+        <div class="filter-name">
+          开发框架
+        </div>
+        <div class="filter-content">
+          <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" v-if="index <= taglength4">{{item.value}}</span>
+          <span v-if="classifyList.length>10" style="color: #36a3f7" @click="showactive('taglength4')" >{{ showBtnTag4?"更多...":"收起" }}</span>
         </div>
       </div>
       <div class="filter-line">
@@ -125,22 +99,13 @@
           <span v-if="databaseList.length>10" style="color: #36a3f7" @click="showactive('taglength5')" >{{ showBtnTag5?"更多...":"收起" }}</span>
         </div>
       </div>
-      <div class="filter-line">
-        <div class="filter-name">
-          框架
-        </div>
-        <div class="filter-content">
-          <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" v-if="index <= taglength4">{{item.value}}</span>
-          <span v-if="classifyList.length>10" style="color: #36a3f7" @click="showactive('taglength4')" >{{ showBtnTag4?"更多...":"收起" }}</span>
-        </div>
-      </div>
     </el-card>
     <el-divider style="margin-top: 1px"></el-divider>
     <el-row :gutter="24" id="first-bmh3" v-loading="loading">
       <el-col :span="6" v-for="(item,index) in listdata" :key="index" style="padding-bottom: 18px;">
         <el-card :body-style="{ padding: '8px' }" shadow="hover"
                  @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
-          <div class="clearfix"  style="position: relative" >
+          <div class="clearfix" style="position: relative" >
             <div style=" position:absolute;right:0;top:0"><img v-if="item.status.is_check === true" style="width: 60%;height: 60%; float: right" src="../../assets/Customs.png" /></div>
             <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
               <svg-icon icon-class="bug"  style="font-size: 20px;"/>
@@ -188,17 +153,6 @@
         </el-card>
       </el-col>
     </el-row>
-<!--    <div>-->
-<!--      <el-pagination-->
-<!--        @size-change="handleQuery"-->
-<!--        @current-change="handleCurrentChange"-->
-<!--        :current-page="currentPage4"-->
-<!--        :page-sizes="[20, 40, 60, 80]"-->
-<!--        :page-size="page.size"-->
-<!--        layout="total, sizes, prev, pager, next, jumper"-->
-<!--        :total="page.total">-->
-<!--      </el-pagination>-->
-<!--    </div>-->
     <div style="margin-top: 20px">
       <el-pagination
         :page-size="page.size"
@@ -211,9 +165,8 @@
 </template>
 
 <script>
-import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop,ImgDashboard,getWriteup,get_container_status } from '@/api/docker'
+import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop,ImgDashboard,getWriteup } from '@/api/docker'
 import { publicMethod,gettimetemp } from '@/api/timemoudel'
-import { create_writeup } from '@/api/write'
 import { getTask } from '@/api/tasks'
 import CountDown from 'vue2-countdown'
 import { Notification } from 'element-ui'
@@ -230,7 +183,6 @@ import codeSyntaxHighlight from "@toast-ui/editor-plugin-code-syntax-highlight";
 import hljs from "highlight.js";
 import Editor from 'tui-editor'
 import { Loading } from "element-ui"
-
 export default {
   inject: ['reload'],
   name: 'Dashboard',
@@ -279,7 +231,6 @@ export default {
       images_id: "",
       container_id: "",
       images_name: "",
-      writeup_date_name:"",
       images_desc: "",
       writeup_date:"",
       is_flag:true,
@@ -428,7 +379,6 @@ export default {
         this.images_desc = images_desc
         this.is_flag = raw_data.is_flag
         // this.writeup_date = raw_data.writeup_date
-        // this.writeup_date_name = raw_data.writeup_date_name
         this.is_docker_compose = raw_data.is_docker_compose
         this.centerDialogVisible = true
         this.$set(raw_data.status, "start_flag", true)
@@ -447,8 +397,7 @@ export default {
           this.container_id = raw_data.status.container_id
           this.startCon = false
           this.cStatus = false
-          // this.writeup_date = raw_data.writeup_date
-          // this.writeup_date_name = raw_data.writeup_date_name
+          this.writeup_date = raw_data.writeup_date
           this.is_docker_compose = raw_data.is_docker_compose
           this.is_flag = raw_data.is_flag
           if (this.user.greenhand === true){
@@ -542,70 +491,36 @@ export default {
          */
         this.$set(raw.status, "stop_flag", true)
         this.$forceUpdate();
-        get_container_status(container_id).then(response=>{
-          if(response.data.code==200 && response.data.status == "stop"){
-            this.$message({
-              message:'停止成功',
-              type:'success'
-            })
-            raw.status.stop_flag = false;
-            raw.status.start_date = "";
-            raw.status.end_date = "";
-            this.listData(1)
-          }
-          else if(response.data.code==200 && response.data.status == "delete"){
-            this.$message({
-              message:'停止成功',
-              type:'success'
-            })
-            raw.status.stop_flag = false;
-            raw.status.start_date = "";
-            raw.status.end_date = "";
-            raw.status.delete_flag = false;
-            this.listData(1)
-          }
-          else if(response.data.code ==200 && response.data.status == "running"){
-            ContainerStop(container_id,expire).then(response=>{
         ContainerStop(container_id,expire).then(response=>{
-          if (response.data.status === 201){
-            this.$message({
-              message: "该镜像正在停止中",
-              type: "warning",
-            })
-            this.reload()
-          }else {
-            let taskId = response.data["data"]
-            let tmpStopContainerInterval = window.setInterval(() => {
-              setTimeout(() => {
-                getTask(taskId).then(response => {
-                  let responseStatus = response.data["status"]
-                  let responseData = response.data
-                  if (responseStatus === 1001) {
-                    // 一直轮训
-                  } else {
-                    clearInterval(tmpStopContainerInterval)
-                    if (responseStatus === 200) {
-                      this.$message({
-                        message: responseData["msg"],
-                        type: "success",
-                      })
-                      raw.status.status = "stop"
-                      raw.status.start_date = ""
-                      raw.status.end_date = ""
-                      raw.status.stop_flag = false
-                      this.listData(1)
-                    } else {
-                      this.$message({
-                        message: responseData["msg"],
-                        type: "error",
-                      })
-                    }
+          let taskId = response.data["data"]
+          let tmpStopContainerInterval = window.setInterval(() => {
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(tmpStopContainerInterval)
+                  if (responseStatus === 200){
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "success",
+                    })
+                    raw.status.status = "stop"
+                    raw.status.start_date = ""
+                    raw.status.stop_flag = false
+                    this.listData(1)
+                  }else{
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "error",
+                    })
                   }
-                })
-              }, 1)
-            }, 2000)
-        })
-          }
+                }
+              })
+            },1)
+          },2000)
         })
       },
       deleteContainer(container_id,raw){
@@ -721,15 +636,15 @@ export default {
           allowClose:false,
         });
         const steps = [
-        {
-          element:"#first-bmh3", // 这是点击触发的id
-          popover:{
-            title:"提示",
-            description:"启动入门镜像,启动后可以点击镜像信息旁的<i  class=\"el-icon-reading\"  style=\"color: rgb(140, 197, 255);font-size: 20px\"></i>了解漏洞镜像！成功提交flag后可以解除新手模式，查看所有漏洞环境",
-            position: "top",
+          {
+            element:"#first-bmh3", // 这是点击触发的id
+            popover:{
+              title:"提示",
+              description:"启动入门镜像,启动后可以点击镜像信息旁的<i  class=\"el-icon-reading\"  style=\"color: rgb(140, 197, 255);font-size: 20px\"></i>了解漏洞镜像！成功提交flag后可以解除新手模式，查看所有漏洞环境",
+              position: "top"
+            },
           },
-        },
-      ];
+        ];
         driver.defineSteps(steps);
         driver.start();
       },
@@ -742,41 +657,10 @@ export default {
           target: document.querySelector("#first-bmh3")
         });
       },
-      createWriteup(writeup_date,images_id){
-        let data = {}
-        this.writeup_date = writeup_date
-        this.images_id = images_id
-        data.writeup_date = this.writeup_date
-        data.images_id = this.images_id
-        this.$confirm('是否确认提交?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          create_writeup(data).then(response => {
-            let data = response.data
-            if(data.code === 200){
-              this.$message({
-                title: '成功',
-                message: '提交成功!',
-                type: 'success'
-              });
-              this.drawer=false
-            }else{
-              this.$message({
-                title: '提交失败',
-                message: data.message,
-                type: 'error'
-              });
-            }
-          })
-        }).catch(() => {
-        });
-      },
       getUser() {
-      this.user = {
-        greenhand:this.greenhand
-      }
+        this.user = {
+          greenhand:this.greenhand
+        }
       },
       showactive(tag){
         let tags = tag
@@ -866,7 +750,6 @@ export default {
       _this.get_time = yy+'-'+mm+'-'+dd+' '+hh+':'+mf+':'+ss;
   },
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -883,64 +766,55 @@ export default {
   font-size: 13px;
   color: #999;
 }
-
 .bottom {
   margin-top: 5px;
   margin-bottom: 13px;
   line-height: 12px;
 }
-
 .button {
   padding: 5px;
   float: right;
 }
-
 .image {
   width: 100%;
   display: block;
 }
-
 .clearfix:before,
 .clearfix:after {
   display: table;
   content: "";
 }
-
 .clearfix:after {
   clear: both
 }
-
 .text {
   font-size: 14px;
 }
-
 .item {
   margin-bottom: 18px;
 }
-
 .container-title{
   width: 100%;    /*根据自己项目进行定义宽度*/
   overflow: hidden;     /*设置超出的部分进行影藏*/
   text-overflow: ellipsis;     /*设置超出部分使用省略号*/
   white-space:nowrap ;    /*设置为单行*/
 }
-
 .date {
-
 }
 .date p{
   height: 20px;
   line-height: 20px;
   margin: 0;
-
   margin-block-end: 0em;
 }
-
 .el-row {
   display: flex;
   flex-wrap: wrap;
 }
-
+/*p {*/
+/*  height: 20px;*/
+/*  line-height: 20px;*/
+/*}*/
 </style>
 
 <style rel="stylesheet/scss" lang="scss">
@@ -951,7 +825,6 @@ export default {
   font-size: 14px;
   border-bottom: 1px dashed #dde6f0;
   background: #fff;
-
   .filter-name {
    width: 150px;
    height: 24px;
@@ -984,8 +857,6 @@ export default {
    border-radius: 200px;
   }
 }
-
-
 .el-drawer{
   overflow: scroll
 }

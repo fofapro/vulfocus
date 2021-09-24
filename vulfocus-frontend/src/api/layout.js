@@ -160,11 +160,3 @@ export function getOfficialWebsiteLayout() {
 }
 
 
-export function downloadWebsiteLayout(data) {
-  return request({
-    url: '/download/official/website/layout/',
-    method: 'post',
-    data,
-  })
-}
-

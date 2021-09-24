@@ -1559,7 +1559,7 @@ def update_enterprise_setting(request):
     except:
         return JsonResponse(R.build('修改失败'))
     rsp_data = get_setting_config()
-    return JsonResponse(R.ok(msg="修改成功", data=rsp_data)
+    return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
 
 
 @api_view(http_method_names=["GET"])
