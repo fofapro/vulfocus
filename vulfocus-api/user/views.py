@@ -86,7 +86,7 @@ class get_user_rank(APIView):
         score_list = ContainerVul.objects.filter(is_check=True, time_model_id='').values('image_id').distinct().values('user_id').annotate(
             score=Sum("image_id__rank")).values('user_id', 'score').order_by("-score")
         try:
-            pages = Paginator(score_list, 20)
+            pages = Paginator([item for item in score_list if item['score'] != 0], 20)
             page = pages.page(page_no)
         except Exception as e:
             return JsonResponse(R.err())
@@ -104,7 +104,7 @@ class get_user_rank(APIView):
 
         data = {
             'results': result,
-            'count': len(score_list)
+            'count': len(result)
         }
         return JsonResponse(R.ok(data=data))
 
