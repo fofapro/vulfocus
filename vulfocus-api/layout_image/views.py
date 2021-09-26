@@ -1294,8 +1294,9 @@ def upload_zip_file(request):
                         node_port = node_attrs["port"]
                         if node_open and node_port:
                             check_open = True
-                        if node["attrs"]['raw']["is_docker_compose"]:
-                            return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
+                        if "is_docker_compose" in node["attrs"]['raw']:
+                            if node["attrs"]['raw']["is_docker_compose"]:
+                                return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
                         image_name = node_attrs["name"]
                         image_desc = node_attrs["desc"]
                         image_vul_name = node_attrs["vul_name"]
@@ -1538,29 +1539,6 @@ def download_layout_image(request):
         return JsonResponse({"code": 400, "msg": "服务器内部错误"})
 
 
-@csrf_exempt
-def get_layout_det(req):
-    '''
-    返回编排场景详情（官网）
-    '''
-    if req.method == "GET":
-        id = req.GET.get("layout_id")
-        layout_info = Layout.objects.filter(is_release=True, layout_id=id).first()
-        try:
-            if layout_info:
-                layout_dict = dict()
-                layout_dict['layout_name'] = layout_info.layout_name
-                layout_dict['layout_desc'] = layout_info.layout_desc
-                layout_dict['layout_raw_content'] = layout_info.raw_content
-                layout_dict['image_name'] = 'http://vulfocus.fofa.so/images/'+layout_info.image_name
-                data = layout_dict
-            else:
-                data = []
-        except:
-            data = []
-        return JsonResponse(R.ok(data=data))
-
-
 @api_view(http_method_names=["POST"])
 def download_official_website_layout(request):
     '''
@@ -1604,8 +1582,9 @@ def download_official_website_layout(request):
             node_port = node_attrs["port"]
             if node_open and node_port:
                 check_open = True
-            if node["attrs"]['raw']["is_docker_compose"]:
-                return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
+            if "is_docker_compose" in node["attrs"]['raw']:
+                if node["attrs"]['raw']["is_docker_compose"]:
+                    return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
             image_name = node_attrs["name"]
             image_desc = node_attrs["desc"]
             image_vul_name = node_attrs["vul_name"]
