@@ -301,7 +301,7 @@ export default {
               title: '计时模式',
               message:<count-down currentTime={this.countlist[0].start_date} startTime={this.countlist[0].start_date} endTime={this.countlist[0].end_date} dayTxt={"天"} hourTxt={"小时"} minutesTxt={"分钟"} secondsTxt={"秒"}></count-down>,
               duration: 0,
-              position: 'bottom-right',
+              position : 'bottom-right',
               showClose: false,
               dangerouslyUseHTMLString:true,
             });

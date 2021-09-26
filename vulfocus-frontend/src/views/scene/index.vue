@@ -88,9 +88,12 @@
             <el-main>
               <el-row>
                 <span class="span2">环境描述</span>
+                <el-link v-if="isAdmin===true" @click="openDrawer" type="primary" size="mini">编辑</el-link>
               </el-row>
-              <el-row style="margin-top: 24px">
-                <span class="span3"> {{layout.desc}} </span>
+               <el-row>
+                <div class="container" style="margin-top: 24px">
+                  <ViewerEditor v-if="loadingData" v-model="scene_writeup_date" ref="viewerEditor1"  :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="500px" ></ViewerEditor>
+                </div>
               </el-row>
               <el-row style="margin-top: 24px">
                 <span class="span2">访问地址</span>
@@ -134,6 +137,9 @@
                   </el-row>
                   <el-row style="margin-top: 5px">
                     <span>{{item.content}}</span>
+                     <el-button size="mini" v-if="isAdmin===true" @click="delComment(item.comment_id)" style="float: right;margin-top: -5px">
+                      删除
+                    </el-button>
                   </el-row>
                 </el-main>
               </el-container>
@@ -200,6 +206,22 @@
       </el-form>
     </el-dialog>
     </div>
+    <div style="margin-top: 20px">
+      <el-drawer v-if="drawer" :visible="drawer" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" >
+        <div style="margin-right: 10px">
+          <el-button icon="el-icon-edit-outline" size="small" style="position:absolute;z-index: 9999;right:60px;top: 21px;" @click="createSceneWriteup">修改</el-button>
+        </div>
+        <div>
+          <el-row>
+            <el-col :span="22" :offset="1">
+              <div class="container">
+                <markdown-editor ref="markdownEditor1" v-model="scene_update_date" :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="400px" />
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+      </el-drawer>
+    </div>
   </div>
 </template>
 
@@ -207,10 +229,13 @@
 
 import { mapGetters } from 'vuex'
 import {sceneGet, sceneStart, sceneStop,sceneFlag, sceneRank} from '@/api/scene'
-import { commitComment, getComment } from '@/api/user'
+import { commitComment, getComment,CommentDelete } from '@/api/user'
+import { updateLayoutDesc } from '@/api/layout'
 import CountDown from "vue2-countdown";
 import verification from "./verification";
 
+import MarkdownEditor from '@/components/MarkdownEditor'
+import ViewerEditor from '@/components/ViewerEditor'
 
 export default {
   inject: ['reload'],
@@ -242,7 +267,8 @@ export default {
       incompletePeple:0,
       open: [],
       rankList:[],
-      writeup_date:'',
+      scene_writeup_date:'',
+      scene_update_date:'',
       drawer:false,
       drawerFlag:false,
       derection:"btt",
@@ -253,6 +279,7 @@ export default {
       dialogVisible:false,
       verificationCode:"",
       commentCode:"",
+      loadingData:false
     }
   },
   computed: {
@@ -272,7 +299,9 @@ export default {
     this.initComment()
   },
   components:{
-    'v-sidentify':verification
+    'v-sidentify':verification,
+    MarkdownEditor,
+    ViewerEditor,
   },
   methods:{
     identifyCode(data){
@@ -302,6 +331,8 @@ export default {
         if (status === 200){
           this.layout.name = rsp.data["layout"]["name"]
           this.layout.desc = rsp.data["layout"]["desc"]
+          this.scene_writeup_date = rsp.data["layout"]["desc"]
+          this.loadingData = true
           if (!rsp.data["layout"]["image_name"]){
             this.layout.image_name = require("../../assets/modelbg.jpg")
           }else {
@@ -520,7 +551,50 @@ export default {
       getComment(sceneId).then(response=>{
         this.contentList = response.data.results
       })
-    }
+    },
+    delComment(id){
+      CommentDelete(id).then(response=>{
+        if (response.data.status === 200){
+          this.$message({
+            message: "删除成功",
+            type: 'success'
+          })
+          this.initComment()
+        }else {
+          this.$message({
+            message: response.data.msg,
+            type: "error",
+          })
+        }
+      })
+    },
+    closeDrawer(){
+      this.drawer=false
+      this.initModelInfo()
+    },
+    openDrawer(){
+      this.scene_update_date = this.scene_writeup_date
+      this.drawer=true
+    },
+    createSceneWriteup(){
+      let sceneId = this.$route.query.layout_id
+      let data = {"data":this.scene_update_date}
+      updateLayoutDesc(sceneId,data).then(response=>{
+        if (response.data.status === 200){
+          this.$message({
+            message: "编辑成功",
+            type: 'success'
+          })
+          this.drawer = false
+          this.reload()
+        }else {
+          this.$message({
+            message: response.data.msg,
+            type: 'error'
+          })
+        }
+      })
+    },
   }
 }
 </script>
