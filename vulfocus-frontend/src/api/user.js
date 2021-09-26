@@ -139,11 +139,6 @@ export function commitComment(data) {
   })
 }
 
-export function CommentDelete(id) {
-  return request({
-    url: '/comment/'+id+'/delete/'
-  })
-}
 
 export function getComment(sceneId) {
   if(sceneId === undefined || sceneId === null){
