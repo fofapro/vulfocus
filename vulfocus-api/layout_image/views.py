@@ -29,7 +29,6 @@ from rest_framework.decorators import action
 from user.models import UserProfile
 import shutil
 import docker
-import requests
 from tasks.models import TaskInfo
 from tasks import tasks
 from tasks.serializers import TaskSetSerializer
@@ -40,6 +39,7 @@ if sys.version_info >= (3,6):
     import zipfile
 else:
     import zipfile36 as zipfile
+import requests
 # Create your views here.
 
 
@@ -1323,25 +1323,32 @@ def upload_zip_file(request):
                         if network_name in check_network_name_list:
                             return JsonResponse({"code": 400, "msg": "编排环境中重复设置了网卡"})
                         docker_networks = client.networks.list()
+                        network_list = []
                         for single_network in docker_networks:
-                            config_dict = {'Subnet': subnet, 'Gateway': gateway}
                             config_list = single_network.attrs['IPAM']['Config']
                             for single_config in config_list:
-                                if gateway.split(".")[0:2] == single_config["Gateway"].split(".")[0:2]:
-                                    gateway_list = list(map(int, gateway.split(".")))
-                                    if gateway_list[1] < 255:
-                                        gateway_list[1] += 1
-                                    else:
-                                        gateway_list[1] -= 1
-                                    gateway_temp = gateway
-                                    gateway_list = list(map(str, gateway_list))
-                                    gateway = ".".join(gateway_list)
-                                    subnet_temp = subnet
-                                    new_subnet_list = gateway.split(".")[0:2]+subnet.split(".")[2:]
-                                    subnet = ".".join(new_subnet_list)
+                                network_list.append(single_config["Gateway"].split(".")[0:2])
                             if single_network.name == network_name:
                                 network_name_temp = network_name
                                 network_name = str(uuid.uuid4())
+                        current_subnet, current_gateway = subnet, gateway
+                        # 统计网卡的遍历次数
+                        count = 0
+                        while gateway.split(".")[0:2] in network_list:
+                            gateway_list = list(map(int, gateway.split(".")))
+                            count += 1
+                            if count >= 100:
+                                return JsonResponse({"code": 400, "msg": "服务器内部网卡创建过多，请删除部分不需要网卡"})
+                            if gateway_list[1] < 255:
+                                gateway_list[1] += 1
+                            else:
+                                gateway_list[1] -= 1
+                            gateway_temp = current_gateway
+                            gateway_list = list(map(str, gateway_list))
+                            gateway = ".".join(gateway_list)
+                            subnet_temp = current_subnet
+                            new_subnet_list = gateway.split(".")[0:2] + subnet.split(".")[2:]
+                            subnet = ".".join(new_subnet_list)
                         try:
                             ipam_pool = docker.types.IPAMPool(subnet=subnet, gateway=gateway)
                             ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
@@ -1625,47 +1632,52 @@ def download_official_website_layout(request):
             if network_name in check_network_name_list:
                 return JsonResponse({"code": 400, "msg": "编排环境中重复设置了网卡"})
             docker_networks = client.networks.list()
+            network_list = []
             for single_network in docker_networks:
                 config_list = single_network.attrs['IPAM']['Config']
                 for single_config in config_list:
-                    if gateway.split(".")[0:2] == single_config["Gateway"].split(".")[0:2]:
-                        gateway_list = list(map(int, gateway.split(".")))
-                        if gateway_list[1] < 255:
-                            gateway_list[1] += 1
-                        else:
-                            gateway_list[1] -= 1
-                        gateway_temp = gateway
-                        gateway_list = list(map(str, gateway_list))
-                        gateway = ".".join(gateway_list)
-                        subnet_temp = subnet
-                        new_subnet_list = gateway.split(".")[0:2] + subnet.split(".")[2:]
-                        subnet = ".".join(new_subnet_list)
+                    network_list.append(single_config["Gateway"].split(".")[0:2])
                 if single_network.name == network_name:
                     network_name_temp = network_name
                     network_name = str(uuid.uuid4())
-            if subnet == "192.168.10.10/24":
-                return JsonResponse({"code": 400, "msg": "编排环境中的网段已经被使用"})
-            if gateway == "192.168.10.10":
-                return JsonResponse({"code": 400, "msg": "编排环境中的网关已经被使用"})
-            # 网卡名称，网段，网关不同，直接创建
+            current_subnet, current_gateway = subnet, gateway
+            # 统计网卡的遍历次数
+            count = 0
+            while gateway.split(".")[0:2] in network_list:
+                gateway_list = list(map(int, gateway.split(".")))
+                count += 1
+                if count >= 100:
+                    return JsonResponse({"code": 400, "msg": "服务器内部网卡创建过多，请删除部分不需要网卡"})
+                if gateway_list[1] < 255:
+                    gateway_list[1] += 1
+                else:
+                    gateway_list[1] -= 1
+                gateway_temp = current_gateway
+                gateway_list = list(map(str, gateway_list))
+                gateway = ".".join(gateway_list)
+                subnet_temp = current_subnet
+                new_subnet_list = gateway.split(".")[0:2] + subnet.split(".")[2:]
+                subnet = ".".join(new_subnet_list)
             try:
                 ipam_pool = docker.types.IPAMPool(subnet=subnet, gateway=gateway)
                 ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
                 try:
                     # 创建docker网卡之前需要判断是主机上否有同名网卡存在，有则移除
                     net_work = client.networks.create(network_name, driver=net_work_driver,
-                                                          ipam=ipam_config, scope=net_work_scope)
+                                                      ipam=ipam_config, scope=net_work_scope)
                 except Exception as e:
                     return JsonResponse({"code": 400, "msg": "编排环境中子网或者网关设置错误"})
                 net_work_client_id = str(net_work.id)
                 if not gateway:
                     gateway = net_work.attrs['IPAM']['Config']['Gateway']
                 created_network = NetWorkInfo(net_work_id=str(uuid.uuid4()),
-                                                net_work_client_id=net_work_client_id, create_user=user.id,
-                                                net_work_name=network_name, net_work_driver=net_work_driver,
-                                                net_work_subnet=subnet,
-                                                net_work_gateway=gateway, net_work_scope=net_work_scope,
-                                                enable_ipv6=enable_ipv6)
+                                              net_work_client_id=net_work_client_id,
+                                              create_user=user.id,
+                                              net_work_name=network_name,
+                                              net_work_driver=net_work_driver,
+                                              net_work_subnet=subnet,
+                                              net_work_gateway=gateway, net_work_scope=net_work_scope,
+                                              enable_ipv6=enable_ipv6)
                 created_network.save()
             except Exception as e:
                 return JsonResponse({"code": 400, "msg": "服务器内部错误"})
@@ -1812,4 +1824,3 @@ def get_official_website_layout(request):
     except:
         data = []
     return JsonResponse(R.ok(data))
-

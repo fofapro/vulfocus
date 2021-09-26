@@ -159,12 +159,11 @@ export function getOfficialWebsiteLayout() {
   })
 }
 
-
-export function downloadWebsiteLayout(data) {
+export function updateLayoutDesc(layoutId,data){
   return request({
-    url: '/download/official/website/layout/',
+    url:'/layout/'+layoutId+'/update_desc/',
     method: 'post',
-    data,
+    data
   })
 }
 
