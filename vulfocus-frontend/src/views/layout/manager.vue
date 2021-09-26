@@ -1,239 +1,251 @@
 <template>
-  <div class="app-container">
+  <div class="app-container" >
     <div class="filter-container">
       <el-input v-model="search" class="sceneSearch" size="medium" placeholder="请输入关键字进行搜索" @keyup.enter.native="handleQuery">
         <i slot="prefix" class="el-input__icon el-icon-search"></i>
       </el-input>
     </div>
-    <div style="margin-top: 10px">
+    <div style="margin-top: 10px;">
       <span>场景商店</span>
       <span v-if="senceStoreList.length>5" @click="showactive" style="color: #999999;float: right" >{{ showBtnSence?"查看更多":"收起" }}</span>
     </div>
-    <div class="filter-container">
-      <el-row style="margin-top: 10px">
-        <el-col :class="activeSceneClass === index1 ? 'current':''"  :xs="12" :sm="12" :lg="{span: '4-8'}" v-for="(item,index1) in senceStoreList" v-if="index1 < sceneLength" :key="index1" style="width: 20%">
-          <el-card :body-style="{ padding: '0px'}" shadow="hover">
-            <el-tooltip class="item" effect="dark" :content="item.layout_name" placement="top">
-<!--              <img fit="contain" :src="item.image_name" height="180px" width="100%">-->
-              <img fit="contain" @click="download_website_layout(item.layout_id)" :src="item.image_name" height="180px" width="100%">
-            </el-tooltip>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
-    <el-dialog :visible.sync="imageDialogVisible">
-      <img width="100%" :src="dialogImageUrl" alt="">
-    </el-dialog>
-    <el-dialog :visible.sync="ymlDialogVisible">
-      <el-input type="textarea" style="color:black;" autosize readonly v-model="dialogYml" ></el-input>
-    </el-dialog>
-    <el-tabs v-model="activeName" style="margin-top: 10px" @tab-click="currentTabs">
-      <el-tab-pane label="全部" name="all">
-        <div class="filter-container">
-          <el-row :gutter="23">
-            <el-col :span="4"  style="padding-bottom: 18px;">
-              <el-card shadow="hover" :body-style="{ padding: '0px'}" style="height: 328px">
-                <el-row style="margin-top: 40%">
-                  <el-col :span="8" :offset="8">
-                    <i @click="addScene" class="el-icon-plus" style="font-size: 400%;position: relative;transform: translateX(20%)"></i>
-                  </el-col>
-                </el-row>
-                <el-row>
-                  <el-col :span="8" :offset="8">
-                    <span class="word2" style="font-size:110%;position: relative;transform: translateX(20%)">添加场景</span>
-                  </el-col>
-                </el-row>
-              </el-card>
-            </el-col>
-            <el-col :span="4" v-for="(item,index) in sceneTableData" :key="index" style="padding-bottom: 18px;">
-              <el-card :body-style="{ padding: '0px'}" shadow="hover" style="height: 328px">
-                <div style="position: relative">
-                  <div class="main" style="position: absolute;" v-if="item.is_release === false">
-                    <span class="word">未发布</span>
-                  </div>
-                  <img v-if="item.image_name !==imgpath" :src="item.image_name"  alt="" width="100%" height="250px"/>
-                  <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="100%" height="250px" />
-                  <div v-if="item.is_release === false & item.type === 'layoutScene'">
-                    <el-row>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleShowYml(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-zoom-in">查看</el-link>
-                      </el-col>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleEdit(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>
-                      </el-col>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
-                      </el-col>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="margin-top: -50px;" icon="el-icon-download">下载</el-link>
-                      </el-col>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link v-if="item.status.task_id === ''" type="info" @click="handleRelease(item.id,item.is_uesful)" :underline="false" style="margin-top: -50px;" icon="el-icon-position">发布</el-link>
-                        <el-link v-if="item.status.task_id !== ''" type="info" @click="openProgress(item,1)" :underline="false" style="margin-top: -50px;" icon="el-icon-loading">下载中</el-link>
-                      </el-col>
-                    </el-row>
-                  </div>
-                  <div v-else-if="item.is_release === true & item.type === 'layoutScene'">
-                    <el-row>
-                      <el-col :span="6" style="position: relative">
-                        <el-link type="info" @click="handleShowYml(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-zoom-in">查看</el-link>
-                      </el-col>
-                      <el-col :span="6" style="position: relative">
-                        <el-link type="info" @click="handleEdit(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>
-                      </el-col>
-                      <el-col :span="6" style="position: relative">
-                        <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
-                      </el-col>
-                      <el-col :span="6" style="position: relative">
-                        <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="margin-top: -50px;" icon="el-icon-download">下载</el-link>
-                      </el-col>
-                    </el-row>
-                  </div>
-                  <div v-else-if="item.type !== 'layoutScene'">
-                    <el-row>
-<!--                      <el-col :span="6" :offset="6">-->
-<!--                        <el-link type="info" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>-->
-<!--                      </el-col>-->
-                      <el-col :span="12">
-                        <el-link type="info" @click="delSceneTemp(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
-                      </el-col>
-                    </el-row>
-                  </div>
-                  <div class="container-title" style="margin-top: -13px;">
-                    <span style="color:#303133;margin-left: 5px;font-size: 14px;">{{item.name}}</span>
-                  </div>
-                  <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
-                    <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
-                  </div>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-        </div>
-      </el-tab-pane>
-      <el-tab-pane label="环境编排" name="layout">
-        <div class="filter-container">
-          <el-row :gutter="23">
-            <el-col :span="4" v-for="(item,index) in sceneTableData" :key="index" style="padding-bottom: 18px;">
-              <el-card :body-style="{ padding: '0px'}" shadow="hover" style="height: 328px">
-                <div style="position: relative">
-                  <div class="main" style=" position: absolute" v-if="item.is_release === false">
-                    <span class="word">未发布</span>
-                  </div>
-                  <img v-if="item.image_name !==imgpath" :src="item.image_name"  alt="" width="100%" height="250px"/>
-                  <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="100%" height="250px" />
-                  <div v-if="item.is_release === false & item.type === 'layoutScene'">
-                    <el-row>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleShowYml(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-zoom-in">查看</el-link>
-                      </el-col>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleEdit(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>
-                      </el-col>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
-                      </el-col>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="margin-top: -50px;" icon="el-icon-download">下载</el-link>
-                      </el-col>
-                      <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
-                        <el-link v-if="item.status.task_id === ''" type="info" @click="handleRelease(item.id,item.is_uesful)" :underline="false" style="margin-top: -50px;" icon="el-icon-position">发布</el-link>
-                        <el-link v-if="item.status.task_id !== ''" type="info" @click="openProgress(item,1)" :underline="false" style="margin-top: -50px;" icon="el-icon-loading">下载中</el-link>
-                      </el-col>
-                    </el-row>
-                  </div>
-                  <div v-else-if="item.is_release === true & item.type === 'layoutScene'">
-                    <el-row>
-                      <el-col :span="6" style="position: relative">
-                        <el-link type="info" @click="handleShowYml(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-zoom-in">查看</el-link>
-                      </el-col>
-                      <el-col :span="6" style="position: relative">
-                        <el-link type="info" @click="handleEdit(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>
-                      </el-col>
-                      <el-col :span="6" style="position: relative">
-                        <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
-                      </el-col>
-                      <el-col :span="6" style="position: relative">
-                        <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="margin-top: -50px;" icon="el-icon-download">下载</el-link>
-                      </el-col>
-                    </el-row>
-                  </div>
-                  <div class="container-title" style="margin-top: -13px;">
-                    <span style="color:#303133;margin-left: 5px;font-size: 14px;">{{item.name}}</span>
-                  </div>
-                  <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
-                    <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
-                  </div>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-        </div>
-      </el-tab-pane>
-      <el-tab-pane label="计时模版" name="time">
-        <div class="filter-container">
-          <el-row :gutter="23">
-            <el-col :span="4" v-for="(item,index) in sceneTableData" :key="index" style="padding-bottom: 18px;">
-              <el-card :body-style="{ padding: '0px'}" shadow="hover" style="height: 328px">
-                <div style="position: relative">
-                  <img v-if="item.image_name !==imgpath" :src="item.image_name"  alt="" width="100%" height="250px"/>
-                  <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="100%" height="250px" />
-                  <div v-if="item.type !== 'layoutScene'">
-                    <el-row>
-<!--                      <el-col :span="6" :offset="6">-->
-<!--                        <el-link type="info" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>-->
-<!--                      </el-col>-->
-                      <el-col :span="12">
-                        <el-link type="info" @click="delSceneTemp(item.id)" :underline="false" style="margin-top: -50px;" icon="el-icon-delete">删除</el-link>
-                      </el-col>
-                    </el-row>
-                  </div>
-                  <div class="container-title" style="margin-top: -13px;">
-                    <span style="color:#303133;margin-left: 5px;font-size: 14px;">{{item.name}}</span>
-                  </div>
-                  <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
-                    <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
-                  </div>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-        </div>
-      </el-tab-pane>
-    </el-tabs>
-    <el-dialog title="选择创建类型" :visible.sync="selectSceneDialog" width="20%" center>
-      <el-row>
-        <el-col :span="8" :offset="8" style="position: relative;transform: translateX(-5%)">
-          <el-button @click="handleOpenCreate" type="primary" plain>创建编排模式</el-button>
-        </el-col>
-      </el-row>
-      <el-row style="margin-top: 10%">
-        <el-col :span="8" :offset="8" style="position: relative;transform: translateX(-5%)">
-          <el-button @click="handleCreateTemp" type="primary" plain>创建盲盒模式</el-button>
-        </el-col>
-      </el-row>
-    </el-dialog>
-    <el-dialog :visible.sync="createSceneTempDialog" title="创建计时盲盒" width="80%" height="100%">
-      <v-createtemp></v-createtemp>
-    </el-dialog>
-    <el-dialog :visible.sync="progressShow" :title=progress.title width="60%" :before-close="closeProgress">
-      <div v-loading="progressLoading">
-        <el-row v-for="(item,index) in progress.layer" style="margin-bottom: 10px; height: 24px;" >
-          <el-tag style="float: left; width: 15%;height: 24px; line-height: 24px;" align="center">{{item.id}}</el-tag>
-          <div style="float: left;width: 80%;margin-left: 10px;">
-            <el-progress :percentage="item.progress" :text-inside="true" :stroke-width="24" status="success" v-if="item.progress === 100.0"></el-progress>
-            <el-progress :percentage="item.progress" :text-inside="true" :stroke-width="24" v-else></el-progress>
-          </div>
+    <div style="position: relative;overflow: hidden;">
+      <el-drawer style="position:absolute;margin-top: 10px;color: #303133" title="场景商店"  :visible.sync="drawer" :direction="direction" size="100%">
+        <el-row style="margin-top: 10px" :gutter="20">
+          <el-col style="margin-top: 5px" v-for="(item,index1) in senceStoreList" :key="index1" :span="6">
+            <el-card :body-style="{ padding: '2px'}" shadow="hover">
+              <el-tooltip class="item" effect="dark" :content="item.layout_name" placement="top">
+                <img fit="contain" @click="download_website_layout(item.layout_id)" :src="item.image_name" height="260px" width="100%">
+              </el-tooltip>
+            </el-card>
+          </el-col>
+        </el-row>
+      </el-drawer>
+      <div class="filter-container">
+        <el-row style="margin-top: 10px">
+          <el-col :class="activeSceneClass === index1 ? 'current':''"  :xs="12" :sm="12" :lg="{span: '4-8'}" v-for="(item,index1) in senceStoreList" v-if="index1 < sceneLength" :key="index1" style="width: 20%">
+            <el-card :body-style="{ padding: '0px'}" shadow="hover">
+              <el-tooltip class="item" effect="dark" :content="item.layout_name" placement="top">
+                <img fit="contain" @click="download_website_layout(item.layout_id)" :src="item.image_name" height="180px" width="100%">
+              </el-tooltip>
+            </el-card>
+          </el-col>
         </el-row>
       </div>
-    </el-dialog>
-    <div style="margin-top: 20px">
-      <el-pagination
-        :page-size="page.size"
-        @current-change="layoutListData"
-        layout="total, prev, pager, next, jumper"
-        :total="page.total">
-      </el-pagination>
+      <el-dialog :visible.sync="imageDialogVisible">
+        <img width="100%" :src="dialogImageUrl" alt="">
+      </el-dialog>
+      <el-dialog :visible.sync="ymlDialogVisible">
+        <el-input type="textarea" style="color:black;" autosize readonly v-model="dialogYml" ></el-input>
+      </el-dialog>
+      <el-tabs v-model="activeName" style="margin-top: 10px" @tab-click="currentTabs">
+        <el-tab-pane label="全部" name="all">
+          <div class="filter-container">
+            <el-row :gutter="23">
+              <el-col :span="4"  style="padding-bottom: 18px;">
+                <el-card shadow="hover" :body-style="{ padding: '0px'}" style="height: 328px">
+                  <el-row style="margin-top: 40%">
+                    <el-col :span="8" :offset="8">
+                      <i @click="addScene" class="el-icon-plus" style="font-size: 400%;position: relative;transform: translateX(20%)"></i>
+                    </el-col>
+                  </el-row>
+                  <el-row>
+                    <el-col :span="8" :offset="8">
+                      <span class="word2" style="font-size:110%;position: relative;transform: translateX(20%)">添加场景</span>
+                    </el-col>
+                  </el-row>
+                </el-card>
+              </el-col>
+              <el-col :span="4" v-for="(item,index) in sceneTableData" :key="index" style="padding-bottom: 18px;">
+                <el-card :body-style="{ padding: '0px'}" shadow="hover" style="height: 328px">
+                  <div style="position: relative">
+                    <div class="main" style="position: absolute;" v-if="item.is_release === false">
+                      <span class="word">未发布</span>
+                    </div>
+                    <img v-if="item.image_name !==imgpath" :src="item.image_name"  alt="" width="100%" height="250px"/>
+                    <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="100%" height="250px" />
+                    <div v-if="item.is_release === false & item.type === 'layoutScene'" style="margin-top: -23px">
+                      <el-row style="background-color:rgba(0,0,0,0.3)">
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link type="info" @click="handleShowYml(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-zoom-in">查看</el-link>
+                        </el-col>
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link type="info" @click="handleEdit(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-edit">编辑</el-link>
+                        </el-col>
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-delete">删除</el-link>
+                        </el-col>
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="color: #ffffff" icon="el-icon-download">下载</el-link>
+                        </el-col>
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link v-if="item.status.task_id === ''" type="info" @click="handleRelease(item.id,item.is_uesful)" :underline="false" style="color: #ffffff" icon="el-icon-position">发布</el-link>
+                          <el-link v-if="item.status.task_id !== ''" type="info" @click="openProgress(item,1)" :underline="false" style="color: #ffffff" icon="el-icon-loading">下载中</el-link>
+                        </el-col>
+                      </el-row>
+                    </div>
+                    <div v-else-if="item.is_release === true & item.type === 'layoutScene'" style="margin-top: -23px">
+                      <el-row style="background-color:rgba(0,0,0,0.3)">
+                        <el-col :span="6" style="position: relative">
+                          <el-link type="info" @click="handleShowYml(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-zoom-in">查看</el-link>
+                        </el-col>
+                        <el-col :span="6" style="position: relative">
+                          <el-link type="info" @click="handleEdit(item.id)" :underline="false" style="color: #ffffff"  icon="el-icon-edit">编辑</el-link>
+                        </el-col>
+                        <el-col :span="6" style="position: relative">
+                          <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="color: #ffffff"  icon="el-icon-delete">删除</el-link>
+                        </el-col>
+                        <el-col :span="6" style="position: relative">
+                          <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="color: #ffffff" icon="el-icon-download">下载</el-link>
+                        </el-col>
+                      </el-row>
+                    </div>
+                    <div v-else-if="item.type !== 'layoutScene'" style="margin-top: -23px">
+                      <el-row style="background-color:rgba(0,0,0,0.3)">
+  <!--                      <el-col :span="6" :offset="6">-->
+  <!--                        <el-link type="info" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>-->
+  <!--                      </el-col>-->
+                        <el-col :span="12">
+                          <el-link type="info" @click="delSceneTemp(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-delete">删除</el-link>
+                        </el-col>
+                      </el-row>
+                    </div>
+                    <div class="container-title" style="margin-top: 0;">
+                      <span style="color:#303133;margin-left: 5px;font-size: 14px;">{{item.name}}</span>
+                    </div>
+                    <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
+                      <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="环境编排" name="layout">
+          <div class="filter-container">
+            <el-row :gutter="23">
+              <el-col :span="4" v-for="(item,index) in sceneTableData" :key="index" style="padding-bottom: 18px;">
+                <el-card :body-style="{ padding: '0px'}" shadow="hover" style="height: 328px">
+                  <div style="position: relative">
+                    <div class="main" style=" position: absolute" v-if="item.is_release === false">
+                      <span class="word">未发布</span>
+                    </div>
+                    <img v-if="item.image_name !==imgpath" :src="item.image_name"  alt="" width="100%" height="250px"/>
+                    <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="100%" height="250px" />
+                    <div v-if="item.is_release === false & item.type === 'layoutScene'" style="margin-top: -23px">
+                      <el-row style="background-color:rgba(0,0,0,0.3)">
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link type="info" @click="handleShowYml(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-zoom-in">查看</el-link>
+                        </el-col>
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link type="info" @click="handleEdit(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-edit">编辑</el-link>
+                        </el-col>
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-delete">删除</el-link>
+                        </el-col>
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="color: #ffffff" icon="el-icon-download">下载</el-link>
+                        </el-col>
+                        <el-col :xs="12" :sm="12" :lg="{span: '4-8'}" style="width: 20%">
+                          <el-link v-if="item.status.task_id === ''" type="info" @click="handleRelease(item.id,item.is_uesful)" :underline="false" style="color: #ffffff" icon="el-icon-position">发布</el-link>
+                          <el-link v-if="item.status.task_id !== ''" type="info" @click="openProgress(item,1)" :underline="false" style="color: #ffffff" icon="el-icon-loading">下载中</el-link>
+                        </el-col>
+                      </el-row>
+                    </div>
+                    <div v-else-if="item.is_release === true & item.type === 'layoutScene'" style="margin-top: -23px;">
+                      <el-row style="background-color:rgba(0,0,0,0.3)">
+                        <el-col :span="6" style="position: relative">
+                          <el-link type="info" @click="handleShowYml(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-zoom-in">查看</el-link>
+                        </el-col>
+                        <el-col :span="6" style="position: relative">
+                          <el-link type="info" @click="handleEdit(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-edit">编辑</el-link>
+                        </el-col>
+                        <el-col :span="6" style="position: relative">
+                          <el-link type="info" @click="handleDelete(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-delete">删除</el-link>
+                        </el-col>
+                        <el-col :span="6" style="position: relative">
+                          <el-link type="info" @click="handleDownload(item.id,item.name)" :underline="false" style="color: #ffffff" icon="el-icon-download">下载</el-link>
+                        </el-col>
+                      </el-row>
+                    </div>
+                    <div class="container-title" style="margin-top: 0;">
+                      <span style="color:#303133;margin-left: 5px;font-size: 14px;">{{item.name}}</span>
+                    </div>
+                    <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
+                      <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="计时场景" name="time">
+          <div class="filter-container">
+            <el-row :gutter="23">
+              <el-col :span="4" v-for="(item,index) in sceneTableData" :key="index" style="padding-bottom: 18px;">
+                <el-card :body-style="{ padding: '0px'}" shadow="hover" style="height: 328px">
+                  <div style="position: relative">
+                    <img v-if="item.image_name !==imgpath" :src="item.image_name"  alt="" width="100%" height="250px"/>
+                    <img v-else-if="item.image_name===imgpath" :src="modelimg"  alt="" width="100%" height="250px" />
+                    <div v-if="item.type !== 'layoutScene'" style="margin-top: -23px;">
+                      <el-row style="background-color:rgba(0,0,0,0.3)">
+  <!--                      <el-col :span="6" :offset="6">-->
+  <!--                        <el-link type="info" :underline="false" style="margin-top: -50px;" icon="el-icon-edit">编辑</el-link>-->
+  <!--                      </el-col>-->
+                        <el-col :span="12">
+                          <el-link type="info" @click="delSceneTemp(item.id)" :underline="false" style="color: #ffffff" icon="el-icon-delete">删除</el-link>
+                        </el-col>
+                      </el-row>
+                    </div>
+                    <div class="container-title" style="margin-top: 0;">
+                      <span style="color:#303133;margin-left: 5px;font-size: 14px;">{{item.name}}</span>
+                    </div>
+                    <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
+                      <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
+                    </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+      <el-dialog title="选择创建类型" :visible.sync="selectSceneDialog" width="20%" center>
+        <el-row>
+          <el-col :span="8" :offset="8" style="position: relative;transform: translateX(-5%)">
+            <el-button @click="handleOpenCreate" type="primary" plain>创建编排模式</el-button>
+          </el-col>
+        </el-row>
+        <el-row style="margin-top: 10%">
+          <el-col :span="8" :offset="8" style="position: relative;transform: translateX(-5%)">
+            <el-button @click="handleCreateTemp" type="primary" plain>创建盲盒模式</el-button>
+          </el-col>
+        </el-row>
+      </el-dialog>
+      <el-dialog :visible.sync="createSceneTempDialog" title="创建计时盲盒" width="80%" height="100%">
+        <v-createtemp></v-createtemp>
+      </el-dialog>
+      <el-dialog :visible.sync="progressShow" :title=progress.title width="60%" :before-close="closeProgress">
+        <div v-loading="progressLoading">
+          <el-row v-for="(item,index) in progress.layer" style="margin-bottom: 10px; height: 24px;" >
+            <el-tag style="float: left; width: 15%;height: 24px; line-height: 24px;" align="center">{{item.id}}</el-tag>
+            <div style="float: left;width: 80%;margin-left: 10px;">
+              <el-progress :percentage="item.progress" :text-inside="true" :stroke-width="24" status="success" v-if="item.progress === 100.0"></el-progress>
+              <el-progress :percentage="item.progress" :text-inside="true" :stroke-width="24" v-else></el-progress>
+            </div>
+          </el-row>
+        </div>
+      </el-dialog>
+      <div style="margin-top: 20px">
+        <el-pagination
+          :page-size="page.size"
+          @current-change="layoutListData"
+          layout="total, prev, pager, next, jumper"
+          :total="page.total">
+        </el-pagination>
+      </div>
     </div>
   </div>
 </template>
@@ -285,6 +297,9 @@ export default {
       progressLoading: false,
       activeSceneClass:0,
       sceneLength:5,
+      drawer:false,
+      direction:'ttb'
+
     }
   },
   components:{
@@ -349,9 +364,9 @@ export default {
         })
       }).catch()
     },
-      handleShowImage(row){
-        this.dialogImageUrl = row.image_name
-        this.imageDialogVisible = true
+    handleShowImage(row){
+      this.dialogImageUrl = row.image_name
+      this.imageDialogVisible = true
     },
     handleShowYml(id){
       if (id){
@@ -545,6 +560,7 @@ export default {
             message:data.msg,
             type:'success'
           })
+          this.reload()
         }
         else{
           this.$message({
@@ -643,12 +659,8 @@ export default {
       }
     },
     showactive(){
-      if (!this.showBtnSence){
-        this.sceneLength = 5
-      }else {
-        this.sceneLength = this.senceStoreList.length
-      }
-      this.showBtnSence = !this.showBtnSence;
+      this.drawer = true
+      // this.showBtnSence = !this.showBtnSence;
     }
   }
 }
@@ -720,5 +732,8 @@ export default {
   height: 32px;
   background: #F2F4F7;
   border-radius: 4px;
+}
+.info{
+  color: #FFFFFF;
 }
 </style>

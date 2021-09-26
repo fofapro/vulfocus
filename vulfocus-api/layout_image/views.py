@@ -1252,21 +1252,26 @@ def upload_zip_file(request):
                 layout_image = "{image_name}.{suffic}".format(image_name=image_name, suffic=file_name.split(".")[-1])
     except Exception as e:
         return JsonResponse({"code": 400, "msg": "文件上传失败"})
-    for file_name in zf.namelist():
-        if "layout_info.json" in file_name:
-            data = zf.read(file_name).decode("utf-8")
-            layout_info = json.loads(data)
-            layout_name = layout_info["layout_name"]
-            layout_desc = layout_info["layout_desc"]
-        elif file_name.split(".")[-1] in ALLOWED_IMG_SUFFIX:
-            image_name = str(uuid.uuid4())
-            image_data = zf.read(file_name)
-            static_url = os.path.join(BASE_DIR, "static")
-            if not os.path.exists(static_url):
-                os.makedirs(static_url)
-            with open(os.path.join(static_url, "{image_name}.{suffix}".format(image_name=image_name, suffix=file_name.split(".")[-1])), "wb") as f:
-                f.write(image_data)
-            layout_image = "{image_name}.{suffic}".format(image_name=image_name, suffic=file_name.split(".")[-1])
+    try:
+        for file_name in zf.namelist():
+            if "layout_info.json" in file_name:
+                data = zf.read(file_name).decode("utf-8")
+                layout_info = json.loads(data)
+                layout_name = layout_info["layout_name"]
+                layout_desc = layout_info["layout_desc"]
+            elif file_name.split(".")[-1] in ALLOWED_IMG_SUFFIX:
+                image_name = str(uuid.uuid4())
+                image_data = zf.read(file_name)
+                static_url = os.path.join(BASE_DIR, "static")
+                if not os.path.exists(static_url):
+                    os.makedirs(static_url)
+                with open(os.path.join(static_url, "{image_name}.{suffix}".format(image_name=image_name,
+                                                                                  suffix=file_name.split(".")[-1])),
+                          "wb") as f:
+                    f.write(image_data)
+                layout_image = "{image_name}.{suffic}".format(image_name=image_name, suffic=file_name.split(".")[-1])
+    except Exception as e:
+        return JsonResponse({"code": 400, "msg": "文件上传失败"})
     # 读取压缩包中原始编排环境信息
     for file_name in zf.namelist():
         if "raw-content.json" in file_name:
@@ -1294,7 +1299,7 @@ def upload_zip_file(request):
                         node_port = node_attrs["port"]
                         if node_open and node_port:
                             check_open = True
-                        if node["attrs"]['raw']["is_docker_compose"]:
+                        if "is_docker_compose" in node["attrs"]['raw'] and node["attrs"]['raw']["is_docker_compose"]:
                             return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
                         image_name = node_attrs["name"]
                         image_desc = node_attrs["desc"]
@@ -1607,7 +1612,7 @@ def download_official_website_layout(request):
             node_port = node_attrs["port"]
             if node_open and node_port:
                 check_open = True
-            if node["attrs"]['raw']["is_docker_compose"]:
+            if "is_docker_compose" in node["attrs"]['raw'] and node["attrs"]['raw']["is_docker_compose"]:
                 return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
             image_name = node_attrs["name"]
             image_desc = node_attrs["desc"]

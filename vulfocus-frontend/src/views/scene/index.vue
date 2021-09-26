@@ -137,7 +137,7 @@
                   </el-row>
                   <el-row style="margin-top: 5px">
                     <span>{{item.content}}</span>
-                     <el-button size="mini" v-if="isAdmin===true" @click="delComment(item.comment_id)" style="float: right;margin-top: -5px">
+                     <el-button size="mini" v-if="isAdmin===true || userAuth===item.username" @click="delComment(item.comment_id)" style="float: right;margin-top: -5px">
                       删除
                     </el-button>
                   </el-row>
@@ -279,7 +279,8 @@ export default {
       dialogVisible:false,
       verificationCode:"",
       commentCode:"",
-      loadingData:false
+      loadingData:false,
+      userAuth:"",
     }
   },
   computed: {
@@ -294,6 +295,7 @@ export default {
     if (this.roles.length >0 &&this.roles[0] === "admin"){
       this.isAdmin = true
     }
+    this.userAuth = this.name
     this.initModelInfo()
     this.handleRank(1)
     this.initComment()
