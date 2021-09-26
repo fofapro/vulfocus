@@ -127,7 +127,7 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 yum install mysql-devel 
 pip3 install mysqlclient -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-修改setting文件
+修改/data/web/vulfocus-api/vulfocus/settings.py文件
 ```shell script
 DATABASES = {
     'default': {
@@ -150,6 +150,13 @@ SILENCED_SYSTEM_CHECKS = ['mysql.E001']
 cd /data/web/vulfocus-api
 python manage.py migrate
 python manage.py createsuperuser
+```
+
+若是执行第一个命令时提示错误ValueError: Dependency on app with no migrations: user
+请执行
+
+```shell
+python manage.py makemigratations
 ```
 
 #### 靶场配置：
