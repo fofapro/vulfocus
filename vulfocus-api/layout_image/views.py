@@ -1299,8 +1299,9 @@ def upload_zip_file(request):
                         node_port = node_attrs["port"]
                         if node_open and node_port:
                             check_open = True
-                        if "is_docker_compose" in node["attrs"]['raw'] and node["attrs"]['raw']["is_docker_compose"]:
-                            return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
+                        if "is_docker_compose" in node["attrs"]['raw']:
+                            if node["attrs"]['raw']["is_docker_compose"]:
+                                return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
                         image_name = node_attrs["name"]
                         image_desc = node_attrs["desc"]
                         image_vul_name = node_attrs["vul_name"]
@@ -1543,30 +1544,6 @@ def download_layout_image(request):
         return JsonResponse({"code": 400, "msg": "服务器内部错误"})
 
 
-@csrf_exempt
-def get_layout_det(req):
-    '''
-    返回编排场景详情（官网）
-    '''
-    if req.method == "GET":
-        id = req.GET.get("layout_id")
-        layout_info = Layout.objects.filter(is_release=True, layout_id=id).first()
-        try:
-            if layout_info:
-                layout_dict = dict()
-                layout_dict['layout_name'] = layout_info.layout_name
-                layout_dict['layout_desc'] = layout_info.layout_desc
-                layout_dict['layout_raw_content'] = layout_info.raw_content
-                # layout_dict['image_name'] = 'http://vulfocus.fofa.so/images/'+layout_info.image_name
-                layout_dict['image_name'] = 'http://vulfocus.fofa.so/images/'+layout_info.image_name  # 测试
-                data = layout_dict
-            else:
-                data = []
-        except:
-            data = []
-        return JsonResponse(R.ok(data=data))
-
-
 @api_view(http_method_names=["POST"])
 def download_official_website_layout(request):
     '''
@@ -1575,7 +1552,6 @@ def download_official_website_layout(request):
     data = request.data
     id = data['layout_id']    # 真实官网id
     user = request.user
-    # id = 'c4a22b44-e4d9-460d-b650-4cb94b08c055'  # 测试id
     url = "http://vulfocus.fofa.so/api/layoutinfodet?layout_id={}".format(id)
     res = requests.get(url, verify=False).content
     req = json.loads(res)
@@ -1583,7 +1559,6 @@ def download_official_website_layout(request):
     raw_data = yaml.load(raw_data, Loader=yaml.Loader)
     static_url = os.path.join(BASE_DIR, "static")
     img_url = req['data']['image_name']   # 官网图片
-    # img_url = 'http://vulfocus.fofa.so/images/51880ddc18b8461aa14ec79264f7fcf5.jpg'  # 测试拼接照片地址
     con = requests.get(img_url, verify=False).content  # 下载官网图片写入文件夹
     imagename = str(uuid.uuid4())   # 图片名称随机uuid
     if not os.path.exists(static_url):
@@ -1612,8 +1587,9 @@ def download_official_website_layout(request):
             node_port = node_attrs["port"]
             if node_open and node_port:
                 check_open = True
-            if "is_docker_compose" in node["attrs"]['raw'] and node["attrs"]['raw']["is_docker_compose"]:
-                return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
+            if "is_docker_compose" in node["attrs"]['raw']:
+                if node["attrs"]['raw']["is_docker_compose"]:
+                    return JsonResponse({"code": 400, "msg": "编排环境中镜像为docker-compose构建,不允许直接下载"})
             image_name = node_attrs["name"]
             image_desc = node_attrs["desc"]
             image_vul_name = node_attrs["vul_name"]
@@ -1818,8 +1794,6 @@ def get_official_website_layout(request):
     '''
     获取官网编排场景信息（社区）
     '''
-
-    # url = "http://vulfocus.fofa.so/api/get/layoutinfo/"  # 官网地址
     url = "http://vulfocus.fofa.so/api/get/layoutinfo/"
     try:
         res = requests.get(url, verify=False).content

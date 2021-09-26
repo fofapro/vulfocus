@@ -707,14 +707,12 @@ export default {
   width: 56px;
   height: 78px;
 }
-
 .icon2 {
   z-index: 260;
   width: 32px;
   height: 32px;
   align-self: center;
 }
-
 .word2 {
   z-index: 33;
   width: 56px;

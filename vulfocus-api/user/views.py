@@ -104,7 +104,7 @@ class get_user_rank(APIView):
 
         data = {
             'results': result,
-            'count': len(score_list)
+            'count': len(result)
         }
         return JsonResponse(R.ok(data=data))
 
@@ -508,16 +508,17 @@ class CommentView(viewsets.ModelViewSet):
 
     @action(methods=["get"], detail=True, url_path="delete")
     def del_comment(self, request, pk=None):
+        user = request.user
         if not pk:
             return JsonResponse(R.build(msg="参数不能为空"))
         comment_info = Comment.objects.filter(comment_id=pk).first()
-        user = request.user
         if not comment_info:
             return JsonResponse(R.build(msg="评论不存在"))
         if not user.is_superuser and comment_info.user != user:
             return JsonResponse(R.build(msg="权限不足"))
         comment_info.delete()
         return JsonResponse(R.ok())
+
 
 
 @api_view(http_method_names=["POST"])

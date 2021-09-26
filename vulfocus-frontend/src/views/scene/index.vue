@@ -90,7 +90,7 @@
                 <span class="span2">环境描述</span>
                 <el-link v-if="isAdmin===true" @click="openDrawer" type="primary" size="mini">编辑</el-link>
               </el-row>
-               <el-row>
+              <el-row>
                 <div class="container" style="margin-top: 24px">
                   <ViewerEditor v-if="loadingData" v-model="scene_writeup_date" ref="viewerEditor1"  :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="500px" ></ViewerEditor>
                 </div>
@@ -139,7 +139,7 @@
                     <span>{{item.content}}</span>
                      <el-button size="mini" v-if="isAdmin===true || userAuth===item.username" @click="delComment(item.comment_id)" style="float: right;margin-top: -5px">
                       删除
-                    </el-button>
+                     </el-button>
                   </el-row>
                 </el-main>
               </el-container>
@@ -229,13 +229,13 @@
 
 import { mapGetters } from 'vuex'
 import {sceneGet, sceneStart, sceneStop,sceneFlag, sceneRank} from '@/api/scene'
-import { commitComment, getComment,CommentDelete } from '@/api/user'
-import { updateLayoutDesc } from '@/api/layout'
+import { commitComment, getComment, CommentDelete  } from '@/api/user'
 import CountDown from "vue2-countdown";
+import { updateLayoutDesc } from '@/api/layout'
 import verification from "./verification";
-
 import MarkdownEditor from '@/components/MarkdownEditor'
 import ViewerEditor from '@/components/ViewerEditor'
+
 
 export default {
   inject: ['reload'],
@@ -281,6 +281,7 @@ export default {
       commentCode:"",
       loadingData:false,
       userAuth:"",
+      loadingData:false,
     }
   },
   computed: {
@@ -596,7 +597,7 @@ export default {
           })
         }
       })
-    },
+    }
   }
 }
 </script>
