@@ -19,6 +19,7 @@ class Layout(models.Model):
     env_content = models.TextField(null=False, verbose_name="环境变量")
     create_date = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_date = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    is_uesful = models.BooleanField(default=True, verbose_name="编排环境是否可用")
 
     class Meta:
         db_table = "layout"

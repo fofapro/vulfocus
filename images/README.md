@@ -4,6 +4,10 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE-2017-11444 |`docker pull  vulfocus/subrion-CVE-2017-11444 `|CVE-2017-11444 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-7422 |`docker pull  vulfocus/wordpress-CVE-2018-7422 `|CVE-2018-7422 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-5128 |`docker pull  vulfocus/youphptube-CVE-2019-5128 `|CVE-2019-5128 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-5412 |`docker pull  vulfocus/netflix-CVE-2020-5412 `|CVE-2020-5412 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2018-10735 |`docker pull  vulfocus/nagiosxi-CVE-2018-10735 `|CVE-2018-10735 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2018-10736 |`docker pull  vulfocus/nagiosxi-CVE-2018-10736 `|CVE-2018-10736 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2018-10737 |`docker pull  vulfocus/nagiosxi-CVE-2018-10737 `|CVE-2018-10737 |[Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -221,6 +225,13 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 ## 镜像新增日志
 
+
+2021-09-26
+
+- vulfocus/subrion-cve_2017_11444
+- vulfocus/wordpress-cve_2018_7422
+- vulfocus/youphptube-cve_2019_5128
+- vulfocus/netflix-cve_2020_5412
 
 2021-09-10
 

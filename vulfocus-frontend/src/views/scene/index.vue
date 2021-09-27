@@ -88,9 +88,12 @@
             <el-main>
               <el-row>
                 <span class="span2">环境描述</span>
+                <el-link v-if="isAdmin===true" @click="openDrawer" type="primary" size="mini">编辑</el-link>
               </el-row>
-              <el-row style="margin-top: 24px">
-                <span class="span3"> {{layout.desc}} </span>
+              <el-row>
+                <div class="container" style="margin-top: 24px">
+                  <ViewerEditor v-if="loadingData" v-model="scene_writeup_date" ref="viewerEditor1"  :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="500px" ></ViewerEditor>
+                </div>
               </el-row>
               <el-row style="margin-top: 24px">
                 <span class="span2">访问地址</span>
@@ -100,6 +103,49 @@
               </el-row>
             </el-main>
           </el-container>
+        </el-card>
+        <el-card style="margin-top: 20px;">
+          <el-row>
+            <el-col>
+              <span>评论</span>
+              <el-divider></el-divider>
+              <el-input rows="5" type="textarea" placeholder="既然来了就说点什么吧～" v-model="contentText" maxlength="500" show-word-limit></el-input>
+              <el-button size="small" @click="handleText" type="primary" style="float: right;margin-top: 10px">发表</el-button>
+            </el-col>
+          </el-row>
+          <el-row >
+            <el-col v-for="(item,index) in contentList" :key="index">
+              <el-card style="margin-top: 10px">
+              <el-container>
+                <el-aside width="48px" style="margin-top: 7px">
+                  <template>
+                    <img :src="item.user_avatar" style="width: 48px;height: 48px;border-radius: 50%;float: left;margin-top: 10px">
+                  </template>
+                </el-aside>
+                <el-main>
+                  <el-row>
+                    <el-col :span="3">
+                      <span class="span7">
+                        {{item.username}}
+                      </span>
+                    </el-col>
+                    <el-col :span="20">
+                      <span class="span8">
+                        {{item.create_time}}
+                      </span>
+                    </el-col>
+                  </el-row>
+                  <el-row style="margin-top: 5px">
+                    <span>{{item.content}}</span>
+                     <el-button size="mini" v-if="isAdmin===true || userAuth===item.username" @click="delComment(item.comment_id)" style="float: right;margin-top: -5px">
+                      删除
+                     </el-button>
+                  </el-row>
+                </el-main>
+              </el-container>
+            </el-card>
+            </el-col>
+          </el-row>
         </el-card>
       </el-col>
       <el-col style="margin-left: 10px" :span="7">
@@ -118,7 +164,12 @@
                   <svg-icon icon-class="trophy3" v-if="page.currentPageNum*page.size+scope.$index+1-page.size===3"  style="margin-left: 15px;height: 48px"/>
                 </template>
               </el-table-column>
-              <el-table-column prop="username" :show-overflow-tooltip=true label="用户"></el-table-column>
+              <el-table-column prop="username" :show-overflow-tooltip=true label="用户">
+                <template slot-scope="scope">
+                  <img :src="scope.row.user_avatar" style="width: 30px;height: 30px;border-radius: 50%;float: left;margin-top: 10px">
+                  <p style="float: left;margin-left: 5px;margin-top: 14px">{{scope.row.username}}</p>
+                </template>
+              </el-table-column>
               <el-table-column prop="score" label="积分" width="80"></el-table-column>
             </el-table>
           </div>
@@ -134,6 +185,42 @@
       </el-col>
     </el-row>
     <div style="margin-top: 20px">
+    <el-dialog :visible.sync="dialogVisible" title="请输入验证码" width="400px">
+      <el-form>
+        <el-form-item>
+          <el-row :span="24">
+            <el-col :span="8">
+              <el-input v-model="commentCode" auto-complete="off" placeholder="请输入验证码"></el-input>
+            </el-col>
+            <el-col :span="12">
+              <div class="login-code">
+                  <!--验证码组件-->
+                  <v-sidentify @getIdentifyCode="identifyCode"></v-sidentify>
+              </div>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-button type="primary" style="float: right" @click="commitText">确认</el-button>
+          </el-row>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+    </div>
+    <div style="margin-top: 20px">
+      <el-drawer v-if="drawer" :visible="drawer" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" >
+        <div style="margin-right: 10px">
+          <el-button icon="el-icon-edit-outline" size="small" style="position:absolute;z-index: 9999;right:60px;top: 21px;" @click="createSceneWriteup">修改</el-button>
+        </div>
+        <div>
+          <el-row>
+            <el-col :span="22" :offset="1">
+              <div class="container">
+                <markdown-editor ref="markdownEditor1" v-model="scene_update_date" :options="{hideModeSwitch:true, previewStyle:'vertical'}"  height="400px" />
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+      </el-drawer>
     </div>
   </div>
 </template>
@@ -142,9 +229,16 @@
 
 import { mapGetters } from 'vuex'
 import {sceneGet, sceneStart, sceneStop,sceneFlag, sceneRank} from '@/api/scene'
+import { commitComment, getComment, CommentDelete  } from '@/api/user'
 import CountDown from "vue2-countdown";
+import { updateLayoutDesc } from '@/api/layout'
+import verification from "./verification";
+import MarkdownEditor from '@/components/MarkdownEditor'
+import ViewerEditor from '@/components/ViewerEditor'
+
 
 export default {
+  inject: ['reload'],
   name: 'timeindex.vue',
   data(){
     return {
@@ -173,12 +267,21 @@ export default {
       incompletePeple:0,
       open: [],
       rankList:[],
-      writeup_date:'',
+      scene_writeup_date:'',
+      scene_update_date:'',
       drawer:false,
       drawerFlag:false,
       derection:"btt",
       imgpath:'/images/',
-      difvalue: 3.5
+      difvalue: 3.5,
+      contentText:"",
+      contentList:[],
+      dialogVisible:false,
+      verificationCode:"",
+      commentCode:"",
+      loadingData:false,
+      userAuth:"",
+      loadingData:false,
     }
   },
   computed: {
@@ -193,10 +296,20 @@ export default {
     if (this.roles.length >0 &&this.roles[0] === "admin"){
       this.isAdmin = true
     }
+    this.userAuth = this.name
     this.initModelInfo()
     this.handleRank(1)
+    this.initComment()
+  },
+  components:{
+    'v-sidentify':verification,
+    MarkdownEditor,
+    ViewerEditor,
   },
   methods:{
+    identifyCode(data){
+      this.verificationCode = data
+    },
     /**
      * 初始化模式信息
      */
@@ -221,6 +334,8 @@ export default {
         if (status === 200){
           this.layout.name = rsp.data["layout"]["name"]
           this.layout.desc = rsp.data["layout"]["desc"]
+          this.scene_writeup_date = rsp.data["layout"]["desc"]
+          this.loadingData = true
           if (!rsp.data["layout"]["image_name"]){
             this.layout.image_name = require("../../assets/modelbg.jpg")
           }else {
@@ -402,6 +517,86 @@ export default {
     },
     computeTableIndex(index){
       return (this.page.page - 1) * this.page.size + index + 1
+    },
+    handleText(){
+      this.dialogVisible = true
+    },
+    commitText(){
+      if (this.commentCode===this.verificationCode) {
+        let commentDict = new FormData()
+        commentDict.set("scene_id", this.$route.query.layout_id)
+        commentDict.set("content", this.contentText)
+        commentDict.set("scene_type", "layout")
+        commitComment(commentDict).then(response => {
+          if (response.data.status === 200) {
+            this.$message({
+              message: response.data.message,
+              type: "success",
+            })
+            this.dialogVisible = false
+            this.reload()
+          } else {
+            this.$message({
+              message: response.data.message,
+              type: "error",
+            })
+          }
+        })
+      }else {
+        this.$message({
+          message: '验证码错误',
+          type: "error",
+        })
+      }
+    },
+    initComment(){
+      let sceneId = this.$route.query.layout_id
+      getComment(sceneId).then(response=>{
+        this.contentList = response.data.results
+      })
+    },
+    delComment(id){
+      CommentDelete(id).then(response=>{
+        if (response.data.status === 200){
+          this.$message({
+            message: "删除成功",
+            type: 'success'
+          })
+          this.initComment()
+        }else {
+          this.$message({
+            message: response.data.msg,
+            type: "error",
+          })
+        }
+      })
+    },
+    closeDrawer(){
+      this.drawer=false
+      this.initModelInfo()
+    },
+    openDrawer(){
+      this.scene_update_date = this.scene_writeup_date
+      this.drawer=true
+    },
+    createSceneWriteup(){
+      let sceneId = this.$route.query.layout_id
+      let data = {"data":this.scene_update_date}
+      updateLayoutDesc(sceneId,data).then(response=>{
+        if (response.data.status === 200){
+          this.$message({
+            message: "编辑成功",
+            type: 'success'
+          })
+          this.drawer = false
+          this.reload()
+        }else {
+          this.$message({
+            message: response.data.msg,
+            type: 'error'
+          })
+        }
+      })
     }
   }
 }
@@ -500,5 +695,20 @@ export default {
   line-height: 24px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.span7{
+  width: 87px;
+  height: 14px;
+  font-size: 16px;
+  color: #303133;
+  line-height: 14px;
+}
+.span8{
+  width: 88px;
+  height: 14px;
+  font-size: 14px;
+  color: #999999;
+  line-height: 14px;
+
 }
 </style>

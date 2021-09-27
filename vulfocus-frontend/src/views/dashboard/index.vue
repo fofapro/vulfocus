@@ -83,7 +83,7 @@
       </div>
       <div class="filter-line">
         <div class="filter-name">
-          开发框架
+          数据库
         </div>
         <div class="filter-content">
           <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" v-if="index <= taglength4">{{item.value}}</span>
@@ -92,7 +92,7 @@
       </div>
       <div class="filter-line">
         <div class="filter-name">
-          数据库
+          框架
         </div>
         <div class="filter-content">
           <span :class="activeClass5 === index ? 'current':''" @click="selectSql(index,item)" v-for="(item,index) in databaseList" v-if="index <= taglength5" >{{item.value}}</span>
@@ -183,7 +183,6 @@ import codeSyntaxHighlight from "@toast-ui/editor-plugin-code-syntax-highlight";
 import hljs from "highlight.js";
 import Editor from 'tui-editor'
 import { Loading } from "element-ui"
-
 export default {
   inject: ['reload'],
   name: 'Dashboard',
@@ -302,7 +301,7 @@ export default {
               title: '计时模式',
               message:<count-down currentTime={this.countlist[0].start_date} startTime={this.countlist[0].start_date} endTime={this.countlist[0].end_date} dayTxt={"天"} hourTxt={"小时"} minutesTxt={"分钟"} secondsTxt={"秒"}></count-down>,
               duration: 0,
-              position: 'bottom-right',
+              position : 'bottom-right',
               showClose: false,
               dangerouslyUseHTMLString:true,
             });
@@ -493,43 +492,35 @@ export default {
         this.$set(raw.status, "stop_flag", true)
         this.$forceUpdate();
         ContainerStop(container_id,expire).then(response=>{
-          if (response.data.status === 201){
-            this.$message({
-              message: "该镜像正在停止中",
-              type: "warning",
-            })
-            this.reload()
-          }else {
-            let taskId = response.data["data"]
-            let tmpStopContainerInterval = window.setInterval(() => {
-              setTimeout(() => {
-                getTask(taskId).then(response => {
-                  let responseStatus = response.data["status"]
-                  let responseData = response.data
-                  if (responseStatus === 1001) {
-                    // 一直轮训
-                  } else {
-                    clearInterval(tmpStopContainerInterval)
-                    if (responseStatus === 200) {
-                      this.$message({
-                        message: responseData["msg"],
-                        type: "success",
-                      })
-                      raw.status.status = "stop"
-                      raw.status.start_date = ""
-                      raw.status.stop_flag = false
-                      this.listData(1)
-                    } else {
-                      this.$message({
-                        message: responseData["msg"],
-                        type: "error",
-                      })
-                    }
+          let taskId = response.data["data"]
+          let tmpStopContainerInterval = window.setInterval(() => {
+            setTimeout(()=>{
+              getTask(taskId).then(response=>{
+                let responseStatus = response.data["status"]
+                let responseData = response.data
+                if (responseStatus === 1001){
+                  // 一直轮训
+                }else{
+                  clearInterval(tmpStopContainerInterval)
+                  if (responseStatus === 200){
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "success",
+                    })
+                    raw.status.status = "stop"
+                    raw.status.start_date = ""
+                    raw.status.stop_flag = false
+                    this.listData(1)
+                  }else{
+                    this.$message({
+                      message: responseData["msg"],
+                      type: "error",
+                    })
                   }
-                })
-              }, 1)
-            }, 2000)
-          }
+                }
+              })
+            },1)
+          },2000)
         })
       },
       deleteContainer(container_id,raw){
@@ -759,7 +750,6 @@ export default {
       _this.get_time = yy+'-'+mm+'-'+dd+' '+hh+':'+mf+':'+ss;
   },
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -776,64 +766,51 @@ export default {
   font-size: 13px;
   color: #999;
 }
-
 .bottom {
   margin-top: 5px;
   margin-bottom: 13px;
   line-height: 12px;
 }
-
 .button {
   padding: 5px;
   float: right;
 }
-
 .image {
   width: 100%;
   display: block;
 }
-
 .clearfix:before,
 .clearfix:after {
   display: table;
   content: "";
 }
-
 .clearfix:after {
   clear: both
 }
-
 .text {
   font-size: 14px;
 }
-
 .item {
   margin-bottom: 18px;
 }
-
 .container-title{
   width: 100%;    /*根据自己项目进行定义宽度*/
   overflow: hidden;     /*设置超出的部分进行影藏*/
   text-overflow: ellipsis;     /*设置超出部分使用省略号*/
   white-space:nowrap ;    /*设置为单行*/
 }
-
 .date {
-
 }
 .date p{
   height: 20px;
   line-height: 20px;
   margin: 0;
-
   margin-block-end: 0em;
 }
-
 .el-row {
   display: flex;
   flex-wrap: wrap;
 }
-
 /*p {*/
 /*  height: 20px;*/
 /*  line-height: 20px;*/
@@ -848,7 +825,6 @@ export default {
   font-size: 14px;
   border-bottom: 1px dashed #dde6f0;
   background: #fff;
-
   .filter-name {
    width: 150px;
    height: 24px;
@@ -881,7 +857,6 @@ export default {
    border-radius: 200px;
   }
 }
-
 .el-drawer{
   overflow: scroll
 }

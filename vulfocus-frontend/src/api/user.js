@@ -131,3 +131,32 @@ export function uploaduserimgae(data) {
   })
 }
 
+export function commitComment(data) {
+  return request({
+    url: 'comment/',
+    method: 'post',
+    data
+  })
+}
+
+
+export function getComment(sceneId) {
+  if(sceneId === undefined || sceneId === null){
+    sceneId = ''
+  }
+  return request({
+    url: 'comment/?sceneId='+sceneId,
+    method: 'get',
+  })
+}
+
+/**
+ * 删除评论
+ */
+export function CommentDelete(id) {
+  return request({
+    url: '/comment/'+id+'/delete/'
+  })
+}
+
+

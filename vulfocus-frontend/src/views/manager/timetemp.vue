@@ -1,129 +1,107 @@
 <template xmlns="http://www.w3.org/1999/html">
   <div style="width: 100%" class="app-container">
-    <div class="svgHeadItemLst svgToolBarItem">
-        <el-button size="small" style="margin: 3px;" type="primary" @click="saveTopoJson">创建计时模版
-        </el-button>
-    </div>
     <div>
-      <el-dialog :visible.sync="editShow" title="创建" width="80%" height="100%" >
-        <div style="display: flex;justify-content: flex-start;">
-          <el-steps :active="index" direction="vertical">
-            <el-step title="时间信息" size="mini"></el-step>
-            <el-step title="漏洞信息"></el-step>
-          </el-steps>
-          <div style="margin-left: 30px;display: flex;justify-content: center;align-items: center;width: 80%;">
-            <div v-show="index===0" style="width: 500px">
-              <el-form v-loading="editLoading" :rules="rules" :model="form" element-loading-text="创建中" @keyup.enter.native="next" ref="form" >
-                <el-form-item label="模版名称" :label-width="formLabelWidth" prop="name">
-                  <el-input type="text" v-model="form.name" autocomplete="off" :autosize="{ minRows: 4, maxRows: 6}" ></el-input>
-                </el-form-item>
-                <el-form-item label="计时时间" :label-width="formLabelWidth" prop="time_range">
-                  <el-select v-model="form.time_range" placeholder="请选择时间范围" size="medium" >
-                    <el-option label="30分钟" value="30"></el-option>
-                    <el-option label="60分钟" value="60"></el-option>
-                    <el-option label="90分钟" value="90"></el-option>
-                    <el-option label="120分钟" value="120"></el-option>
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="模版描述" :label-width="formLabelWidth" >
-                  <el-input type="textarea" v-model="form.desc" autocomplete="off" :autosize="{ minRows: 4, maxRows: 6}" ></el-input>
-                </el-form-item>
-                <el-form-item label="Banner 图" :label-width="formLabelWidth">
-                  <el-upload
-                    class="avatar-uploader"
-                    action=""
-                    :http-request="upload"
-                    :show-file-list="false"
-                    :before-upload="beforeAvatarUpload">
-                    <img v-if="form.imageName" :src="form.imageName" class="avatar">
-                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                  </el-upload>
-                </el-form-item>
-              </el-form>
-            </div>
-            <div v-show="index===1" style="width: 800px">
-              <el-row :gutter="10">
-                <el-col :span="8">
-                  <span>漏洞类型</span>
-                  <el-select v-model="form.time_img_type" @change="getselectdata" multiple filterable allow-create default-first-option placeholder="请选择漏洞类型" style="left: 5px">
-                    <el-option v-for="item in degreeList" :key="item.value" :label="item.value" :value="item.value"></el-option>
-                  </el-select>
-                </el-col>
-                <el-col :span=4>
-                  <ul style="width: 100%" >难易程度</ul>
-                </el-col>
-                <el-col :span=1.5 style="margin-left: 6px">
-                  <el-radio-group v-model="form.rank_range" size="medium" style="margin-top: 6px" @change="getselectdata">
-                    <el-radio-button label=0>全部</el-radio-button>
-                    <el-radio-button label=0.5>入门</el-radio-button>
-                    <el-radio-button label=2.0>初级</el-radio-button>
-                    <el-radio-button label=3.5>中级</el-radio-button>
-                    <el-radio-button label=5>高级</el-radio-button>
-                  </el-radio-group>
-                </el-col>
+      <div style="display: flex;justify-content: flex-start;">
+        <el-steps :active="index" direction="vertical">
+          <el-step title="时间信息" size="mini"></el-step>
+          <el-step title="漏洞信息"></el-step>
+        </el-steps>
+        <div style="margin-left: 30px;display: flex;justify-content: center;align-items: center;width: 80%;">
+          <div v-show="index===0" style="width: 500px">
+            <el-form v-loading="editLoading" :rules="rules" :model="form" element-loading-text="创建中" @keyup.enter.native="next" ref="form" >
+              <el-form-item label="模版名称" :label-width="formLabelWidth" prop="name">
+                <el-input type="text" v-model="form.name" autocomplete="off" :autosize="{ minRows: 4, maxRows: 6}" ></el-input>
+              </el-form-item>
+              <el-form-item label="计时时间" :label-width="formLabelWidth" prop="time_range">
+                <el-select v-model="form.time_range" placeholder="请选择时间范围" size="medium" >
+                  <el-option label="30分钟" value="30"></el-option>
+                  <el-option label="60分钟" value="60"></el-option>
+                  <el-option label="90分钟" value="90"></el-option>
+                  <el-option label="120分钟" value="120"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="模版描述" :label-width="formLabelWidth" >
+                <el-input type="textarea" v-model="form.desc" autocomplete="off" :autosize="{ minRows: 4, maxRows: 6}" ></el-input>
+              </el-form-item>
+              <el-form-item label="Banner 图" :label-width="formLabelWidth">
+                <el-upload
+                  class="avatar-uploader"
+                  action=""
+                  :http-request="upload"
+                  :show-file-list="false"
+                  :before-upload="beforeAvatarUpload">
+                  <img v-if="form.imageName" :src="form.imageName" class="avatar">
+                  <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                </el-upload>
+              </el-form-item>
+            </el-form>
+          </div>
+          <div v-show="index===1" style="width: 800px">
+            <el-row :gutter="10">
+              <el-col :span="8">
+                <span>漏洞类型</span>
+                <el-select v-model="form.time_img_type" @change="getselectdata" multiple filterable allow-create default-first-option placeholder="请选择漏洞类型" style="left: 5px">
+                  <el-option v-for="item in degreeList" :key="item.value" :label="item.value" :value="item.value"></el-option>
+                </el-select>
+              </el-col>
+              <el-col :span=4>
+                <ul style="width: 100%" >难易程度</ul>
+              </el-col>
+              <el-col :span=1.5 style="margin-left: 6px">
+                <el-radio-group v-model="form.rank_range" size="medium" style="margin-top: 6px" @change="getselectdata">
+                  <el-radio-button label=0>全部</el-radio-button>
+                  <el-radio-button label=0.5>入门</el-radio-button>
+                  <el-radio-button label=2.0>初级</el-radio-button>
+                  <el-radio-button label=3.5>中级</el-radio-button>
+                  <el-radio-button label=5>高级</el-radio-button>
+                </el-radio-group>
+              </el-col>
 <!--                <el-col :span="8">-->
 <!--                  <el-checkbox v-model="comp" :checked="list.length===listdata.length" type="checkbox" border @change="checkAll">全选</el-checkbox>-->
 <!--                </el-col>-->
-              </el-row>
-              <el-row>
-                <el-col :span="6" v-for="(item,index) in listdata" :key="index"  style="padding-bottom: 18px; margin-top: 5px">
-                <el-card :body-style="{ padding: '6px' }" shadow="hover">
-                  <div class="clearfix"  >
-                    <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;" >
-                      <el-checkbox-group  v-model="list" >
-                        <el-checkbox :label="item.image_id"  :key="index" @change="handlechange($event,item.image_id)" ><svg-icon icon-class="bug"  style="font-size: 20px;"/></el-checkbox>
-                      </el-checkbox-group>
-                    </div>
-                    <div style="margin-top: 7px;">
-                      <el-rate v-model=item.rank disabled show-score text-color="#ff9900" score-template={value}></el-rate>
-                    </div>
+            </el-row>
+            <el-row>
+              <el-col :span="6" v-for="(item,index) in listdata" :key="index"  style="padding-bottom: 18px; margin-top: 5px">
+              <el-card :body-style="{ padding: '6px' }" shadow="hover">
+                <div class="clearfix"  >
+                  <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;" >
+                    <el-checkbox-group  v-model="list" >
+                      <el-checkbox :label="item.image_id"  :key="index" @change="handlechange($event,item.image_id)" ><svg-icon icon-class="bug"  style="font-size: 20px;"/></el-checkbox>
+                    </el-checkbox-group>
                   </div>
-                  <div style="padding: 5px;" >
-                    <div class="container-title">
-                    <span>{{item.image_vul_name}}</span>
-                    </div>
+                  <div style="margin-top: 7px;">
+                    <el-rate v-model=item.rank disabled show-score text-color="#ff9900" score-template={value}></el-rate>
                   </div>
-                  <div>
-                    <template>
-                      <el-tag v-for="i in item.degree" style="margin-left: 2px;">{{i}}</el-tag>
-                    </template>
+                </div>
+                <div style="padding: 5px;" >
+                  <div class="container-title">
+                  <span>{{item.image_vul_name}}</span>
                   </div>
-                </el-card>
-              </el-col>
-              </el-row>
-              <div style="margin-top: 20px">
-              <el-pagination
-                :page-size="page.size"
-                @current-change="handleQuery"
-                layout="total, prev, pager, next, jumper"
-                :total="page.total">
-              </el-pagination>
-            </div>
-            </div>
+                </div>
+                <div>
+                  <template>
+                    <el-tag v-for="i in item.degree" style="margin-left: 2px;">{{i}}</el-tag>
+                  </template>
+                </div>
+              </el-card>
+            </el-col>
+            </el-row>
+            <div style="margin-top: 20px">
+            <el-pagination
+              :page-size="page.size"
+              @current-change="handleQuery"
+              layout="total, prev, pager, next, jumper"
+              :total="page.total">
+            </el-pagination>
+          </div>
           </div>
         </div>
-        <div style="display: flex;align-items: center;justify-content: center;padding: 0px;margin: 0px; float: right">
-          <el-button round size="mini" v-if="index!==0" @click="index--">上一步</el-button>
-          <el-button type="primary" round size="mini" @click="next('form')" v-text="index===1?'完成':'下一步'"></el-button>
-        </div>
-      </el-dialog>
+      </div>
+      <div style="display: flex;align-items: center;justify-content: center;padding: 0px;margin: 0px; float: right">
+        <el-button round size="mini" v-if="index!==0" @click="index--">上一步</el-button>
+        <el-button type="primary" round size="mini" @click="next('form')" v-text="index===1?'完成':'下一步'"></el-button>
+      </div>
     </div>
-    <el-table :data="tableData" border stripe style="width: 100%;margin-top:20px;">
-      <el-table-column prop="name" label="名称" width="300"></el-table-column>
-      <el-table-column prop="time_range" label="时间范围" width="180"></el-table-column>
-      <el-table-column prop="time_desc" label="描述"></el-table-column>
-      <el-table-column label="漏洞类型">
-        <template slot-scope="{row}" v-if="row.time_img_type !==''">
-          <el-tag v-for="i in row.time_img_type">{{i}}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="rank_range" label="Rank范围"></el-table-column>
-      <el-table-column fixed="right" label="操作" width="100">
-        <template slot-scope="{row}">
-          <el-button type="text" size="small" @click='handleDelete(row)'>删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
   </div>
 </template>
 

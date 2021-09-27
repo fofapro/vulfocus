@@ -18,12 +18,13 @@ from rest_framework import routers
 from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs, DashboardView, get_writeup_info, get_version, get_url_name, update_enterprise_setting, get_setting_img
 from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset, AccessLinkView, send_register_email
 from rest_framework_jwt.views import obtain_jwt_token
-from user.views import get_user_info, LogoutView, MyCode, refresh_captcha
+from user.views import get_user_info, LogoutView, MyCode, refresh_captcha, CommentView
 from tasks.views import TaskSet
 from network.views import NetWorkInfoViewSet
-from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose, get_scene_data
+from layout_image.views import LayoutViewSet, upload_img, build_compose, show_compose, upload_file, delete_file, update_build_compose, get_scene_data, upload_zip_file, download_layout_image, download_official_website_layout,get_official_website_layout
 from user.views import refresh_captcha, AccessUpdataLinkView, upload_user_img
 from notice.views import NoticeViewset, publish_notice, get_notifications_count, get_public_notice, notice_detail, get_content
+from dockerapi.views import get_container_status
 import notifications.urls
 
 router = routers.DefaultRouter()
@@ -44,6 +45,7 @@ router.register("login",LoginViewset,basename="login")
 router.register("send_email",SendEmailViewset,basename="send_email")
 router.register("reset_password",ResetPasswordViewset,basename="reset_password")
 router.register("notice", NoticeViewset, basename="notice")
+router.register("comment", CommentView, basename="comment")
 
 urlpatterns = [
     url(r'^', include(router.urls)),
@@ -82,4 +84,9 @@ urlpatterns = [
     url(r"notice_detail", notice_detail),
     url(r'get_notifications_count',get_notifications_count),
     url(r"get_content", get_content),
+    url(r"get_container_status",get_container_status),
+    url(r"upload_zip_file", upload_zip_file),
+    url(r"download_layout_image", download_layout_image),
+    url(r"^download/official/website/layout", download_official_website_layout),
+    url(r"^get/official/website/layout", get_official_website_layout),
 ]

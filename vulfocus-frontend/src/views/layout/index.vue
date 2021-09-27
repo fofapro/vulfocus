@@ -9,7 +9,8 @@
       <div class="svgHeadItemLst svgToolBarItem">
 <!--        <el-button size="small" style="margin: 3px;" type="primary" icon="el-icon-edit-outline" @click="viewYml"> Custom-->
 <!--        </el-button>-->
-        <el-button size="small" style="margin: 3px;" type="primary" icon="fa fa-save" @click="saveTopoJson"> 保存
+        <el-upload class="upload_zip" style="" action="" :http-request="uploadlayout" :show-file-list="false" :before-upload="beforeAvatarUploadLayout"><el-button class="filter-item" size="small" style="margin-right: 10px" type="primary" icon="el-icon-upload">上传</el-button></el-upload>
+        <el-button size="small"  type="primary" icon="fa fa-save" @click="saveTopoJson"> 保存
         </el-button>
       </div>
     </div>
@@ -239,7 +240,7 @@
             :http-request="upload"
             :show-file-list="false"
             :before-upload="beforeAvatarUpload">
-            <img v-if="layout.imageName" :src="layout.imageName" class="avatar">
+            <img v-if="layout.imageName" :src="'/images/'+layout.imageName" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -291,7 +292,7 @@
   </div>
 </template>
 <script>
-import {layoutCreate,uploadImage,build_compose,show_build_status,uploadFile,deleteFile} from '@/api/layout'
+import { layoutCreate,uploadImage,build_compose,show_build_status,uploadFile,deleteFile,upload_zip_file,layoutList } from '@/api/layout'
 import connectorRules from '@/config/connectorRules' //连线包含关系规则
 import vTopoAttrPanel from './components/vTopoAttrPanel'
 import vShapebar from './components/vShapebar'
@@ -395,7 +396,8 @@ export default {
       ymlContent:"",
       ymlShow:false,
       fileList:[],
-      newFile: new FormData()
+      newFile: new FormData(),
+      newLayoutFile: new FormData(),
     }
   },
   computed: {},
@@ -1329,7 +1331,7 @@ export default {
             message: '上传成功',
             type: 'success'
           })
-          this.layout.imageName = '/images/' + rsp.data
+          this.layout.imageName = rsp.data
         }else{
           this.$message({
             message: rsp.msg,
@@ -1451,6 +1453,46 @@ export default {
     },
     show_compose(){
     },
+    beforeAvatarUploadLayout(file){
+      if(file){
+        this.newLayoutFile.set('zip_file', file)
+      }else {
+        return false
+      }
+    },
+    uploadlayout(){
+      upload_zip_file(this.newLayoutFile).then(response => {
+        let data = response.data;
+        if(data.code === 400){
+          this.$message({
+            message:data.msg,
+            type:'error'
+          })
+        }
+        if(data.code === 200){
+          this.$message({
+            message:'上传成功',
+            type: 'success'
+          })
+          let id = data.layout_id
+          layoutList(id).then(response=>{
+            let rsp = response.data
+            let rows = {}
+            rsp.results.forEach((info,index) => {
+              rows = info
+            })
+            this.topoData = JSON.parse(rows.raw_content)
+            this.layout.id = rows.layout_id
+            this.layout.name = rows.layout_name
+            this.layout.desc = rows.layout_desc
+            this.layout.imageName = rows.image_name
+            this.ymlContent = rows.yml_content
+          // this.$router.push({path:'/layout/index', query: {layoutId: id, layoutData: rows}})
+        })
+        }
+      })
+    },
+
   },
   mounted() {
     if (this.$route.query.layoutData !== null && this.$route.query.layoutData !== undefined && this.$route.query.layoutData.layout_id){
