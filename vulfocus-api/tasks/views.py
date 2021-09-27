@@ -11,6 +11,9 @@ import json
 import redis
 from tasks import tasks
 from vulfocus.settings import REDIS_POOL
+from layout_image.models import Layout
+from vulfocus.settings import REDIS_POOL, client
+import yaml
 r = redis.Redis(connection_pool=REDIS_POOL)
 
 
@@ -86,3 +89,52 @@ class TaskSet(viewsets.ReadOnlyModelViewSet):
         else:
             return JsonResponse(R.ok())
 
+    @action(methods=["post"], detail=True, url_path="layout_batch")
+    def get_layout_batch(self, request, pk=None):
+        task_id_str = request.POST.get("task_ids", "")
+        task_id_list = task_id_str.split(",")
+        task_list = TaskInfo.objects.filter(task_id__in=task_id_list)
+        result = {}
+        for task_info in task_list:
+            args = task_info.operation_args
+            args_info = json.loads(args)
+            layout_name = args_info["layout_name"]
+            image_list = []
+            # 查询出该编排环境中的所有进行下载任务
+            progress = 0.0
+            status = 1
+            relative_task_all = TaskInfo.objects.filter(operation_type=8, user_id=request.user.id,
+                                                        operation_args__contains=json.dumps(layout_name), task_status=1)
+            for single_task in relative_task_all:
+                task_log = r.get(str(single_task.task_id))
+                if task_log:
+                    try:
+                        task_log_json = json.loads(task_log)
+                        current_progress = task_log_json["progress"]
+                        progress += current_progress
+                    except Exception as e:
+                        pass
+            layout_info = Layout.objects.filter(layout_name=layout_name).first()
+            if layout_info:
+                yml_data = yaml.load(layout_info.yml_content, Loader=yaml.Loader)
+                services = yml_data["services"]
+                for service in services:
+                    image_name = services[service]["image"]
+                    image_list.append(image_name)
+                count = len(image_list)
+                not_download = 0
+                for image in image_list:
+                    try:
+                        current_image = client.images.get(image)
+                        if current_image:
+                            count -= 1
+                            if count == 0:
+                                status = 2
+                    except Exception as e:
+                        not_download += 1
+            if not_download != 0:
+                result[str(task_info.task_id)] = {"progress": float(progress / not_download),
+                                                  "status": status}
+            else:
+                result[str(task_info.task_id)] = {"progress": 100.0, "status": 2}
+        return JsonResponse(R.ok(data=result))

@@ -33,3 +33,11 @@ export function progressTask(taskId) {
     method: 'get'
   })
 }
+
+export function layoutbathchTask(data) {
+  return request({
+    url: '/tasks/layout_batch/layout_batch/',
+    method: 'post',
+    data
+  })
+}

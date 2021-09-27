@@ -141,3 +141,10 @@ export function getversion(){
     method: 'get'
   })
 }
+
+export function get_container_status(container_id){
+  return request({
+    url:'/get_container_status/?container_id='+container_id,
+    method:'get'
+  })
+}

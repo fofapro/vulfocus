@@ -69,7 +69,7 @@ export function sceneRank(layoutId,page){
  * @param page scene_tag
  * @returns
  */
-export function getSceneData(query,page,tag){
+export function getSceneData(query,page,tag,backstage){
   if(query === undefined || query == null){
     query = ""
   }
@@ -79,8 +79,11 @@ export function getSceneData(query,page,tag){
   if (page === undefined || page === null || page < 1){
     page = 1
   }
+  if (backstage === undefined || backstage === null){
+    backstage = ""
+  }
   return request({
-    url: '/get/scenedata/?tag='+tag+'&page='+page+'&query=' + query,
+    url: '/get/scenedata/?tag='+tag+'&page='+page+'&query=' + query + '&backstage='+backstage,
     method: 'get'
   })
 }

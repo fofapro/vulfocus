@@ -242,6 +242,7 @@ export const asyncRoutes = [
         path: 'timetemp',
         affix: true,
         name: 'timetemp',
+        hidden: true,
         component: () => import("@/views/manager/timetemp"),
         meta: { title: '计时模版管理', icon: 'setting' , role: ['admin']}
     },
