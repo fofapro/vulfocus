@@ -119,6 +119,7 @@ source ~/.bashrc
 ```shell
 cd /data
 git clone https://github.com/fofapro/vulfocus.git web
+chmod -R 777 /data
 cd /data/web/vulfocus-api/
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
@@ -149,7 +150,7 @@ SILENCED_SYSTEM_CHECKS = ['mysql.E001']
 ### 注意
 ```sql
 创建mysql数据库的时候应使用utf8编码，否则进行数据迁移的时候可能抛出错误,可以使用下面这条命令进行数据库的创建
-CREATA DATABASE vulfocus character set utf8;
+CREATE DATABASE vulfocus character set utf8;
 ```
 
 ### 修改第三方库文件
@@ -418,8 +419,7 @@ chown -R nginx /data
 
 ```
 groupadd docker
-usermod -aG docker nginx
-chmod 666 /var/run/docker.sock #注意此处完成配置后尽量不要重新启动docker,否则nginx用户将失去docker的运行权限
+usermod -g docker nginx
 ```
 
 #### 开机自启动
@@ -438,6 +438,7 @@ systemctl start supervisord
 systemctl start docker
 systemctl start redis
 systemctl start nginx    #注意这里一定要确定主机关闭了selinux，否则启动nginx会报错
+chmod 666 /var/run/docker.sock #注意此处完成配置后尽量不要重新启动docker,否则nginx用户将失去docker的运行权限
 ```
 
 #### 防火墙配置
