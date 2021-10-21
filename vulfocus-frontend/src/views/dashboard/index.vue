@@ -423,7 +423,7 @@ export default {
           this.container_id = raw_data.status.container_id
           this.startCon = false
           this.cStatus = false
-          // this.writeup_date = raw_data.writeup_date
+          this.writeup_date = raw_data.writeup_date
           // this.writeup_date_name = raw_data.writeup_date_name
           this.is_docker_compose = raw_data.is_docker_compose
           this.is_flag = raw_data.is_flag

@@ -1,4 +1,4 @@
-# 安装
+# 安装(centos安装需要关闭selinux)
 
 系统为前后端分离项目，`vulfocus-api`  为后端项目、 `vulfocus-frontend`  为前端项目。
 
