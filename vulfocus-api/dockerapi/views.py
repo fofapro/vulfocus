@@ -376,7 +376,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                             time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
                     rank_range_q = Q()
                     if rank_range != "":
-                        rank_range_q = 'AND'
+                        rank_range_q.connector = 'AND'
                         rank_range_q.children.append(('rank__lte', rank_range))
                         rank_range_q.children.append(('rank__gte', min_rank))
                     image_q = Q()
