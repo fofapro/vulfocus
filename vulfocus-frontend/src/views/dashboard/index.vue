@@ -394,9 +394,9 @@ export default {
         this.images_name = images_name
         this.images_desc = images_desc
         this.is_flag = raw_data.is_flag
-        // this.writeup_date = raw_data.writeup_date
-        // this.writeup_date_name = raw_data.writeup_date_name
-        this.is_docker_compose = raw_data.is_docker_compose
+        this.writeup_date = raw_data.writeup_date
+        this.writeup_date_name = raw_data.writeup_date_name
+        // this.is_docker_compose = raw_data.is_docker_compose
         this.centerDialogVisible = true
         this.open_flag = false
         if(this.open_flag === false){
@@ -481,6 +481,7 @@ export default {
         }
       },
       subFlag(id,flag) {
+        console.log(id,88888)
           SubFlag(id,flag).then(response => {
             this.input = ""
             let responseData = response.data
