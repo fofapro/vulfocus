@@ -22,6 +22,12 @@
                 <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
                   <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
                 </div>
+                <div class="bottom-img" style="margin-top: 5px;width: 100%;height: 20px;margin-bottom: 10px">
+                  <span style="color: #999;font-size: 14px;margin-left: 10px" v-if="item.have_fav === true"><svg-icon icon-class="fav_active" style="margin-right: 10px" @click="thumbup(item)"/>{{item.fav_num}}</span>
+                  <span style="color: #999;font-size: 14px;margin-left: 10px" v-else-if="item.have_fav === false"><svg-icon icon-class="fav_not_active" style="margin-right: 10px" @click="thumbup(item)"/>{{item.fav_num}}</span>
+                  <span style="color: #999;font-size: 14px;margin-left: 10px"><svg-icon icon-class="has_read" style="margin-right: 10px"/>{{item.total_view}}</span>
+                  <span style="color: #999;font-size: 14px;margin-left: 10px" v-if="item.type === 'layoutScene'"><svg-icon icon-class="download" style="margin-right: 10px"/>{{item.download_num}}</span>
+                </div>
               </div>
             </el-card>
           </el-col>
@@ -45,6 +51,12 @@
                 </div>
                 <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
                   <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
+                </div>
+                <div class="bottom-img" style="margin-top: 5px;width: 100%;height: 20px;margin-bottom: 10px">
+                  <span style="color: #999;font-size: 14px;margin-left: 10px" v-if="item.have_fav === true"><svg-icon icon-class="fav_active" style="margin-right: 10px" @click="thumbup(item)"/>{{item.fav_num}}</span>
+                  <span style="color: #999;font-size: 14px;margin-left: 10px" v-else-if="item.have_fav === false"><svg-icon icon-class="fav_not_active" style="margin-right: 10px" @click="thumbup(item)"/>{{item.fav_num}}</span>
+                  <span style="color: #999;font-size: 14px;margin-left: 10px"><svg-icon icon-class="has_read" style="margin-right: 10px"/>{{item.total_view}}</span>
+                  <span style="color: #999;font-size: 14px;margin-left: 10px" v-if="item.type === 'layoutScene'"><svg-icon icon-class="download" style="margin-right: 10px"/>{{item.download_num}}</span>
                 </div>
               </div>
             </el-card>
@@ -70,6 +82,12 @@
                 <div class="bottom clearfix" style="margin-top: 10px;height: 60px;">
                   <span style="color:#999;font-size: 14px;margin-left: 5px;" class="hoveDesc"> {{ item.desc }}</span>
                 </div>
+                <div class="bottom-img" style="margin-top: 5px;width: 100%;height: 20px;margin-bottom: 10px">
+                  <span style="color: #999;font-size: 14px;margin-left: 10px" v-if="item.have_fav === true"><svg-icon icon-class="fav_active" style="margin-right: 10px" @click="thumbup(item)"/>{{item.fav_num}}</span>
+                  <span style="color: #999;font-size: 14px;margin-left: 10px" v-else-if="item.have_fav === false"><svg-icon icon-class="fav_not_active" style="margin-right: 10px" @click="thumbup(item)"/>{{item.fav_num}}</span>
+                  <span style="color: #999;font-size: 14px;margin-left: 10px"><svg-icon icon-class="has_read" style="margin-right: 10px"/>{{item.total_view}}</span>
+                  <span style="color: #999;font-size: 14px;margin-left: 10px" v-if="item.type === 'layoutScene'"><svg-icon icon-class="download" style="margin-right: 10px"/>{{item.download_num}}</span>
+                </div>
               </div>
             </el-card>
           </el-col>
@@ -91,7 +109,7 @@
 <script>
 import { layoutList } from '@/api/layout'
 import CountDown from 'vue2-countdown'
-import { getSceneData } from '@/api/scene'
+import { getSceneData,thumbup } from '@/api/scene'
 import { start,timetemplist,timetempadd,stoptimetemp,gettimetemp,publicMethod } from '@/api/timemoudel'
 export default {
   name: 'index',
@@ -103,6 +121,7 @@ export default {
     return {
       tableData: [],
       sceneTableData:[],
+      sceneDict:{},
       search: "",
       page:{
         total: 0,
@@ -271,11 +290,13 @@ export default {
     },
     getScene(page){
       getSceneData(this.search,page,this.activeName).then(response=>{
+        this.sceneDict = {}
         this.sceneTableData = []
         if (response.data.code === 200){
           response.data.result.forEach((info,index) => {
             info.image_name = '/images/'+ info.image_name
             this.sceneTableData.push(info)
+            this.sceneDict[info.id] = info
           })
           this.page.total = response.data.count
         }else {
@@ -285,6 +306,19 @@ export default {
         })
         }
       })
+    },
+    thumbup(item){
+      if(this.sceneDict[item.id].have_fav === true){
+        if(this.sceneDict[item.id].fav_num > 0){
+          this.sceneDict[item.id].fav_num -= 1
+        }
+        this.sceneDict[item.id].have_fav = false
+      }
+      else{
+        this.sceneDict[item.id].fav_num += 1
+        this.sceneDict[item.id].have_fav = true
+      }
+      thumbup(item.id)
     }
   },
   created() {

@@ -87,3 +87,12 @@ export function getSceneData(query,page,tag,backstage){
     method: 'get'
   })
 }
+
+
+export function thumbup(id){
+  return request({
+    url:'/thumbUp',
+    method: 'post',
+    data: {"scene_id":id}
+  })
+}

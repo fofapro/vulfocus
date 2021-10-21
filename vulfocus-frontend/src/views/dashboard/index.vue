@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     <el-dialog :visible.sync="centerDialogVisible" @close="handleDialogClose"  title="镜像信息">
-      <i  class="el-icon-reading" v-if="this.countlist.length===0" v-model="drawer" @click="openDrawer" style="position:absolute;z-index: 9999;color: rgb(140, 197, 255);left:100px;top: 21px;font-size: 20px"></i>
+      <i  class="el-icon-reading"  v-if="this.countlist.length===0"  v-model="drawer" @click="openDrawer" style="position:absolute;z-index: 9999;color: rgb(140, 197, 255);left:100px;top: 21px;font-size: 20px"></i>
       <div class="text item" v-loading="startCon" element-loading-text="环境启动中" >
         <div class="text item">
           访问地址: {{vul_host}}
@@ -26,8 +26,8 @@
             <el-button type="primary" @click="subFlag(container_id,input.trim())" :disabled="cStatus">提 交</el-button>
           </el-form-item>
         </el-form>
-        <div>
-          <el-drawer :title="images_name+'  writeup'"  :visible="drawer" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" >
+         <div>
+          <el-drawer :title="images_name+' writeup'"  :visible="drawer" size="50%" :direction="derection" modal="false" append-to-body="true" :before-close="closeDrawer" >
               <div>
                 <el-row>
                   <el-col :span="1"></el-col>
@@ -47,14 +47,14 @@
         </div>
       </div>
     </el-dialog>
-    <el-card class="box-card"  v-if="this.countlist.length===0">
+    <el-card class="box-card" v-if="this.countlist.length===0">
       <div style="margin-left: 10px">
-        <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
-        <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
-          查询
-        </el-button>
-        <el-button  id="first-bmh" type="primary" style="left: 10px;display:none" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
-      </div>
+          <el-input v-model="search" style="width: 230px;margin-left: 6px" size="medium" @keyup.enter.native="handleQuery(1)" ></el-input>
+          <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
+            查询
+          </el-button>
+          <el-button  id="first-bmh" type="primary" style="left: 10px;display:none" size="medium" ref="showTips" @click="showTips" >新手引导</el-button>
+        </div>
       <div class="filter-line">
         <div class="filter-name" style="width: 150px">
           难易程度
@@ -68,12 +68,12 @@
           开发语言
         </div>
         <div class="filter-content">
-            <span :class="activeClass2 === index ? 'current':''" @click="selectLan(index,item)" v-for="(item,index) in languageList" v-if="index <= taglength2" >{{item.value}}</span>
-            <span v-if="languageList.length>10" style="color: #36a3f7" @click="showactive('taglength2')" >{{ showBtnTag2?"更多...":"收起" }}</span>
+          <span :class="activeClass2 === index ? 'current':''" @click="selectLan(index,item)" v-for="(item,index) in languageList" v-if="index <= taglength2" >{{item.value}}</span>
+          <span v-if="languageList.length>10" style="color: #36a3f7" @click="showactive('taglength2')" >{{ showBtnTag2?"更多...":"收起" }}</span>
         </div>
       </div>
       <div class="filter-line">
-        <div class="filter-name">
+        <div class="filter-name" >
           漏洞类型
         </div>
         <div class="filter-content">
@@ -86,8 +86,8 @@
           数据库
         </div>
         <div class="filter-content">
-          <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" v-if="index <= taglength4">{{item.value}}</span>
-          <span v-if="classifyList.length>10" style="color: #36a3f7" @click="showactive('taglength4')" >{{ showBtnTag4?"更多...":"收起" }}</span>
+          <span :class="activeClass5 === index ? 'current':''" @click="selectSql(index,item)" v-for="(item,index) in databaseList" v-if="index <= taglength5" >{{item.value}}</span>
+          <span v-if="databaseList.length>10" style="color: #36a3f7" @click="showactive('taglength5')" >{{ showBtnTag5?"更多...":"收起" }}</span>
         </div>
       </div>
       <div class="filter-line">
@@ -95,8 +95,8 @@
           框架
         </div>
         <div class="filter-content">
-          <span :class="activeClass5 === index ? 'current':''" @click="selectSql(index,item)" v-for="(item,index) in databaseList" v-if="index <= taglength5" >{{item.value}}</span>
-          <span v-if="databaseList.length>10" style="color: #36a3f7" @click="showactive('taglength5')" >{{ showBtnTag5?"更多...":"收起" }}</span>
+          <span :class="activeClass4 === index ? 'current':''" @click="selectIfy(index,item)" v-for="(item,index) in classifyList" v-if="index <= taglength4">{{item.value}}</span>
+          <span v-if="classifyList.length>10" style="color: #36a3f7" @click="showactive('taglength4')" >{{ showBtnTag4?"更多...":"收起" }}</span>
         </div>
       </div>
     </el-card>
@@ -105,7 +105,7 @@
       <el-col :span="6" v-for="(item,index) in listdata" :key="index" style="padding-bottom: 18px;">
         <el-card :body-style="{ padding: '8px' }" shadow="hover"
                  @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
-          <div class="clearfix" style="position: relative" >
+          <div class="clearfix"  style="position: relative" >
             <div style=" position:absolute;right:0;top:0"><img v-if="item.status.is_check === true" style="width: 60%;height: 60%; float: right" src="../../assets/Customs.png" /></div>
             <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
               <svg-icon icon-class="bug"  style="font-size: 20px;"/>
@@ -153,6 +153,17 @@
         </el-card>
       </el-col>
     </el-row>
+<!--    <div>-->
+<!--      <el-pagination-->
+<!--        @size-change="handleQuery"-->
+<!--        @current-change="handleCurrentChange"-->
+<!--        :current-page="currentPage4"-->
+<!--        :page-sizes="[20, 40, 60, 80]"-->
+<!--        :page-size="page.size"-->
+<!--        layout="total, sizes, prev, pager, next, jumper"-->
+<!--        :total="page.total">-->
+<!--      </el-pagination>-->
+<!--    </div>-->
     <div style="margin-top: 20px">
       <el-pagination
         :page-size="page.size"
@@ -165,7 +176,7 @@
 </template>
 
 <script>
-import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop,ImgDashboard,getWriteup } from '@/api/docker'
+import { ImgList,SubFlag,ContainerSTART,ContainerDelete,ContainerStop,ImgDashboard,getWriteup,get_container_status } from '@/api/docker'
 import { publicMethod,gettimetemp } from '@/api/timemoudel'
 import { getTask } from '@/api/tasks'
 import CountDown from 'vue2-countdown'
@@ -183,6 +194,7 @@ import codeSyntaxHighlight from "@toast-ui/editor-plugin-code-syntax-highlight";
 import hljs from "highlight.js";
 import Editor from 'tui-editor'
 import { Loading } from "element-ui"
+
 export default {
   inject: ['reload'],
   name: 'Dashboard',
@@ -231,6 +243,7 @@ export default {
       images_id: "",
       container_id: "",
       images_name: "",
+      writeup_date_name:"",
       images_desc: "",
       writeup_date:"",
       is_flag:true,
@@ -269,6 +282,8 @@ export default {
       searchRank:0,
       loading:true,
       firstLogin:false,
+      current_page:1,
+      open_flag:false,
       };
     },
   created() {
@@ -301,7 +316,7 @@ export default {
               title: '计时模式',
               message:<count-down currentTime={this.countlist[0].start_date} startTime={this.countlist[0].start_date} endTime={this.countlist[0].end_date} dayTxt={"天"} hourTxt={"小时"} minutesTxt={"分钟"} secondsTxt={"秒"}></count-down>,
               duration: 0,
-              position : 'bottom-right',
+              position: 'bottom-right',
               showClose: false,
               dangerouslyUseHTMLString:true,
             });
@@ -353,7 +368,8 @@ export default {
         });
         let allTag = []
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
-        ImgDashboard(undefined,undefined,undefined,true,allTag,this.searchRank).then(response =>{
+        this.search = ''
+        ImgDashboard(this.search,undefined,undefined,true,allTag,this.searchRank).then(response =>{
             loading.close()
             this.listdata = response.data.results
             this.page.total = response.data.count
@@ -379,9 +395,13 @@ export default {
         this.images_desc = images_desc
         this.is_flag = raw_data.is_flag
         // this.writeup_date = raw_data.writeup_date
+        // this.writeup_date_name = raw_data.writeup_date_name
         this.is_docker_compose = raw_data.is_docker_compose
         this.centerDialogVisible = true
-        this.$set(raw_data.status, "start_flag", true)
+        this.open_flag = false
+        if(this.open_flag === false){
+          this.$set(raw_data.status, "start_flag", true)
+        }
         this.$forceUpdate();
         if(raw_data.status.is_check === true){
           this.$message({
@@ -397,7 +417,8 @@ export default {
           this.container_id = raw_data.status.container_id
           this.startCon = false
           this.cStatus = false
-          this.writeup_date = raw_data.writeup_date
+          // this.writeup_date = raw_data.writeup_date
+          // this.writeup_date_name = raw_data.writeup_date_name
           this.is_docker_compose = raw_data.is_docker_compose
           this.is_flag = raw_data.is_flag
           if (this.user.greenhand === true){
@@ -469,7 +490,7 @@ export default {
                 type: "success",
               })
               this.$store.state.user.greenhand = false
-              this.reload()
+              this.open_flag = true
               this.centerDialogVisible = false
             }else if(responseData.status === 201){
               this.$message({
@@ -483,6 +504,7 @@ export default {
               })
             }
             this.item_raw_data.status.status = 'stop'
+            this.item_raw_data.status.start_flag = false
           })
       },
       stop(container_id,raw,expire) {
@@ -491,36 +513,101 @@ export default {
          */
         this.$set(raw.status, "stop_flag", true)
         this.$forceUpdate();
-        ContainerStop(container_id,expire).then(response=>{
-          let taskId = response.data["data"]
-          let tmpStopContainerInterval = window.setInterval(() => {
-            setTimeout(()=>{
-              getTask(taskId).then(response=>{
-                let responseStatus = response.data["status"]
-                let responseData = response.data
-                if (responseStatus === 1001){
-                  // 一直轮训
-                }else{
-                  clearInterval(tmpStopContainerInterval)
-                  if (responseStatus === 200){
-                    this.$message({
-                      message: responseData["msg"],
-                      type: "success",
-                    })
-                    raw.status.status = "stop"
-                    raw.status.start_date = ""
-                    raw.status.stop_flag = false
-                    this.listData(1)
-                  }else{
-                    this.$message({
-                      message: responseData["msg"],
-                      type: "error",
-                    })
-                  }
-                }
+        get_container_status(container_id).then(response=>{
+          if(response.data.code==200 && response.data.status == "stop"){
+            this.$message({
+              message:'停止成功',
+              type:'success'
+            })
+            raw.status.stop_flag = false;
+            raw.status.start_date = "";
+            raw.status.end_date = "";
+            let allTag = []
+            allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
+            if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
+              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
+                this.listdata = response.data.results
+                this.page.total = response.data.count
               })
-            },1)
-          },2000)
+            }
+            else {
+              ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
+                this.listdata = response.data.results
+                this.page.total = response.data.count
+              })
+            }
+          }
+          else if(response.data.code==200 && response.data.status == "delete"){
+            this.$message({
+              message:'停止成功',
+              type:'success'
+            })
+            raw.status.stop_flag = false;
+            raw.status.start_date = "";
+            raw.status.end_date = "";
+            raw.status.delete_flag = false;
+            let allTag = []
+            allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
+            if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
+              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
+                this.listdata = response.data.results
+                this.page.total = response.data.count
+              })
+            }
+            else {
+              ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
+                this.listdata = response.data.results
+                this.page.total = response.data.count
+              })
+            }
+          }
+          else if(response.data.code ==200 && response.data.status == "running"){
+            ContainerStop(container_id,expire).then(response=>{
+            let taskId = response.data["data"]
+            let tmpStopContainerInterval = window.setInterval(() => {
+              setTimeout(() => {
+                getTask(taskId).then(response => {
+                  let responseStatus = response.data["status"]
+                  let responseData = response.data
+                  if (responseStatus === 1001) {
+                    // 一直轮训
+                  } else {
+                    clearInterval(tmpStopContainerInterval)
+                    if (responseStatus === 200) {
+                      this.$message({
+                        message: responseData["msg"],
+                        type: "success",
+                      })
+                      raw.status.status = "stop"
+                      raw.status.start_date = ""
+                      raw.status.end_date = ""
+                      raw.status.stop_flag = false
+                      let allTag = []
+                      allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
+                      if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
+                        ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
+                          this.listdata = response.data.results
+                          this.page.total = response.data.count
+                        })
+                      }
+                      else {
+                        ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
+                          this.listdata = response.data.results
+                          this.page.total = response.data.count
+                        })
+                      }
+                    } else {
+                      this.$message({
+                        message: responseData["msg"],
+                        type: "error",
+                      })
+                    }
+                  }
+                })
+              }, 1)
+            }, 2000)
+        })
+          }
         })
       },
       deleteContainer(container_id,raw){
@@ -560,7 +647,20 @@ export default {
                       message: responseData["msg"],
                       type: "success",
                     })
-                    this.listData(1)
+                    let allTag = []
+                    allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
+                    if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
+                      ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
+                        this.listdata = response.data.results
+                        this.page.total = response.data.count
+                      })
+                    }
+                    else {
+                      ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
+                        this.listdata = response.data.results
+                        this.page.total = response.data.count
+                      })
+                    }
                   }else{
                     this.$message({
                       message: responseData["msg"],
@@ -581,7 +681,10 @@ export default {
           background: "rgba(255,255,255,255.4)",
           target: document.querySelector("#first-bmh3")
         });
-        ImgDashboard(this.search,false,page,true,this.allTag,this.searchRank).then(response => {
+        this.current_page = page
+        let allTag = []
+        allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
+        ImgDashboard(this.search,false,page,true,allTag,this.searchRank).then(response => {
           loading.close()
           this.listdata = response.data.results
           this.page.total = response.data.count
@@ -605,7 +708,23 @@ export default {
         })
     },
       handleDialogClose(){
-        this.listData(1)
+        if(this.open_flag === true){
+          return
+        }
+        let allTag = []
+        allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
+        if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
+          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
+            this.listdata = response.data.results
+            this.page.total = response.data.count
+          })
+        }
+        else {
+          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
+            this.listdata = response.data.results
+            this.page.total = response.data.count
+          })
+        }
       },
       closeDrawer(done){
         this.drawer=false
@@ -636,15 +755,15 @@ export default {
           allowClose:false,
         });
         const steps = [
-          {
-            element:"#first-bmh3", // 这是点击触发的id
-            popover:{
-              title:"提示",
-              description:"启动入门镜像,启动后可以点击镜像信息旁的<i  class=\"el-icon-reading\"  style=\"color: rgb(140, 197, 255);font-size: 20px\"></i>了解漏洞镜像！成功提交flag后可以解除新手模式，查看所有漏洞环境",
-              position: "top"
-            },
+        {
+          element:"#first-bmh3", // 这是点击触发的id
+          popover:{
+            title:"提示",
+            description:"启动入门镜像,启动后可以点击镜像信息旁的<i  class=\"el-icon-reading\"  style=\"color: rgb(140, 197, 255);font-size: 20px\"></i>了解漏洞镜像！成功提交flag后可以解除新手模式，查看所有漏洞环境",
+            position: "top",
           },
-        ];
+        },
+      ];
         driver.defineSteps(steps);
         driver.start();
       },
@@ -658,9 +777,9 @@ export default {
         });
       },
       getUser() {
-        this.user = {
-          greenhand:this.greenhand
-        }
+      this.user = {
+        greenhand:this.greenhand
+      }
       },
       showactive(tag){
         let tags = tag
@@ -698,6 +817,7 @@ export default {
         }
       },
       selectLan(index,item){
+        this.current_page = 1
         this.activeClass2 = index
         this.allTag2.splice(0,1)
         if (item.value === "全部"){
@@ -707,6 +827,7 @@ export default {
         this.getselectdata()
       },
       selectIfy(index,item){
+        this.current_page = 1
         this.activeClass4 = index
         this.allTag4.splice(0,1)
         if (item.value === "全部"){
@@ -716,11 +837,13 @@ export default {
         this.getselectdata()
       },
       selectDiff(index,item){
+        this.current_page = 1
         this.activeClass1 = index
         this.searchRank = item.value
         this.getselectdata()
       },
       selectDeg(index,item){
+        this.current_page = 1
         this.activeClass3 = index
         this.allTag3.splice(0,1)
         if (item.value === "全部"){
@@ -730,6 +853,7 @@ export default {
         this.getselectdata()
       },
       selectSql(index,item){
+        this.current_page = 1
         this.activeClass5 = index
         this.allTag5.splice(0,1)
         if (item.value === "全部"){
@@ -750,6 +874,7 @@ export default {
       _this.get_time = yy+'-'+mm+'-'+dd+' '+hh+':'+mf+':'+ss;
   },
 }
+
 </script>
 
 <style lang="scss" scoped>
@@ -766,55 +891,64 @@ export default {
   font-size: 13px;
   color: #999;
 }
+
 .bottom {
   margin-top: 5px;
   margin-bottom: 13px;
   line-height: 12px;
 }
+
 .button {
   padding: 5px;
   float: right;
 }
+
 .image {
   width: 100%;
   display: block;
 }
+
 .clearfix:before,
 .clearfix:after {
   display: table;
   content: "";
 }
+
 .clearfix:after {
   clear: both
 }
+
 .text {
   font-size: 14px;
 }
+
 .item {
   margin-bottom: 18px;
 }
+
 .container-title{
   width: 100%;    /*根据自己项目进行定义宽度*/
   overflow: hidden;     /*设置超出的部分进行影藏*/
   text-overflow: ellipsis;     /*设置超出部分使用省略号*/
   white-space:nowrap ;    /*设置为单行*/
 }
+
 .date {
+
 }
 .date p{
   height: 20px;
   line-height: 20px;
   margin: 0;
+
   margin-block-end: 0em;
 }
+
 .el-row {
   display: flex;
   flex-wrap: wrap;
 }
-/*p {*/
-/*  height: 20px;*/
-/*  line-height: 20px;*/
-/*}*/
+
 </style>
 
 <style rel="stylesheet/scss" lang="scss">
@@ -825,6 +959,7 @@ export default {
   font-size: 14px;
   border-bottom: 1px dashed #dde6f0;
   background: #fff;
+
   .filter-name {
    width: 150px;
    height: 24px;
@@ -857,6 +992,8 @@ export default {
    border-radius: 200px;
   }
 }
+
+
 .el-drawer{
   overflow: scroll
 }

@@ -104,7 +104,7 @@
                 <div class="tag-group">
                   <el-row>
                     <el-col :span="2.5">
-                      <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">开发框架</el-button>
+                      <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">分类</el-button>
                     </el-col>
                     <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in vulInfo.devClassify" closable :disable-transitions="false" @close="handleClose(tag, 'devClassify', 'newtag')">
                     {{tag}}
@@ -143,14 +143,6 @@
               </el-form-item>
               <el-form-item>
                 <el-button type="primary"  @click="uploadImg" size="medium">提 交</el-button>
-                <el-button type="primary" @click="handleMark" size="medium">编辑writeup</el-button>
-              </el-form-item>
-              <el-form-item v-if="markstatus === true">
-                <div class="container" >
-                  <markdown-editor ref="markdownEditor" v-model="vulInfo.writeup_date" :options="{hideModeSwitch:true, previewStyle:'tab'}" height="200px" />
-                </div>
-<!--                <el-button type="primary" @click="saveHandleMark" size="medium">保存</el-button>-->
-                <el-button type="primary" @click="closeHandleMark" size="medium">关闭</el-button>
               </el-form-item>
             </el-form>
           </el-tab-pane>
@@ -217,7 +209,7 @@
         </el-table-column>
       </el-table>
     </el-dialog>
-    <el-dialog :visible.sync="editShow"  @close="closeDialog">
+    <el-dialog :visible.sync="editShow" @close="closeDialog">
       <el-tabs  v-model="activeName">
         <el-tab-pane label="修改" name="first">
           <el-form label-width="80px" v-loading="editLoding" element-loading-text="修改中">
@@ -303,7 +295,7 @@
             <div class="tag-group">
               <el-row>
                 <el-col :span="2.5">
-                  <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">分类</el-button>
+                  <el-button type='primary' size="mini" style="width: 80px" class="tag-group__title">开发框架</el-button>
                 </el-col>
                 <el-tag style="margin-left: 10px" :key="index" v-for="(tag, index) in editVulInfo.devClassify" closable :disable-transitions="false" @close="handleClose(tag, 'devClassify')">
                 {{tag}}
@@ -345,7 +337,7 @@
           </el-form-item>
         </el-form>
         </el-tab-pane>
-        <el-tab-pane id="compose-update" label="Compose修改" name="second" v-if="editVulInfo.is_docker_compose === true">
+        <el-tab-pane id="compose-update" label="Compose修改" name="secnd" v-if="editVulInfo.is_docker_compose === true">
           <span slot="label"><i class="el-icon-document"></i>DockerCompose修改</span>
           <el-tabs value="dockerfile" ref="tab">
             <el-tab-pane name="dockerfile">
@@ -367,7 +359,7 @@
                   <el-button @click="update_compose_build" type="primary" size="mini">编译</el-button>
                 </div>
               </el-col>
-              <el-col :span="22" style="margin-top: 0px">
+              <el-col :span="22" style="margin-top: 1px">
                 <div>
                   <el-upload
                     ref="upload"
@@ -389,16 +381,12 @@
     </el-dialog>
     <div class="filter-container">
       <el-input v-model="search" style="width: 230px;" size="medium"></el-input>
-      <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="handleQuery(1)">
+      <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-search" @click="SearchQuery(1)">
         查询
       </el-button>
       <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-edit" @click="openCreate">
         添加
       </el-button>
-      <el-button v-if="loading===false" class="filter-item" @click="getWebsiteData" size="medium" style="float: right;margin-bottom: 10px" type="primary" icon="el-icon-refresh-left">
-        一键同步
-      </el-button>
-      <el-button v-else-if="loading===true" type="primary" :loading="true" style="float: right;margin-bottom: 10px" >同步中</el-button>
     </div>
     <el-table :data="tableData" border stripe align = "center" style="width: 100%" v-loading="tabLoading">
       <el-table-column type="index" width="50"> </el-table-column>
@@ -470,7 +458,7 @@
 </template>
 
 <script>
-  import { ImgList,get_website_imgs } from "@/api/docker"
+  import { ImgList } from "@/api/docker"
   import { search } from "@/api/utils"
   import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageDownload,ImageEdit } from "@/api/image"
   import { containerDel } from '@/api/container'
@@ -490,6 +478,7 @@
         markstatus: false,
         tableData: [],
         search: "",
+        real_search:"",
         localSearch: "",
         centerDialogVisible: false,
         startCon: false,
@@ -499,7 +488,6 @@
           vul_name: "",
           desc: "",
           degree:[],
-          writeup_date: '',
           is_flag: true,
           HoleType: [],
           devLanguage:[],
@@ -580,19 +568,20 @@
           {value:"Teradata", lable:"Teradata"},
         ],
         classifyList:[
-        {value:"Bootstrap", lable:"Bootstrap"},
-        {value:"Angular", lable:"Angular"},
-        {value:"Jquery", lable:"Jquery"},
-        {value:"react", lable:"react"},
-        {value:"vue", lable:"vue"},
-        {value:"Zepto", lable:"Zepto"},
-        {value:"CakePHP", lable:"CakePHP"},
-        {value:"Django", lable:"Django"},
-        {value:"Ruby on Rails", lable:"Ruby on Rails"},
-        {value:"Flask", lable:"Flask"},
-        {value:"Phoenix", lable:"Phoenix"},
-        {value:"Spring Boot", lable:"Spring Boot"},
-        {value:"Laravel", lable:"Laravel"},
+          {value:"全部", lable:"全部"},
+          {value:"Bootstrap", lable:"Bootstrap"},
+          {value:"Angular", lable:"Angular"},
+          {value:"Jquery", lable:"Jquery"},
+          {value:"react", lable:"react"},
+          {value:"vue", lable:"vue"},
+          {value:"Zepto", lable:"Zepto"},
+          {value:"CakePHP", lable:"CakePHP"},
+          {value:"Django", lable:"Django"},
+          {value:"Ruby on Rails", lable:"Ruby on Rails"},
+          {value:"Flask", lable:"Flask"},
+          {value:"Phoenix", lable:"Phoenix"},
+          {value:"Spring Boot", lable:"Spring Boot"},
+          {value:"Laravel", lable:"Laravel"},
         ],
         editVulInfo:{
           rank: "",
@@ -601,7 +590,6 @@
           image_vul_name: "",
           image_desc: "",
           degree:[],
-          writeup_date: '',
           is_flag: true,
           is_docker_compose:false,
           docker_compose_yml:'',
@@ -643,7 +631,8 @@
         newFile: new FormData(),
         fileList:[],
         restaurants: [],
-        state: ''
+        state: '',
+        current_page:1,
       }
     },
     mounted() {
@@ -675,32 +664,6 @@
           })
         }
       },
-      handleMark(){
-        this.markstatus = true
-      },
-      closeHandleMark(){
-        this.markstatus = false
-      },
-      getWebsiteData(){
-         this.loading=true
-         get_website_imgs().then(response=>{
-           let data = response.data
-           if (data.code===200){
-             this.$message(
-             {
-              message:"同步完成",
-              type:"success"
-             })
-             this.reload()
-             }else{
-             this.$message({
-              message:"同步失败",
-              type:"error"
-             })
-             }
-           this.loading=false
-         })
-       },
       searchSummariesList(keyword){
         this.summaries = []
         search(keyword).then(response => {
@@ -776,7 +739,6 @@
         this.vulInfo.vul_name = ""
         this.vulInfo.desc = ""
         this.vulInfo.degree = []
-        this.vulInfo.writeup_date = []
         this.vulInfo.is_flag = true
       },
       openProgress(row,flag){
@@ -839,7 +801,10 @@
               type: 'success'
             });
             this.editShow = false
-            this.initTableData()
+            ImgList(this.search, true, this.current_page).then(response => {
+              this.tableData = response.data.results
+              this.page.total = response.data.count
+            })
           }else{
             this.$message({
               message: msg,
@@ -858,6 +823,7 @@
         try {
           clearInterval(this.progress.progressInterval)
         }catch (e) {
+
         }
       },
       changeType(){
@@ -883,6 +849,7 @@
           'devDatabase':this.vulInfo.devDatabase,
           'devClassify':this.vulInfo.devClassify,
         }
+        // this.vulInfo.degree = all_degree
         formData.set("rank", this.vulInfo.rank)
         formData.set("image_name", this.vulInfo.name)
         formData.set("image_vul_name", this.vulInfo.vul_name)
@@ -892,7 +859,6 @@
         formData.set("devDatabase", this.vulInfo.devDatabase)
         formData.set("devClassify", this.vulInfo.devClassify)
         formData.set("is_flag", this.vulInfo.is_flag)
-        formData.set("writeup_date", this.vulInfo.writeup_date)
         this.loading = true
         ImageAdd(formData).then(response => {
           this.loading = false
@@ -943,7 +909,28 @@
                   message: msg,
                   type: 'success'
                 });
-                this.initTableData()
+                clearInterval(this.taskCheckInterval)
+                ImgList(this.real_search, true, this.current_page).then(response => {
+                  this.tableData = response.data.results
+                  this.tabLoading = false
+                  this.page.total = response.data.count
+                  this.tableData.forEach((item, index, arr) => {
+                    let image_name = item.image_name
+                    if(this.tmpImageNameList.indexOf(image_name) > -1){
+                      this.$notify({
+                        title: '成功',
+                        message: image_name+" 添加成功",
+                        type: 'success'
+                      });
+                    }
+                  })
+                  let tmpTableData = response.data.results
+                  this.taskCheckInterval = window.setInterval(() => {
+                    setTimeout(()=>{
+                      this.checkTask(tmpTableData)
+                    },0)
+                  },2000)
+                })
               }else{
                 this.$notify({
                   message: msg,
@@ -978,7 +965,27 @@
               type: "error",
             })
           }
-          this.initTableData()
+          ImgList(this.real_search, true, this.current_page).then(response => {
+                this.tableData = response.data.results
+                this.tabLoading = false
+                this.page.total = response.data.count
+                this.tableData.forEach((item, index, arr) => {
+                  let image_name = item.image_name
+                  if (this.tmpImageNameList.indexOf(image_name) > -1) {
+                        this.$notify({
+                          title: '成功',
+                          message: image_name + " 添加成功",
+                          type: 'success'
+                        });
+                      }
+                })
+                let tmpTableData = response.data.results
+                this.taskCheckInterval = window.setInterval(() => {
+                  setTimeout(() => {
+                    this.checkTask(tmpTableData)
+                  }, 0)
+                }, 2000)
+              })
         })
       },
       handleDelete(row){
@@ -989,14 +996,42 @@
         }).then(() => {
           ImageDelete(row.image_id).then(response => {
             let data = response.data
-            if(data.status === 200){
+            if(data.status === 200) {
               this.$message({
                 title: '成功',
                 message: '删除成功!',
                 type: 'success'
               });
-              this.initTableData()
-            }else{
+              clearInterval(this.taskCheckInterval);
+              if(this.tableData.length === 1){
+                this.current_page -= 1;
+                if(this.current_page == 0){
+                  this.current_page =1;
+                }
+              };
+              ImgList(this.real_search, true, this.current_page).then(response => {
+                this.tableData = response.data.results
+                this.tabLoading = false
+                this.page.total = response.data.count
+                this.tableData.forEach((item, index, arr) => {
+                  let image_name = item.image_name
+                  if (this.tmpImageNameList.indexOf(image_name) > -1) {
+                        this.$notify({
+                          title: '成功',
+                          message: image_name + " 添加成功",
+                          type: 'success'
+                        });
+                      }
+                })
+                let tmpTableData = response.data.results
+                this.taskCheckInterval = window.setInterval(() => {
+                  setTimeout(() => {
+                    this.checkTask(tmpTableData)
+                  }, 0)
+                }, 2000)
+              })
+            }
+            else{
               this.deleteShow = true
               this.deleteContainerList = data.data
               this.$message({
@@ -1010,10 +1045,11 @@
         });
       },
       handleQuery(val){
-        ImgList(this.search, true, val).then(response => {
+        this.current_page = val
+        ImgList(this.real_search, true, val).then(response => {
           this.tableData = response.data.results
           this.page.total = response.data.count
-        })
+        }).catch(() => {})
       },
       handleSelect(item){
         this.vulInfo.name = item.value
@@ -1058,6 +1094,7 @@
                       this.taskDict[key].status.progress_status = ""
                     }
                   }catch (e) {
+
                   }
                   this.$notify({
                     message: taskMsg["data"]["msg"],
@@ -1070,6 +1107,7 @@
                       this.taskDict[key].status.progress_status = ""
                     }
                   }catch (e) {
+
                   }
                   this.$notify({
                     message: taskMsg["data"]["msg"],
@@ -1115,6 +1153,7 @@
         if(name === "local"){
           this.loadLocalImages()
         }else{
+
         }
       },
       handleLocalRemove(name){
@@ -1147,6 +1186,7 @@
               let msg = data[i]
               let tmpMsg = msg.replace(" ", "").replace("拉取镜像", "").replace("任务下发成功", "")
               this.tmpImageNameList.push(tmpMsg)
+
               this.$notify({
                 title: '成功',
                 message: msg,
@@ -1197,7 +1237,10 @@
                           message: '删除成功'
                         });
                         this.deleteShow = false
-                        this.initTableData()
+                        ImgList(this.search, true, this.current_page).then(response => {
+                this.tableData = response.data.results
+                this.page.total = response.data.count
+              })
                       }
                     })
                   }else{
@@ -1213,80 +1256,80 @@
         })
       },
       upload(file,fileList){
-        let size = file.file.size /1024 /1024
-        if (size>2){
-          this.$message({
-            message: "文件大小必须小于2M",
-            type: 'error'
-          })
-          this.fileList.pop()
-        }else{
-          let data = this.newFile
-          uploadFile(data).then(response => {
-            let rsp = response.data
-            if (rsp.data && rsp.status === 200){
-              for (let i=0; i<this.fileList.length; i++){
-                  if (this.fileList[i].name.indexOf("../compose_file/")===-1){
-                    this.fileList[i].name = "../compose_file/" + this.fileList[i].name
-                  }else {
-                  }
-              }
-              this.$message({
-                message: '上传成功',
-                type: 'success'
-              })
-            }else{
-              this.fileList.pop()
-              this.$message({
-                message: rsp.msg,
-                type: 'error'
-              })
+      let size = file.file.size /1024 /1024
+      if (size>2){
+        this.$message({
+          message: "文件大小必须小于2M",
+          type: 'error'
+        })
+        this.fileList.pop()
+      }else{
+        let data = this.newFile
+        uploadFile(data).then(response => {
+          let rsp = response.data
+          if (rsp.data && rsp.status === 200){
+            for (let i=0; i<this.fileList.length; i++){
+                if (this.fileList[i].name.indexOf("../compose_file/")===-1){
+                  this.fileList[i].name = "../compose_file/" + this.fileList[i].name
+                }else {
+                }
             }
-          }).catch(err => {
+            this.$message({
+              message: '上传成功',
+              type: 'success'
+            })
+          }else{
             this.fileList.pop()
             this.$message({
-              message: "服务器内部错误",
+              message: rsp.msg,
               type: 'error'
             })
+          }
+        }).catch(err => {
+          this.fileList.pop()
+          this.$message({
+            message: "服务器内部错误",
+            type: 'error'
           })
-        }
-      },
+        })
+      }
+    },
       removeChange(file,fileList) {
-          this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            let delFile = new FormData()
-            delFile.set("file", file.name)
-            deleteFile(delFile).then(response=>{
-              let data = response.data
-              if (data.status === 200){
-                for (let i=0; i<fileList.length; i++){
-                  if (fileList[i] === file){
-                    fileList.splice(i,1)
-                  }
+        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let delFile = new FormData()
+          delFile.set("file", file.name)
+          deleteFile(delFile).then(response=>{
+            let data = response.data
+            if (data.status === 200){
+              for (let i=0; i<fileList.length; i++){
+                if (fileList[i] === file){
+                  fileList.splice(i,1)
                 }
-                this.$message({
-                  type: 'success',
-                  message: '删除成功!'
-                });
-              }else {
-                fileList.push(file)
-                this.$message({
-                  type: 'error',
-                  message: '删除失败!'
-                });
               }
-            })
-          }).catch(() => {
-            fileList.push(file)
-            this.$message({
-              type: 'info',
-              message: '已取消删除'
-            });
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              });
+            }else {
+              fileList.push(file)
+              this.$message({
+                type: 'error',
+                message: '删除失败!'
+              });
+            }
+          })
+        }).catch(() => {
+          fileList.push(file)
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
           });
-        },
+        });
+      },
       update_compose_build(){
         let data = {}
         data.compose_content = this.compose_content
@@ -1436,6 +1479,14 @@
         }
         this.inputVisible4 = false;
         this.inputValue4 = '';
+      },
+      SearchQuery(page){
+        this.real_search = this.search;
+        this.current_page = page;
+        ImgList(this.real_search, true, page).then(response => {
+          this.tableData = response.data.results;
+          this.page.total = response.data.count;
+        })
       }
     }
   }
@@ -1457,4 +1508,5 @@
     margin-left: 10px;
     vertical-align: bottom;
   }
+
 </style>

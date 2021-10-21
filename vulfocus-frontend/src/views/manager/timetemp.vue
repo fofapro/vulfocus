@@ -13,11 +13,13 @@
                 <el-input type="text" v-model="form.name" autocomplete="off" :autosize="{ minRows: 4, maxRows: 6}" ></el-input>
               </el-form-item>
               <el-form-item label="计时时间" :label-width="formLabelWidth" prop="time_range">
-                <el-select v-model="form.time_range" placeholder="请选择时间范围" size="medium" >
-                  <el-option label="30分钟" value="30"></el-option>
-                  <el-option label="60分钟" value="60"></el-option>
-                  <el-option label="90分钟" value="90"></el-option>
-                  <el-option label="120分钟" value="120"></el-option>
+                <el-select v-model="form.time_range" filterable allow-create default-first-option placeholder="请选择时间范围" size="medium">
+                  <el-option v-for="item in timeoptions" :value="item.value" :key="item.value" :label="item.label"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="计时类型" :label-width="formLabelWidth" prop="template_pattern">
+                <el-select v-model="form.template_pattern" default-first-option placeholder="请选择计时模式类型" size="medium">
+                  <el-option v-for="item in patternoptions" :value="item.value" :key="item.value" :label="item.label"></el-option>
                 </el-select>
               </el-form-item>
               <el-form-item label="模版描述" :label-width="formLabelWidth" >
@@ -131,8 +133,19 @@
           desc: '',
           imageName: '',
           time_img_type:[],
-          rank_range:0
+          rank_range:0,
+          template_pattern:"",
         },
+        patternoptions:[
+          {value: 1, label:"盲盒模式"},
+          {value: 2, label:"普通模式"},
+        ],
+        timeoptions:[
+          {value: 30, label:"30分钟"},
+          {value: 60, label:"60分钟"},
+          {value: 90, label:"90分钟"},
+          {value: 120, label:"120分钟"}
+        ],
         degreeList:[
           {value:"命令执行", lable:"命令执行"},
           {value:"代码执行", lable:"代码执行"},
@@ -161,7 +174,8 @@
         editLoading: false,
         rules:{
           name:[{required:true, message:"名称不能为空"}],
-          time_range:[{required:true, message:"时间不能为空"}]
+          time_range:[{required:true, message:"时间不能为空"}],
+          template_pattern:[{required:true, message:"请选择计时模式"}]
         },
         newFile: new FormData()
       };
@@ -188,6 +202,7 @@
         formData.set("time_img_type", this.form.time_img_type)
         formData.set("name", this.form.name)
         formData.set("ilist", ilist)
+        formData.set("template_pattern", this.form.template_pattern)
         timetempadd(formData).then(response => {
           let rsDta = response.data
           if (rsDta.status === 200){
