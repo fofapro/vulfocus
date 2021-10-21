@@ -25,6 +25,7 @@ from rest_framework.views import APIView
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from rest_framework.pagination import PageNumberPagination
+import requests
 
 
 class MyPageNumberPagination(PageNumberPagination):
@@ -1090,7 +1091,6 @@ class DashboardView(APIView):
             img = ImageInfoSerializer(imgs, context={'request': self.request}).data
             if user_info.greenhand != True:
                 del img['writeup_date']
-                del img['writeup_date_name']
                 del img['HoleType']
                 del img['devLanguage']
                 del img['devDatabase']
@@ -1287,16 +1287,6 @@ def get_writeup_info(request):
                 writeup_date = json.loads(img_info.writeup_date)
             else:
                 writeup_date = ""
-        write_info = WriteupInfo.objects.filter(image_id=image_id, is_newest=True).first()
-        if write_info:
-            try:
-                writeup_date = json.loads(write_info.writeup_data)
-                user_id = write_info.user_id
-                user_info = UserProfile.objects.get(id=user_id)
-                writeup_date_name = user_info.username
-                return JsonResponse({'code': 200, 'data': {"username": writeup_date_name, "writeup_date": writeup_date}})
-            except Exception as e:
-                return JsonResponse({'code': 200, 'data': {"username": "", "writeup_date": ""}})
         return JsonResponse({'code': 200, 'data': {"username": '', "writeup_date": writeup_date}})
     else:
         return JsonResponse({'code': 200, 'data': {"username": '', "writeup_date": ''}})
@@ -1452,6 +1442,52 @@ def update_setting(request):
                 cancel_registration_config.save()
     rsp_data = get_setting_config()
     return JsonResponse(R.ok(msg="修改成功", data=rsp_data))
+
+
+@api_view(http_method_names=["POST"])
+def get_timing_imgs(request):
+    """
+    获取官网镜像信息
+    """
+    try:
+        url = "http://vulfocus.fofa.so/api/imgs/info"
+        res = requests.get(url, verify=False).content
+        req = json.loads(res)
+        image_names = list(ImageInfo.objects.all().values_list('image_name', flat=True))
+        for item in req:
+            if item['image_name'] == "":
+                continue
+            if 'is_docker_compose' in item:
+                if item['is_docker_compose'] == True:
+                    continue
+            if item['image_name'] in image_names:
+                if item['image_name'] == "vulfocus/vulfocus:latest":
+                    continue
+                single_img = ImageInfo.objects.filter(image_name__contains=item['image_name']).first()
+                if single_img.image_vul_name != item['image_vul_name'] or single_img.image_vul_name == "":
+                    single_img.image_vul_name = item['image_vul_name']
+                if single_img.image_desc == "":
+                    single_img.image_desc = item['image_desc']
+                if single_img.rank != item['rank']:
+                    single_img.rank = item['rank']
+                if single_img.degree != item['degree']:
+                    single_img.degree = json.dumps(item['degree'])
+                if "writeup_date" in item and single_img.writeup_date != item['writeup_date']:
+                    single_img.writeup_date = item['writeup_date']
+                single_img.save()
+            else:
+                if "writeup_date" in item:
+                    writeup_date = item['writeup_date']
+                else:
+                    writeup_date = ""
+                image_info = ImageInfo(image_name=item['image_name'], image_vul_name=item['image_vul_name'],
+                                       image_desc=item['image_desc'], rank=item['rank'], degree=json.dumps(item['degree']),
+                                       is_ok=False, create_date=timezone.now(), writeup_date=writeup_date,
+                                       update_date=timezone.now())
+                image_info.save()
+        return JsonResponse({"code": 200, "data": "成功"})
+    except Exception as e:
+        return JsonResponse({"code": 201, "data": e})
 
 
 @api_view(http_method_names=["POST"])

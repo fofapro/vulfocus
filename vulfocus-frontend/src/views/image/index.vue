@@ -387,6 +387,10 @@
       <el-button class="filter-item" size="medium" style="margin-left: 10px;margin-bottom: 10px" type="primary" icon="el-icon-edit" @click="openCreate">
         添加
       </el-button>
+      <el-button v-if="loading===false" class="filter-item" @click="getWebsiteData" size="medium" style="float: right;margin-bottom: 10px" type="primary" icon="el-icon-refresh-left">
+        一键同步
+      </el-button>
+      <el-button v-else-if="loading===true" type="primary" :loading="true" style="float: right;margin-bottom: 10px" >同步中</el-button>
     </div>
     <el-table :data="tableData" border stripe align = "center" style="width: 100%" v-loading="tabLoading">
       <el-table-column type="index" width="50"> </el-table-column>
@@ -458,7 +462,7 @@
 </template>
 
 <script>
-  import { ImgList } from "@/api/docker"
+  import { ImgList,get_website_imgs } from "@/api/docker"
   import { search } from "@/api/utils"
   import { ImageAdd, ImageDelete,ImageLocal,ImageLocalAdd,ImageShare,ImageDownload,ImageEdit } from "@/api/image"
   import { containerDel } from '@/api/container'
@@ -643,6 +647,26 @@
       this.initSummariesList()
     },
     methods:{
+      getWebsiteData(){
+         this.loading=true
+         get_website_imgs().then(response=>{
+           let data = response.data
+           if (data.code===200){
+             this.$message(
+             {
+              message:"同步完成",
+              type:"success"
+             })
+             this.reload()
+             }else{
+             this.$message({
+              message:"同步失败",
+              type:"error"
+             })
+             }
+           this.loading=false
+         })
+       },
       querySearchAsync(queryString, cb) {
         let restaurants = this.summaries
         if (queryString === null || queryString === "" || queryString.length === 0){
