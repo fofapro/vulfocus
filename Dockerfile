@@ -1,5 +1,5 @@
 FROM python:3
-LABEL maintainer="Prometheus <99234@qq.com>" version="0.3.2.9" description="Vulfocus for Docker"
+LABEL maintainer="Prometheus <99234@qq.com>" version="0.3.3.0" description="Vulfocus for Docker"
 EXPOSE 80
 RUN mkdir /vulfocus-api/
 WORKDIR /vulfocus-api/

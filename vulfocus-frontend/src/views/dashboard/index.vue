@@ -349,6 +349,12 @@ export default {
             }
             this.loading=false
             if (this.user.greenhand === true){
+              if (this.page.total === 0){
+                this.$message({
+                  message:  "当前没有入门镜像，请联系管理员",
+                  type: "warning",
+                })
+              }
               if (this.loading === false && this.firstLogin === false){
                 this.$nextTick(() => {
                   this.showTips()

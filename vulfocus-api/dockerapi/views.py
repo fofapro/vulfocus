@@ -453,7 +453,7 @@ class ImageInfoViewSet(viewsets.ModelViewSet):
                         time_img_type_q.children.append(('degree__contains', json.dumps(img_type)))
                 rank_range_q = Q()
                 if rank_range != "":
-                    rank_range_q = 'AND'
+                    rank_range_q.connector = 'AND'
                     rank_range_q.children.append(('rank__lte', rank_range))
                     rank_range_q.children.append(('rank__gte', min_rank))
                 image_q = Q()
@@ -879,8 +879,8 @@ class DashboardView(APIView):
             rank_range_greenhand = Q()
             rank_range_greenhand.children.append(('rank__lte', 0.5))
             rank_range_greenhand.children.append(('rank__gte', 0.0))
-            count = ImageInfo.objects.filter(rank_range_greenhand).count()
-            image_info_list = ImageInfo.objects.filter(rank_range_greenhand)[min_size:max_size]
+            count = ImageInfo.objects.filter(rank_range_greenhand, is_ok=True).count()
+            image_info_list = ImageInfo.objects.filter(rank_range_greenhand, is_ok=True)[min_size:max_size]
         elif user.is_superuser:
             if query:
                 query = query.strip()
