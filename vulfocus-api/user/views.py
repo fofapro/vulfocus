@@ -536,9 +536,12 @@ def upload_user_img(request):
     if not os.path.exists(static_path):
         os.mkdir(static_path)
     #  判断用户是否更新过头像
-    if user.avatar != "/images/user/bmh.png":
-        origin_img_path = user.avatar.split("user")[-1]
-        os.remove(static_path+origin_img_path)
+    try:
+        if user.avatar != "/images/user/bmh.png":
+            origin_img_path = user.avatar.split("user")[-1]
+            os.remove(static_path + origin_img_path)
+    except Exception as e:
+        pass
     with open(os.path.join(static_path, img_name), "wb") as f:
         for chunk in img.chunks():
             f.write(chunk)
