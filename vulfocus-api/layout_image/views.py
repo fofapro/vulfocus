@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from .serializers import LayoutSerializer
 from django.core.paginator import Paginator
 from .models import Layout, LayoutService, LayoutServiceNetwork, LayoutData, LayoutServiceContainer, \
-    LayoutServiceContainerScore
+    LayoutServiceContainerScore, SceneUserFav
 from django.views.decorators.csrf import csrf_exempt
 from dockerapi.models import ImageInfo, ContainerVul, SysLog, TimeTemp, TimeRank, TimeMoudel
 from dockerapi.serializers import TimeTempSerializer
@@ -396,6 +396,8 @@ class LayoutViewSet(viewsets.ModelViewSet):
             layout_info = Layout.objects.filter(layout_id=pk, is_release=True).first()
         if not layout_info:
             return JsonResponse(R.build(msg="环境不存在或未发布"))
+        layout_info.total_view += 1
+        layout_info.save()
         layout_path = os.path.join(DOCKER_COMPOSE, str(layout_info.layout_id))
         layout_data = LayoutData.objects.filter(layout_id=layout_info,
                                                 file_path="docker-compose" + layout_path.replace(DOCKER_COMPOSE,
@@ -1117,6 +1119,13 @@ def get_scene_data(request):
                     lay_dict['status'] = lay_data['status']
                     lay_dict['type'] = "layoutScene"
                     lay_dict['user_count'] = user_count
+                    # 场景点赞数
+                    fav_num = SceneUserFav.objects.filter(scene_id=lay_dict['id']).count()
+                    lay_dict["fav_num"] = fav_num
+                    has_fav = SceneUserFav.objects.filter(scene_id=lay_dict['id'], user=request.user).exists()
+                    lay_dict["have_fav"] = has_fav
+                    lay_dict["total_view"] = lay_data['total_view']
+                    lay_dict["download_num"] = lay_data["download_num"]
                     all_list.append(lay_dict)
             if query:
                 temp_data = TimeTemp.objects.filter(Q(name__contains=query) | Q(time_desc__contains=query))
@@ -1133,6 +1142,12 @@ def get_scene_data(request):
                     temp_dict['image_name'] = tem_data['image_name']
                     temp_dict['type'] = "timeScene"
                     temp_dict['user_count'] = user_count
+                    # 场景点赞数
+                    fav_num = SceneUserFav.objects.filter(scene_id=temp_dict['id']).count()
+                    temp_dict["fav_num"] = fav_num
+                    has_fav = SceneUserFav.objects.filter(scene_id=temp_dict['id'], user=request.user).exists()
+                    temp_dict["have_fav"] = has_fav
+                    temp_dict["total_view"] = tem_data['total_view']
                     all_list.append(temp_dict)
             if tag == "hot":
                 all_list = sorted(all_list, key=lambda keys: keys['user_count'],reverse=True)[min_size:max_size]
@@ -1164,6 +1179,12 @@ def get_scene_data(request):
                     lay_dict['status'] = lay_data['status']
                     lay_dict['type'] = "layoutScene"
                     lay_dict['user_count'] = user_count
+                    fav_num = SceneUserFav.objects.filter(scene_id=lay_dict['id']).count()
+                    lay_dict["fav_num"] = fav_num
+                    has_fav = SceneUserFav.objects.filter(scene_id=lay_dict['id'], user=request.user).exists()
+                    lay_dict["have_fav"] = has_fav
+                    lay_dict["total_view"] = lay_data['total_view']
+                    lay_dict["download_num"] = lay_data["download_num"]
                     all_list.append(lay_dict)
             all_list = all_list[min_size:max_size]
         else:
@@ -1182,6 +1203,11 @@ def get_scene_data(request):
                     temp_dict['image_name'] = tem_data['image_name']
                     temp_dict['type'] = "timeScene"
                     temp_dict['user_count'] = user_count
+                    fav_num = SceneUserFav.objects.filter(scene_id=temp_dict['id']).count()
+                    temp_dict["fav_num"] = fav_num
+                    has_fav = SceneUserFav.objects.filter(scene_id=temp_dict['id'], user=request.user).exists()
+                    temp_dict["have_fav"] = has_fav
+                    temp_dict["total_view"] = tem_data['total_view']
                     all_list.append(temp_dict)
             all_list = all_list[min_size:max_size]
     except:
@@ -1808,3 +1834,23 @@ def get_official_website_layout(request):
     except:
         data = []
     return JsonResponse(R.ok(data))
+
+
+@api_view(http_method_names=["POST"])
+def thumbUp(request):
+    """
+    场景点赞
+    :param request:
+    :return:
+    """
+    user = request.user
+    scene_id = request.data.get("scene_id", "")
+    scene_fav = SceneUserFav.objects.filter(user=user, scene_id=scene_id).first()
+    if not scene_fav:
+        new_scene_fav = SceneUserFav()
+        new_scene_fav.user = user
+        new_scene_fav.scene_id = scene_id
+        new_scene_fav.save()
+    else:
+        scene_fav.delete()
+    return JsonResponse(R.ok())

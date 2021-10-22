@@ -34,14 +34,11 @@ def get_notifications_count(request):
 
 @api_view(http_method_names=["GET"])
 def get_public_notice(request):
-    notifications = Notification.objects.filter(recipient=request.user)
     notices = []
-    for single_notification in notifications:
-        if single_notification.target_object_id:
-            notice = Notice.objects.filter(notice_id=single_notification.target_object_id).first()
-            if notice:
-                notices.append(notice)
-    notices.sort(key=lambda item: item.update_date,reverse=True)
+    all_notices = Notice.objects.filter(is_public=True)
+    for single_notice in all_notices:
+        notices.append(single_notice)
+    notices.sort(key=lambda item: item.update_date, reverse=True)
     page_no = int(request.GET.get("page", "1"))
     pages = Paginator(notices, 20)
     page = pages.page(page_no)
@@ -167,3 +164,5 @@ def get_content(request):
         return JsonResponse({"code": 400, "msg": "公告不存在"})
     notice_instance = Notice.objects.filter(notice_id=notice_id).first()
     return JsonResponse({"code": 200, "content": json.loads(notice_instance.notice_content)})
+
+

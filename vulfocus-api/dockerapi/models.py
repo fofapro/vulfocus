@@ -18,6 +18,9 @@ class TimeTemp(models.Model):
     rank_range = models.TextField(verbose_name="Rank范围", default="")
     flag_status = models.BooleanField(verbose_name='用于判断', default=False)
     image_ids = models.TextField(verbose_name="镜像id", default="")
+    # 1是盲盒模式 2是普通模式
+    template_pattern = models.IntegerField(verbose_name="计时模式分类", default=1)
+    total_view = models.IntegerField(default=0, verbose_name="查看数")
 
     class Meta:
         db_table = 'time_temp'

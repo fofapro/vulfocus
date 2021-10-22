@@ -220,7 +220,7 @@
         </el-row>
         <el-row style="margin-top: 10%">
           <el-col :span="8" :offset="8" style="position: relative;transform: translateX(-5%)">
-            <el-button @click="handleCreateTemp" type="primary" plain>创建盲盒模式</el-button>
+            <el-button @click="handleCreateTemp" type="primary" plain>创建计时模式</el-button>
           </el-col>
         </el-row>
       </el-dialog>
@@ -251,12 +251,12 @@
 </template>
 
 <script>
-import {layoutList, layoutRelease, layoutDelete,layoutDownload,upload_zip_file,download_layout_image,getOfficialWebsiteLayout,downloadWebsiteLayout } from '@/api/layout'
+import {layoutList, layoutRelease, layoutDelete,layoutDownload,download_layout_image,getOfficialWebsiteLayout,downloadWebsiteLayout } from '@/api/layout'
 import { getSceneData } from '@/api/scene'
-import { timetemplist,timetempadd,timetempdelete } from '@/api/timemoudel'
+import { timetempdelete } from '@/api/timemoudel'
 import {layoutbathchTask} from '@/api/tasks'
 import timetemp from "../manager/timetemp";
-import { getTask,batchTask,progressTask } from '@/api/tasks'
+import { progressTask } from '@/api/tasks'
 export default {
   name: 'manager',
   inject: ['reload'],
@@ -660,17 +660,16 @@ export default {
     },
     showactive(){
       this.drawer = true
-      // this.showBtnSence = !this.showBtnSence;
     }
   }
 }
 </script>
 
 <style scoped>
+
 .word {
   z-index: 53;
   position: absolute;
-  /*left: 10px;*/
   top: 6px;
   width: 28px;
   display: block;
@@ -681,38 +680,28 @@ export default {
   white-space: nowrap;
   line-height: 14px;
 }
+
 .main {
   z-index: 52;
   width: 70px;
   height: 24px;
-  /*margin-left: 185px;*/
   margin-top: 20px;
   border-radius: 12px 0 0 12px;
   background-color: rgba(250, 63, 63, 1);
 }
+
 .hoveDesc {
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   -o-text-overflow: ellipsis;
   white-space: nowrap;
-  /*word-break:normal;*/
   width:auto;
   display:block;
   word-break:keep-all;
   margin-top: 2px;
 }
-.group3 {
-  z-index: auto;
-  width: 56px;
-  height: 78px;
-}
-.icon2 {
-  z-index: 260;
-  width: 32px;
-  height: 32px;
-  align-self: center;
-}
+
 .word2 {
   z-index: 33;
   width: 56px;
@@ -725,13 +714,12 @@ export default {
   line-height: 14px;
   margin-top: 32px;
 }
+
 .sceneSearch{
   width: 360px;
   height: 32px;
   background: #F2F4F7;
   border-radius: 4px;
 }
-.info{
-  color: #FFFFFF;
-}
+
 </style>

@@ -14,7 +14,7 @@ from notifications.models import Notification
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = "__all__"
+        fields = ["unread", "target_object_id", "recipient"]
 
 
 class NoticeInfoSerializer(serializers.ModelSerializer):
@@ -43,11 +43,10 @@ class NoticeInfoSerializer(serializers.ModelSerializer):
 
     def get_notification(self, obj):
         user = self.context["request"].user
-        all_notifications = Notification.objects.all()
+        notice_id = obj.notice_id
+        notification = Notification.objects.filter(target_object_id=notice_id, recipient=user).only("unread","target_object_id").first()
         try:
-            for single_notification in all_notifications:
-                if single_notification.target.notice_id and obj.notice_id and single_notification.target.notice_id == obj.notice_id and single_notification.recipient == user:
-                    return NotificationSerializer(single_notification).data
+            return NotificationSerializer(notification).data
         except Exception as e:
             return ""
 

@@ -2,7 +2,7 @@ from django.db import models
 import uuid
 from dockerapi.models import ImageInfo
 from network.models import NetWorkInfo
-
+from user.models import UserProfile
 
 class Layout(models.Model):
     """
@@ -20,6 +20,8 @@ class Layout(models.Model):
     create_date = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_date = models.DateTimeField(auto_now=True, verbose_name='更新时间')
     is_uesful = models.BooleanField(default=True, verbose_name="编排环境是否可用")
+    total_view = models.IntegerField(default=0, verbose_name="查看数")
+    download_num = models.IntegerField(default=0, verbose_name="下载数")
 
     class Meta:
         db_table = "layout"
@@ -129,3 +131,15 @@ class LayoutServiceContainerScore(models.Model):
 
     class Meta:
         db_table = "layout_service_container_score"
+
+
+class SceneUserFav(models.Model):
+    """
+    场景点赞模型
+    """
+    scene_id = models.CharField(max_length=255, verbose_name="场景id")
+    user = models.ForeignKey(UserProfile, on_delete=models.DO_NOTHING, verbose_name="点赞用户")
+    add_time = models.DateTimeField(auto_now_add=True, verbose_name="添加时间")
+
+    class Meta:
+        db_table = "layout_user_fav"

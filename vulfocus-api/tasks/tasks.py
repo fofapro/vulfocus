@@ -1329,10 +1329,24 @@ def check_images():
                 print("【检测镜像】%s 存在" % image_name, )
         else:
             try:
-                client.images.get(image_name)
-                image_info.is_ok = True
-                image_info.save()
-                print("【检测镜像】%s 存在" % image_name, )
+                image = client.images.get(image_name)
+                if image:
+                    config = image.attrs["ContainerConfig"]
+                    port_list = []
+                    if "ExposedPorts" in config:
+                        port_list = config["ExposedPorts"]
+                    else:
+                        if "Config" in image.attrs and "ExposedPorts" in image.attrs['Config']:
+                            port_list = image.attrs['Config']['ExposedPorts']
+                    ports = []
+                    for port in port_list:
+                        port = port.replace("/", "").replace("tcp", "").replace("udp", "")
+                        ports.append(port)
+                    image_port = ",".join(ports)
+                    image_info.image_port = image_port
+                    image_info.is_ok = True
+                    image_info.save()
+                    print("【检测镜像】%s 存在" % image_name, )
             except Exception as e:
                 image_info.is_ok = False
                 image_info.save()
