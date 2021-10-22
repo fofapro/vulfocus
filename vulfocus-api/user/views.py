@@ -536,7 +536,7 @@ def upload_user_img(request):
     if not os.path.exists(static_path):
         os.mkdir(static_path)
     #  判断用户是否更新过头像
-    if user.avatar != "http://www.baimaohui.net/home/image/icon-anquan-logo.png":
+    if user.avatar != "/images/user/bmh.png":
         origin_img_path = user.avatar.split("user")[-1]
         os.remove(static_path+origin_img_path)
     with open(os.path.join(static_path, img_name), "wb") as f:
