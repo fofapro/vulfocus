@@ -4,6 +4,17 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE-2014-4210 |`docker pull  vulfocus/weblogic-CVE-2014-4210 `|CVE-2014-4210 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-14883 |`docker pull  vulfocus/weblogic-CVE-2020-14883 `|CVE-2020-14883 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-3245 |`docker pull  vulfocus/weblogic-CVE-2018-3245 `|CVE-2018-3245 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-12604 |`docker pull  vulfocus/greencms-CVE-2018-12604 `|CVE-2018-12604 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2013-2586 |`docker pull  vulfocus/xampp-CVE-2013-2586 `|CVE-2013-2586 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2005-1007 |`docker pull  vulfocus/xampp-CVE-2005-1007 `|CVE-2005-1007 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-8924 |`docker pull  vulfocus/xampp-CVE-2019-8924 `|CVE-2019-8924 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-14825 |`docker pull  vulfocus/weblogic-CVE-2020-14825 `|CVE-2020-14825 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2020-14750 |`docker pull  vulfocus/weblogic-CVE-2020-14750 `|CVE-2020-14750 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2016-3510 |`docker pull  vulfocus/weblogic-CVE-2016-3510 `|CVE-2016-3510 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2017-3248 |`docker pull  vulfocus/weblogic-CVE-2017-3248 `|CVE-2017-3248 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2017-11444 |`docker pull  vulfocus/subrion-CVE-2017-11444 `|CVE-2017-11444 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2018-7422 |`docker pull  vulfocus/wordpress-CVE-2018-7422 `|CVE-2018-7422 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2019-5128 |`docker pull  vulfocus/youphptube-CVE-2019-5128 `|CVE-2019-5128 |[Vulfocus](https://github.com/fofapro/vulfocus)|
