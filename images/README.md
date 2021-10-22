@@ -225,6 +225,22 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 ## 镜像新增日志
 
+2021-10-22
+
+- vulfocus/xampp-cve_2005_1077
+- vulfocus/xampp-cve_2013_2586
+- vulfocus/greencms-cve_2018_12604
+- vulfocus/weblogic-cve_2018_3245
+- vulfocus/weblogic-cve_2020_14883
+- vulfocus/weblogic-cve_2014_4210
+
+2021-10-15
+
+- vulfocus/weblogic-cve_2017_3248
+- vulfocus/weblogic-cve_2016_3510
+- vulfocus/weblogic-cve_2020_14750
+- vulfocus/weblogic-cve_2020_14825
+- vulfocus/xampp-cve_2019_8924
 
 2021-09-26
 
