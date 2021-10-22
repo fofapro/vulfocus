@@ -310,17 +310,16 @@ class SendEmailViewset(mixins.CreateModelMixin,viewsets.GenericViewSet):
         if not User.objects.filter(username=username).count():
             return JsonResponse({"code": 400, "msg": "该用户不存在"})
         user = User.objects.get(username=username)
-        one_minute_ago = datetime.now()-timedelta(minutes=1)
-        if EmailCode.objects.filter(user=user, add_time__gt=one_minute_ago).count():
-            return JsonResponse({"code": 400, "msg": "距离上次发送未超过一分钟"})
+        five_minute_ago = datetime.now() - timedelta(minutes=5)
+        if EmailCode.objects.filter(user=user, add_time__gt=five_minute_ago).count():
+            return JsonResponse({"code": 400, "msg": "距离上次发送未超过五分钟"})
         code = generate_code()
         #判断数据库中是否有相同的验证码记录
         while EmailCode.objects.filter(code=code).count():
             code = generate_code()
         email_instance = EmailCode(user=user, code=code, email=user.email)
         try:
-            send_mail(subject="找回密码", message="{http_referer}#/updatepwd?code={code}。有效期为5分钟".format(http_referer=http_referer, code=code), from_email=EMAIL_FROM,
-                          recipient_list=[user.email])
+            send_update_password_email(receiver_email=user.email, code=code, request=request)
         except:
             return JsonResponse({"code": 400, "msg": "邮件发送失败"})
         email_instance.save()
@@ -537,9 +536,12 @@ def upload_user_img(request):
     if not os.path.exists(static_path):
         os.mkdir(static_path)
     #  判断用户是否更新过头像
-    if user.avatar != "http://www.baimaohui.net/home/image/icon-anquan-logo.png":
-        origin_img_path = user.avatar.split("user")[-1]
-        os.remove(static_path+origin_img_path)
+    try:
+        if user.avatar != "/images/user/bmh.png":
+            origin_img_path = user.avatar.split("user")[-1]
+            os.remove(static_path + origin_img_path)
+    except Exception as e:
+        pass
     with open(os.path.join(static_path, img_name), "wb") as f:
         for chunk in img.chunks():
             f.write(chunk)
@@ -547,3 +549,27 @@ def upload_user_img(request):
     user.save()
     return JsonResponse({"code": 200, "msg": "上传成功", "image_path": img_name})
 
+
+def send_update_password_email(receiver_email, code, request):
+    subject, from_email, to = "找回密码", EMAIL_FROM, receiver_email
+    http_referer = request.META.get('HTTP_REFERER')
+    msg = EmailMultiAlternatives(subject, '', from_email, [to])
+    html_content ="""<div><table cellpadding="0" align="center" width="600" style="background:#fff;width:600px;margin:0 auto;text-align:left;position:relative;font-size:14px; font-family:'lucida Grande',Verdana;line-height:1.5;box-shadow:0 0 5px #999999;border-collapse:collapse;">
+    <tbody><tr><th valign="middle" style="height:12px;color:#fff; font-size:14px;font-weight:bold;text-align:left;border-bottom:1px solid #467ec3;background:#2196f3;">
+    </th></tr><tr><td><div style="padding:30px  40px;"><img style="float:left;" src="http://www.baimaohui.net/home/image/icon-anquan-logo.png?imageView2">
+    <br><br><br><br><h2 style="font-weight:bold; font-size:14px;margin:5px 0;font-family:PingFang-SC-Regular">您好：</h2>
+    <p style="color:#31424e;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">您正在修改密码，请在5分钟之内点击下方的按钮修改您的密码。</p>
+    <a href="{http_referer}#/updatepwd?code={code}" style="color: #e21c23;text-decoration: underline;text-decoration: none;">
+    <div style="height: 36px;line-height:36px;width:160px;border-radius:2px;margin:0 auto;margin-top: 30px;font-size: 16px;background:#2196f3;text-align: center;color: #FFF;">找回密码</div></a>
+    <p style="color:#31424e;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">如果上方按钮不起作用，请复制到您的浏览器中打开。</p>
+    <p style="color:#2196f3;line-height:28px;font-size:14px;margin:20px 0;text-indent:2em;">{http_referer}#/updatepwd?code={code}</p>
+    </div><div style="background: #f1f1f1;padding: 30px 40px;"><p style="color:#798d99; font-size:12px;padding: 0;margin: 0;">
+    Vulfocus 漏洞平台：<a href="http://vulfocus.fofa.so/#/" target="_blank" style="color:#999;text-decoration: none;">http://vulfocus.fofa.so/#/</a><br>
+    <span style="background:#ddd;height:1px;width:100%;overflow:hidden;display:block;margin:8px 0;"></span>
+    Vulfocus 是一个漏洞集成平台，将漏洞环境 docker 镜像，放入即可使用，开箱即用。<br></p><div class="cons_list" style="text-align: center; margin: 48px 0;">
+    <a href="http://vulfocus.fofa.so/#/" style="text-decoration: none;"><img src="http://www.baimaohui.net/home/image/icon-anquan-logo.png" style="width:42px; height:42px; display: inline-block;">
+    <p style="width:100%;text-align: center;margin: 20px 0 0 0;"><a href="http://vulfocus.fofa.so/#/" style="border-right: 1px solid #ccc;  font-size:14px;margin: 0; font-weight:500; color:rgba(180,189,194,1); padding: 0 10px;text-decoration: none;">vulfocus首页</a>
+    </p></div></div></td></tr></tbody></table>
+    </div>""" .format(http_referer=http_referer, code=code)
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()

@@ -1,4 +1,4 @@
-# 安装
+# 安装(centos安装需要关闭selinux)
 
 系统为前后端分离项目，`vulfocus-api`  为后端项目、 `vulfocus-frontend`  为前端项目。
 
@@ -87,27 +87,29 @@ systemctl daemon-reload
 
 ### 安装 Vulfocus API
 
-#### 安装 Python3 (不想源码编译)
+#### 安装 Python3 
 
 ```shell
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-chmod 755 Miniconda3-latest-Linux-x86_64.sh
-./Miniconda3-latest-Linux-x86_64.sh  # 安装位置选  /opt/anaconda3/  
-source ~/.bashrc
+yum -y update
+yum -y install yum-utils
+sudo yum install https://repo.ius.io/ius-release-el7.rpm
+sudo yum -y install python36u python36u-pip
 ```
 
 #### 更新 pip
 
 ```shell
-/opt/anaconda3/bin/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pip -U
-/opt/anaconda3/bin/pip install virtualenv -i https://pypi.tuna.tsinghua.edu.cn/simple
+sudo pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pip -U
+sudo pip3 install virtualenv -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-#### 安装虚拟环境
+#### 创建虚拟环境
 
 ```
 mkdir -p /data/{etc,log,tmp}
-/opt/anaconda3/bin/virtualenv /data/venv_py --python=/opt/anaconda3/bin/python
+chmod -R 777 /data
+ln -s /usr/local/bin/virtualenv /usr/bin/virtualenv
+virtualenv /data/venv_py --python=/usr/bin/python3
 echo "source /data/venv_py/bin/activate" >> ~/.bashrc
 source ~/.bashrc
 ```
@@ -117,6 +119,7 @@ source ~/.bashrc
 ```shell
 cd /data
 git clone https://github.com/fofapro/vulfocus.git web
+chmod -R 777 /data
 cd /data/web/vulfocus-api/
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
@@ -125,7 +128,7 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 #### 如果使用mysql
 ```shell script
 yum install mysql-devel 
-pip3 install mysqlclient -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install PyMysql -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 修改/data/web/vulfocus-api/vulfocus/settings.py文件
 ```shell script
@@ -136,7 +139,7 @@ DATABASES = {
         'HOST':'127.0.0.1',
         'PORT':3306,
         'USER':'root',
-        'PASSWORD':os.environ['MYSQLPWD']
+        'PASSWORD':(此处填入你的mysql的root用户密码)
     }
 }
 
@@ -144,10 +147,23 @@ DATABASES = {
 SILENCED_SYSTEM_CHECKS = ['mysql.E001']
 ```
 
+### 注意
+```sql
+创建mysql数据库的时候应使用utf8编码，否则进行数据迁移的时候可能抛出错误,可以使用下面这条命令进行数据库的创建
+CREATE DATABASE vulfocus character set utf8;
+```
+
+### 修改第三方库文件
+
+```vim /data/venv_py/lib/python3.6/site-packages/django/db/backends/mysql/operations.py```
+
+将该文件的145，146行用#注释掉
+
 #### 初始化数据库
 
 ```shell
 cd /data/web/vulfocus-api
+python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
 ```
@@ -180,13 +196,10 @@ celery multi start worker -B -A  vulfocus -l info --logfile=celery.log
 #### 安装uwsgi
 
 ```shell
+yum install python36u-devel
 pip install uwsgi -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-如果安装uwsgi报错（gcc error:libpython3.9.a No such file or directory）
-```
-find / -name libpython3.9.a
-cp #libpython3.9.a文件位置 #libpython3.9.a文件缺失位置
-```
+
 ##### uwsgi 配置
 
 **位置：** `/data/etc/vulfocus_uwsgi.ini`
@@ -195,10 +208,10 @@ cp #libpython3.9.a文件位置 #libpython3.9.a文件缺失位置
 [uwsgi]
 uid=nginx
 chdir = /data/web/vulfocus-api
-;module = vulfocus.wsgi  
+module = vulfocus.wsgi  
 mount = /api=vulfocus.wsgi:application  # nginx配置子目录
 manage-script-name = true
-;route-run = fixpathinfo:  
+route-run = fixpathinfo:  
 home = /data/venv_py
 socket = /data/tmp/vulfocus_uwsgi.sock
 processes = 8
@@ -241,6 +254,12 @@ npm run build:prod
 ```
 npm install -g yarn
 yarn install node-sass
+```
+
+**安装core-js报错**
+
+```
+npm install core-js@2
 ```
 
 #### 发行版本
@@ -343,14 +362,17 @@ http {
            root /data/web/vulfocus-frontend/dist;
        index index.html;
        }
+       location /images/ {
+                alias /data/web/vulfocus-api/static/;
+       }
        location /api {
               uwsgi_pass  unix:/data/tmp/vulfocus_uwsgi.sock;
               uwsgi_read_timeout 600;
               uwsgi_param SCRIPT_NAME /api;
               include     /etc/nginx/uwsgi_params;
 }
-    access_log  /data/log/vulfocus.xxx.net.log;
-    error_log  /data/log/vulfocus.xxx.net.log;
+    access_log  /data/log/vulfocus.access.log;
+    error_log  /data/log/vulfocus.error.log;
 
     }
 
@@ -360,7 +382,7 @@ http {
 
 ### 配置supervisor
 
-**位置：**`/etc/supervisord.d/vulfoucs.ini`
+**位置：**`/etc/supervisord.d/vulfocus.ini`
 
 ```
 [program:vulfocus]
@@ -397,15 +419,14 @@ priority=999
 ### 权限以及自启
 
 ```
-chown -R nginx. /data
+chown -R nginx /data
 ```
 
 使用 `unix://var/run/docker.sock` **连接 docker 需要配置** 使用 tcp 套接字无需修改
 
 ```
 groupadd docker
-usermod -aG docker nginx
-systemctl restart docker
+usermod -g docker nginx
 ```
 
 #### 开机自启动
@@ -421,12 +442,14 @@ systemctl enable redis
 
 ```
 systemctl start supervisord
-systemctl start nginx
 systemctl start docker
 systemctl start redis
+systemctl start nginx    #注意这里一定要确定主机关闭了selinux，否则启动nginx会报错
+chmod 666 /var/run/docker.sock #注意此处完成配置后尽量不要重新启动docker,否则nginx用户将失去docker的运行权限
 ```
 
 #### 防火墙配置
+
 ```shell script
 firewall-cmd --add-port=80/tcp --permanent
 firewall-cmd --add-port=443/tcp --permanent
@@ -439,7 +462,7 @@ systemctl restart firewalld.service
 
 三种解决方案
 
-1. 修改 `/etc/supervisord.d/vulfoucs.ini` 配置文件
+1. 修改 `/etc/supervisord.d/vulfocus.ini` 配置文件
 
    ```
    # user=nginx # 改前
@@ -453,7 +476,7 @@ systemctl restart firewalld.service
    ```
    groupadd docker
    usermod -aG docker nginx
-   systemctl restart docker
+   chmod 666 /var/run/docker.sock #注意此处完成配置后尽量不要重新启动docker,否则nginx用户将失去docker的运行权限
    ```
 
    

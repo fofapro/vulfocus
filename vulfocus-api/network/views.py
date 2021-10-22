@@ -34,6 +34,10 @@ class NetWorkInfoViewSet(viewsets.ModelViewSet):
         user_id = request.user.id
         try:
             net_work_name = data_dict['net_work_name']
+            network_list = client.networks.list()
+            for network in network_list:
+                if network.name == net_work_name:
+                    return JsonResponse(R.err(msg="服务器中已经有同名网卡存在"))
         except Exception as e:
             return Response(R.build(msg="网卡名称不能为空"))
         try:

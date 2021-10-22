@@ -62,7 +62,7 @@ class LayoutSerializer(serializers.ModelSerializer):
         model = Layout
         fields = ["layout_id", "layout_name", "layout_desc", "image_name", "create_user_id", "is_release",
                   "raw_content", "yml_content", "env_content", "create_date", "update_date", "is_uesful",
-                  "status"]
+                  "status", "total_view", "download_num"]
 
 
 class LayoutServiceSerializer(serializers.ModelSerializer):

@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from rest_framework import routers
-from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet,get_timing_imgs, DashboardView, get_writeup_info, get_version, get_url_name, update_enterprise_setting, get_setting_img
+from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet, get_timing_imgs, DashboardView, get_writeup_info, get_version, get_url_name, update_enterprise_setting, get_setting_img
 from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset, AccessLinkView, send_register_email
 from rest_framework_jwt.views import obtain_jwt_token
 from user.views import get_user_info, LogoutView, MyCode, refresh_captcha, CommentView
@@ -26,6 +26,7 @@ from user.views import refresh_captcha, AccessUpdataLinkView, upload_user_img
 from notice.views import NoticeViewset, publish_notice, get_notifications_count, get_public_notice, notice_detail, get_content
 from dockerapi.views import get_container_status
 import notifications.urls
+from layout_image.views import thumbUp
 
 router = routers.DefaultRouter()
 router.register('images', ImageInfoViewSet, basename='Images')
@@ -60,8 +61,8 @@ urlpatterns = [
     url(r'img/upload', upload_img),
     url(r'get/urlname', get_url_name),
     url(r'get/scenedata', get_scene_data),
-    url(r'^get/settingimg', get_setting_img),
     url(r'get/website/imgs', get_timing_imgs),
+    url(r'^get/settingimg', get_setting_img),
     url(r'^getcaptcha/', MyCode.as_view()),
     url(r'^build/compose/', build_compose),
     url(r'^update/compose/', update_build_compose),
@@ -89,4 +90,5 @@ urlpatterns = [
     url(r"download_layout_image", download_layout_image),
     url(r"^download/official/website/layout", download_official_website_layout),
     url(r"^get/official/website/layout", get_official_website_layout),
+    url(r"thumbUp", thumbUp),
 ]
