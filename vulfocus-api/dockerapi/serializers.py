@@ -119,7 +119,11 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         if time_moudel_data:
             time_model_id = time_moudel_data.time_id
         # 排出已经删除数据 Q(docker_container_id__isnull=False), ~Q(docker_container_id=''),
-        data = ContainerVul.objects.all().filter(user_id=id, image_id=obj.image_id, time_model_id=time_model_id).first()
+        container_status_q = Q()
+        container_status_q.connector = "OR"
+        container_status_q.children.append(('container_status', "running"))
+        container_status_q.children.append(('container_status', "stop"))
+        data = ContainerVul.objects.all().filter(Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & container_status_q).first()
         run_data = ""
         if obj.is_docker_compose == True:
             data = ContainerVul.objects.all().filter(

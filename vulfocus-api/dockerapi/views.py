@@ -1794,12 +1794,26 @@ def get_operation_image_api(req):
             return JsonResponse(R.err(msg="错误的请求"))
         if requisition and requisition not in ['start', 'stop', 'delete']:
             return JsonResponse(R.err(msg="错误的请求"))
-        # 启动惊喜那个的请求
+        # 启动镜像的请求
         if requisition == "start":
             data_count = ContainerVul.objects.filter(user_id=user.id, container_status='running').all().count()
             data_start = ContainerVul.objects.filter(user_id=user.id, image_id=image.image_id, container_status='running').first()
             if data_start:
-                data_count = data_count-1
+                status = dict()
+                try:
+                    HTTP_HOST = req.META.get("HTTP_REFERER")
+                    if ':' in HTTP_HOST:
+                        status["host"] = data_start.vul_host
+                    else:
+                        if HTTP_HOST:
+                            HTTP_HOST = HTTP_HOST[:-1]
+                            status["host"] = HTTP_HOST
+                        else:
+                            status["host"] = data_start.vul_host
+                except:
+                    status["host"] = data_start.vul_host
+                status["port"] = data_start.vul_port
+                return JsonResponse(R.ok(data=status, msg="镜像已启动"))
             if data_count > 3:
                 return JsonResponse(R.err(msg="同时启动容器数量达到上线"))
             img_info = image
