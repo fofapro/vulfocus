@@ -150,7 +150,19 @@ class ImageInfoSerializer(serializers.ModelSerializer):
             if not data.docker_container_id and obj.is_docker_compose == False:
                 data.container_status = "delete"
             if data.container_status == "running":
-                status["host"] = data.vul_host
+                try:
+                    HTTP_HOST = request.META.get("HTTP_REFERER")
+                    if HTTP_HOST.count(":") == 2:
+                        status["host"] = data.vul_host
+                    else:
+                        if HTTP_HOST:
+                            origin_host = data.vul_host.split(":")
+                            if len(origin_host) >= 2:
+                                status["host"] = HTTP_HOST[:-1] + ":" + origin_host[1]
+                        else:
+                            status["host"] = data.vul_host
+                except:
+                    status["host"] = data.vul_host
                 status["port"] = data.vul_port
                 operation_args = {"image_name": obj.image_name, "user_id": id, "image_port": obj.image_port}
                 task_info = TaskInfo.objects.filter(user_id=id, task_status=3, operation_type=2,

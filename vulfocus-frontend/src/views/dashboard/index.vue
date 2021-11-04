@@ -101,77 +101,132 @@
       </div>
     </el-card>
     <el-divider style="margin-top: 1px"></el-divider>
-    <el-row :gutter="24" id="first-bmh3" v-loading="loading">
-      <el-col :span="6" v-for="(item,index) in listdata" :key="index" style="padding-bottom: 18px;">
-        <el-card :body-style="{ padding: '8px' }" shadow="hover"
-                 @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
-          <div class="clearfix"  style="position: relative" >
-            <div style=" position:absolute;right:0;top:0"><img v-if="item.status.is_check === true" style="width: 60%;height: 60%; float: right" src="../../assets/Customs.png" /></div>
-            <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
-              <svg-icon icon-class="bug"  style="font-size: 20px;"/>
-              <el-tooltip v-if="(item.status.status === 'stop' || item.status.status === 'delete') && item.status.is_check === true" content="已通过" placement="top">
-              </el-tooltip>
-              <el-tooltip v-else-if="item.status.status === 'running'" content="运行中" placement="top">
-                <i style="color: #20a0ff;" class="el-icon-loading"></i>
-              </el-tooltip>
-              <el-tooltip v-else-if="item.status.status === 'stop' && item.status.is_check === false" content="暂停中" placement="top">
-                <svg-icon style="color: #20a0ff;" icon-class="stop" />
-              </el-tooltip>
-              <div style="display: inline-block;margin: 0;" v-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date !== 0">
-                <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
-                  <i class="el-icon-time"></i>
-                </el-tooltip>
-                <count-down style="display: inline-block;height: 20px;line-height: 20px;size: 20px;margin-block-start: 0em;margin-block-end: 0em;" v-on:end_callback="stop(item.status.container_id, item,expire)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
+    <el-tabs v-model="activeName" style="margin-top: 10px" @tab-click="currentTabs">
+      <el-tab-pane label="全部" name="all">
+        <el-row :gutter="24" id="first-bmh3" v-loading="loading">
+          <el-col :span="6" v-for="(item,index) in listdata" :key="index" style="padding-bottom: 18px;">
+            <el-card :body-style="{ padding: '8px' }" shadow="hover"
+                     @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
+              <div class="clearfix"  style="position: relative" >
+                <div style=" position:absolute;right:0;top:0"><img v-if="item.status.is_check === true" style="width: 60%;height: 60%; float: right" src="../../assets/Customs.png" /></div>
+                <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
+                  <svg-icon icon-class="bug"  style="font-size: 20px;"/>
+                  <el-tooltip v-if="(item.status.status === 'stop' || item.status.status === 'delete') && item.status.is_check === true" content="已通过" placement="top">
+                  </el-tooltip>
+                  <el-tooltip v-else-if="item.status.status === 'running'" content="运行中" placement="top">
+                    <i style="color: #20a0ff;" class="el-icon-loading"></i>
+                  </el-tooltip>
+                  <el-tooltip v-else-if="item.status.status === 'stop' && item.status.is_check === false" content="暂停中" placement="top">
+                    <svg-icon style="color: #20a0ff;" icon-class="stop" />
+                  </el-tooltip>
+                  <div style="display: inline-block;margin: 0;" v-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date !== 0">
+                    <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
+                      <i class="el-icon-time"></i>
+                    </el-tooltip>
+                    <count-down style="display: inline-block;height: 20px;line-height: 20px;size: 20px;margin-block-start: 0em;margin-block-end: 0em;" v-on:end_callback="stop(item.status.container_id, item,expire)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
+                  </div>
+                  <div style="display: inline-block;" v-else-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date === 0">
+                    <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
+                      <i class="el-icon-time"></i>
+                    </el-tooltip>
+                    <p style="display: inline-block;">-1</p>
+                  </div>
+                  <div v-else style="display: inline-block;">
+                    <p style="display: inline-block;margin-block-start: 1em;margin-block-end: 1em"></p>
+                  </div>
+                </div>
+                <div style="margin-top: 7px;">
+                  <el-rate v-model=item.rank disabled show-score text-color="#ff9900" score-template={value}></el-rate>
+                </div>
               </div>
-              <div style="display: inline-block;" v-else-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date === 0">
-                <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
-                  <i class="el-icon-time"></i>
-                </el-tooltip>
-                <p style="display: inline-block;">-1</p>
+              <div style="padding: 5px;" >
+                <div class="container-title">
+                <span>{{item.image_vul_name}}</span>
+                </div>
+                <div class="bottom clearfix">
+                  <div class="time container-title">{{ item.image_desc }}</div>
+                </div>
+                <el-row>
+                  <el-button type="primary" @click.stop="stop(item.status.container_id,item)" :disabled="item.status.stop_flag" size="mini" v-if="item.status.status === 'running'">停止</el-button>
+                  <el-button type="primary" @click.stop="open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" :disabled="item.status.start_flag" size="mini" v-else="item.status.status === '' || item.status.status === 'stop'">启动</el-button>
+                  <el-button type="primary" @click.stop="deleteContainer(item.status.container_id,item)" v-if="item.status.status === 'running' || item.status.status === 'stop'" :disabled="item.status.delete_flag" size="mini" icon="el-icon-stopwatch">删除</el-button>
+                </el-row>
               </div>
-              <div v-else style="display: inline-block;">
-                <p style="display: inline-block;margin-block-start: 1em;margin-block-end: 1em"></p>
+            </el-card>
+          </el-col>
+        </el-row>
+        <div style="margin-top: 20px">
+          <el-pagination
+            :page-size="page.size"
+            @current-change="handleQuery"
+            layout="total, prev, pager, next, jumper"
+            :total="page.total">
+          </el-pagination>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="已启动" name="started">
+        <el-row :gutter="24" v-loading="loading">
+          <el-col :span="6" v-for="(item,index) in listdata" :key="index" style="padding-bottom: 18px;">
+            <el-card :body-style="{ padding: '8px' }" shadow="hover"
+                     @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
+              <div class="clearfix"  style="position: relative" >
+                <div style=" position:absolute;right:0;top:0"><img v-if="item.status.is_check === true" style="width: 60%;height: 60%; float: right" src="../../assets/Customs.png" /></div>
+                <div style="display: inline-block;height: 20px;line-height: 20px;min-height: 20px;max-height: 20px;">
+                  <svg-icon icon-class="bug"  style="font-size: 20px;"/>
+                  <el-tooltip v-if="(item.status.status === 'stop' || item.status.status === 'delete') && item.status.is_check === true" content="已通过" placement="top">
+                  </el-tooltip>
+                  <el-tooltip v-else-if="item.status.status === 'running'" content="运行中" placement="top">
+                    <i style="color: #20a0ff;" class="el-icon-loading"></i>
+                  </el-tooltip>
+                  <el-tooltip v-else-if="item.status.status === 'stop' && item.status.is_check === false" content="暂停中" placement="top">
+                    <svg-icon style="color: #20a0ff;" icon-class="stop" />
+                  </el-tooltip>
+                  <div style="display: inline-block;margin: 0;" v-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date !== 0">
+                    <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
+                      <i class="el-icon-time"></i>
+                    </el-tooltip>
+                    <count-down style="display: inline-block;height: 20px;line-height: 20px;size: 20px;margin-block-start: 0em;margin-block-end: 0em;" v-on:end_callback="stop(item.status.container_id, item,expire)" :currentTime="item.status.now" :startTime=item.status.now :endTime=item.status.end_date :secondsTxt="''"></count-down>
+                  </div>
+                  <div style="display: inline-block;" v-else-if="item.status.status === 'running' && item.status.start_date !== null && item.status.start_date !=='' && item.status.end_date !== null && item.status.end_date !== '' && item.status.end_date === 0">
+                    <el-tooltip content="容器剩余时间，0 为用不过期" placement="top">
+                      <i class="el-icon-time"></i>
+                    </el-tooltip>
+                    <p style="display: inline-block;">-1</p>
+                  </div>
+                  <div v-else style="display: inline-block;">
+                    <p style="display: inline-block;margin-block-start: 1em;margin-block-end: 1em"></p>
+                  </div>
+                </div>
+                <div style="margin-top: 7px;">
+                  <el-rate v-model=item.rank disabled show-score text-color="#ff9900" score-template={value}></el-rate>
+                </div>
               </div>
-            </div>
-            <div style="margin-top: 7px;">
-              <el-rate v-model=item.rank disabled show-score text-color="#ff9900" score-template={value}></el-rate>
-            </div>
-          </div>
-          <div style="padding: 5px;" >
-            <div class="container-title">
-            <span>{{item.image_vul_name}}</span>
-            </div>
-            <div class="bottom clearfix">
-              <div class="time container-title">{{ item.image_desc }}</div>
-            </div>
-            <el-row>
-              <el-button type="primary" @click.stop="stop(item.status.container_id,item)" :disabled="item.status.stop_flag" size="mini" v-if="item.status.status === 'running'">停止</el-button>
-              <el-button type="primary" @click.stop="open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" :disabled="item.status.start_flag" size="mini" v-else="item.status.status === '' || item.status.status === 'stop'">启动</el-button>
-              <el-button type="primary" @click.stop="deleteContainer(item.status.container_id,item)" v-if="item.status.status === 'running' || item.status.status === 'stop'" :disabled="item.status.delete_flag" size="mini" icon="el-icon-stopwatch">删除</el-button>
-            </el-row>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-<!--    <div>-->
-<!--      <el-pagination-->
-<!--        @size-change="handleQuery"-->
-<!--        @current-change="handleCurrentChange"-->
-<!--        :current-page="currentPage4"-->
-<!--        :page-sizes="[20, 40, 60, 80]"-->
-<!--        :page-size="page.size"-->
-<!--        layout="total, sizes, prev, pager, next, jumper"-->
-<!--        :total="page.total">-->
-<!--      </el-pagination>-->
-<!--    </div>-->
-    <div style="margin-top: 20px">
-      <el-pagination
-        :page-size="page.size"
-        @current-change="handleQuery"
-        layout="total, prev, pager, next, jumper"
-        :total="page.total">
-      </el-pagination>
-    </div>
+              <div style="padding: 5px;" >
+                <div class="container-title">
+                <span>{{item.image_vul_name}}</span>
+                </div>
+                <div class="bottom clearfix">
+                  <div class="time container-title">{{ item.image_desc }}</div>
+                </div>
+                <el-row>
+                  <el-button type="primary" @click.stop="stop(item.status.container_id,item)" :disabled="item.status.stop_flag" size="mini" v-if="item.status.status === 'running'">停止</el-button>
+                  <el-button type="primary" @click.stop="open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" :disabled="item.status.start_flag" size="mini" v-else="item.status.status === '' || item.status.status === 'stop'">启动</el-button>
+                  <el-button type="primary" @click.stop="deleteContainer(item.status.container_id,item)" v-if="item.status.status === 'running' || item.status.status === 'stop'" :disabled="item.status.delete_flag" size="mini" icon="el-icon-stopwatch">删除</el-button>
+                </el-row>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+        <div style="margin-top: 20px">
+          <el-pagination
+            :page-size="page.size"
+            @current-change="handleQuery"
+            layout="total, prev, pager, next, jumper"
+            :total="page.total">
+          </el-pagination>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -284,6 +339,7 @@ export default {
       firstLogin:false,
       current_page:1,
       open_flag:false,
+      activeName:'all',
       };
     },
   created() {
@@ -321,6 +377,13 @@ export default {
               dangerouslyUseHTMLString:true,
             });
           }})
+      },
+      changetableinit(){
+      // 当用户在切换tab页时进行数据的初始化
+        this.current_page = 1;
+        this.loading = true;
+        this.listdata = [];
+        this.page.total = 0;
       },
       listData() {
           ImgDashboard().then(response => {
@@ -375,7 +438,7 @@ export default {
         let allTag = []
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
         this.search = ''
-        ImgDashboard(this.search,undefined,undefined,true,allTag,this.searchRank).then(response =>{
+        ImgDashboard(this.search,undefined,undefined,true,allTag,this.searchRank,this.activeName).then(response =>{
             loading.close()
             this.listdata = response.data.results
             this.page.total = response.data.count
@@ -487,7 +550,6 @@ export default {
         }
       },
       subFlag(id,flag) {
-        console.log(id,88888)
           SubFlag(id,flag).then(response => {
             this.input = ""
             let responseData = response.data
@@ -521,7 +583,7 @@ export default {
         this.$set(raw.status, "stop_flag", true)
         this.$forceUpdate();
         get_container_status(container_id).then(response=>{
-          if(response.data.code==200 && response.data.status == "stop"){
+          if(response.data.code===200 && response.data.status==="stop"){
             this.$message({
               message:'停止成功',
               type:'success'
@@ -531,20 +593,44 @@ export default {
             raw.status.end_date = "";
             let allTag = []
             allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
-            if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
-              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
-                this.listdata = response.data.results
-                this.page.total = response.data.count
-              })
+            if(allTag.length > 0 || this.searchRank !== 0 || this.search !== ""){
+              // 获取当前所有分页的最后一页
+              let all_page = parseInt(this.page.total/this.page.size);
+              // 判断当前页面中是否只有一个镜像并且是否为最后一页
+              if(this.listdata.length === 1 && this.current_page == all_page+1 && this.current_page > 1){
+                this.current_page -= 1;
+                ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                  this.listdata = response.data.results;
+                  this.page.total = response.data.count;
+                })
+              }
+              else {
+                ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                  this.listdata = response.data.results;
+                  this.page.total = response.data.count;
+                })
+              }
             }
             else {
-              ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
-                this.listdata = response.data.results
-                this.page.total = response.data.count
-              })
+              // 获取当前所有分页的最后一页
+              let all_page = parseInt(this.page.total/this.page.size);
+              // 判断当前页面中是否只有一个镜像并且是否为最后一页
+              if(this.listdata.length === 1 && this.current_page===all_page+1 && this.current_page > 1){
+                this.current_page -= 1;
+                ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
+                  this.listdata = response.data.results;
+                  this.page.total = response.data.count;
+                })
+              }
+              else {
+                ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
+                  this.listdata = response.data.results;
+                  this.page.total = response.data.count;
+                })
+              }
             }
           }
-          else if(response.data.code==200 && response.data.status == "delete"){
+          else if(response.data.code===200 && response.data.status==="delete"){
             this.$message({
               message:'停止成功',
               type:'success'
@@ -555,20 +641,44 @@ export default {
             raw.status.delete_flag = false;
             let allTag = []
             allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
-            if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
-              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
-                this.listdata = response.data.results
-                this.page.total = response.data.count
-              })
+            if(allTag.length > 0 || this.searchRank !== 0 || this.search !== ""){
+              // 获取当前所有分页的最后一页
+              let all_page = parseInt(this.page.total/this.page.size);
+              // 判断当前页面中是否只有一个镜像并且是否为最后一页
+              if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
+                this.current_page -= 1;
+                ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                  this.listdata = response.data.results;
+                  this.page.total = response.data.count;
+                })
+              }
+              else {
+                ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                  this.listdata = response.data.results;
+                  this.page.total = response.data.count;
+                })
+              }
             }
             else {
-              ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
-                this.listdata = response.data.results
-                this.page.total = response.data.count
-              })
+              // 获取当前所有分页的最后一页
+              let all_page = parseInt(this.page.total/this.page.size);
+              // 判断当前页面中是否只有一个镜像并且是否为最后一页
+              if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
+                this.current_page -= 1;
+                ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
+                  this.listdata = response.data.results;
+                  this.page.total = response.data.count;
+                })
+              }
+              else {
+                ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
+                  this.listdata = response.data.results;
+                  this.page.total = response.data.count;
+                })
+              }
             }
           }
-          else if(response.data.code ==200 && response.data.status == "running"){
+          else if(response.data.code === 200 && response.data.status === "running"){
             ContainerStop(container_id,expire).then(response=>{
             let taskId = response.data["data"]
             let tmpStopContainerInterval = window.setInterval(() => {
@@ -591,17 +701,41 @@ export default {
                       raw.status.stop_flag = false
                       let allTag = []
                       allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
-                      if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
-                        ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
-                          this.listdata = response.data.results
-                          this.page.total = response.data.count
-                        })
+                        if(allTag.length > 0 || this.searchRank !== 0 || this.search !== ""){
+                          // 获取当前所有分页的最后一页
+                          let all_page = parseInt(this.page.total/this.page.size);
+                          // 判断当前页面中是否只有一个镜像并且是否为最后一页
+                          if(this.listdata.length === 1 && this.current_page === all_page && this.current_page > 1){
+                            this.current_page -= 1;
+                            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                              this.listdata = response.data.results;
+                              this.page.total = response.data.count;
+                            })
+                          }
+                          else {
+                            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                              this.listdata = response.data.results;
+                              this.page.total = response.data.count;
+                            })
+                          }
                       }
                       else {
-                        ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
-                          this.listdata = response.data.results
-                          this.page.total = response.data.count
-                        })
+                        // 获取当前所有分页的最后一页
+                        let all_page = parseInt(this.page.total/this.page.size);
+                        // 判断当前页面中是否只有一个镜像并且是否为最后一页
+                        if(this.listdata.length === 1 && this.current_page == all_page && this.current_page > 1){
+                          this.current_page -= 1;
+                          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                            this.listdata = response.data.results;
+                            this.page.total = response.data.count;
+                          })
+                        }
+                        else {
+                          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                            this.listdata = response.data.results;
+                            this.page.total = response.data.count;
+                          })
+                        }
                       }
                     } else {
                       this.$message({
@@ -656,17 +790,39 @@ export default {
                     })
                     let allTag = []
                     allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
-                    if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
-                      ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
-                        this.listdata = response.data.results
-                        this.page.total = response.data.count
-                      })
+                    if(allTag.length > 0 || this.searchRank !== 0 || this.search !== ""){
+                      // 获取当前所有分页的最后一页
+                      let all_page = parseInt(this.page.total/this.page.size);
+                      // 判断当前页面中是否只有一个镜像并且是否为最后一页
+                      if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
+                        this.current_page -= 1;
+                        ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                          this.listdata = response.data.results;
+                          this.page.total = response.data.count;
+                        })
+                      }
+                      else {
+                        ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+                          this.listdata = response.data.results;
+                          this.page.total = response.data.count;
+                        })
+                      }
                     }
                     else {
-                      ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
-                        this.listdata = response.data.results
-                        this.page.total = response.data.count
-                      })
+                      let all_page = parseInt(this.page.total/this.page.size);
+                      if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
+                        this.current_page -= 1;
+                        ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
+                          this.listdata = response.data.results;
+                          this.page.total = response.data.count;
+                        })
+                      }
+                      else {
+                         ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
+                          this.listdata = response.data.results;
+                          this.page.total = response.data.count;
+                        })
+                      }
                     }
                   }else{
                     this.$message({
@@ -691,7 +847,7 @@ export default {
         this.current_page = page
         let allTag = []
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
-        ImgDashboard(this.search,false,page,true,allTag,this.searchRank).then(response => {
+        ImgDashboard(this.search,false,page,true,allTag,this.searchRank,this.activeName).then(response => {
           loading.close()
           this.listdata = response.data.results
           this.page.total = response.data.count
@@ -721,13 +877,13 @@ export default {
         let allTag = []
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
         if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
-          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank).then(response => {
+          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
             this.listdata = response.data.results
             this.page.total = response.data.count
           })
         }
         else {
-          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined).then(response => {
+          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
             this.listdata = response.data.results
             this.page.total = response.data.count
           })
@@ -868,6 +1024,26 @@ export default {
           this.allTag5.push(item.value)
         }
         this.getselectdata()
+      },
+      currentTabs(tab, event){
+        this.activeName = tab.name;
+        this.changetableinit();
+        let allTag = [];
+        allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4);
+        if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
+          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
+            this.listdata = response.data.results;
+            this.page.total = response.data.count;
+            this.loading=false
+          })
+        }
+        else{
+          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
+            this.listdata = response.data.results;
+            this.page.total = response.data.count;
+            this.loading=false
+          })
+        }
       },
   },
   mounted: function() {

@@ -6,6 +6,9 @@
     <el-form-item label="邮箱">
       <el-input v-model.trim="user.email" :disabled="true" />
     </el-form-item>
+    <el-form-item label="Licence">
+      <el-input v-model.trim="user.licence" :disabled="true" />
+    </el-form-item>
     <el-form-item label="旧密码" v-if="updatePwd === true">
       <el-input v-model.trim="ruleForm.oldPassword" />
     </el-form-item>

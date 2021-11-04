@@ -11,6 +11,7 @@ const state = {
   email:'',
   roles: [],
   greenhand: false,
+  licence:'',
 }
 
 const mutations = {
@@ -34,6 +35,9 @@ const mutations = {
   },
   SET_GREENHAND: (state, greenhand) => {
     state.greenhand = greenhand
+  },
+  SET_LICENCE: (state, licence) => {
+    state.licence = licence
   },
 }
 
@@ -71,13 +75,14 @@ const actions = {
         if (!data) {
           reject('Verification failed, please Login again.')
         }
-        const { name, avatar,rank, roles, email, greenhand } = data
+        const { name, avatar,rank, roles, email, greenhand, licence } = data
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
         commit('SET_RANK', rank)
         commit("SET_ROLES", roles)
         commit("SET_EMAIL", email)
         commit("SET_GREENHAND", greenhand)
+        commit("SET_LICENCE", licence)
         resolve(data)
       }).catch(error => {
         reject(error)

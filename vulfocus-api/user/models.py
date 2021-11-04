@@ -7,6 +7,7 @@ class UserProfile(AbstractUser):
     role = models.CharField(max_length=10, default="注册用户", verbose_name="角色")
     greenhand = models.BooleanField(verbose_name='用户是否首次登录', default=False)
     has_active = models.BooleanField(verbose_name="用户是否激活", default=True)
+    licence = models.CharField(max_length=191, default=str(uuid.uuid1()).replace("-", ""))
     def __str__(self):
         return self.username
 
