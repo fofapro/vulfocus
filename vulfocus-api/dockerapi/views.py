@@ -1751,18 +1751,18 @@ def get_operation_image_api(req):
         if username:
             user = UserProfile.objects.filter(username=username).first()
             if not user:
-                return JsonResponse(R.err(msg="信息认证未通过"))
+                return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
         else:
-            return JsonResponse(R.err(msg="信息认证未通过"))
+            return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
         # 判断licence是否匹配用户，符合则返回所有已下载的镜像数据
         if licence and licence == user.licence:
             imgs = ImageInfo.objects.filter(is_ok=True).all().values("image_name", "image_vul_name", "image_desc")
             imglist = list()
             for i in imgs:
                 imglist.append(i)
-            return JsonResponse(R.ok(data=imglist, msg="镜像信息"))
+            return HttpResponse(json.dumps(R.ok(data=imglist), ensure_ascii=False), content_type='application/json')
         else:
-            return JsonResponse(R.err(msg="信息认证未通过"))
+            return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
 
     # 启动镜像
     if req.method == "POST":
@@ -1775,26 +1775,26 @@ def get_operation_image_api(req):
         if username:
             user = UserProfile.objects.filter(username=username).first()
             if not user:
-                return JsonResponse(R.err(msg="认证信息错误"))
+                return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
         else:
-            return JsonResponse(R.err(msg="认证信息错误"))
+            return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
         # 判断licence是否匹配用户
         if licence and licence == user.licence:
             pass
         else:
-            return JsonResponse(R.err(msg="认证信息错误"))
+            return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
         # 判断镜像是否存在
         if image_name:
             image = ImageInfo.objects.filter(image_name=image_name, is_ok=True).first()
             if not image:
-                return JsonResponse(R.err(msg="镜像不存在"))
+                return HttpResponse(json.dumps(R.err(msg="镜像不存在"), ensure_ascii=False))
         else:
-            return JsonResponse(R.err(msg="镜像名称不能为空"))
+            return HttpResponse(json.dumps(R.err(msg="镜像名称不能为空"), ensure_ascii=False))
         if not requisition:
-            return JsonResponse(R.err(msg="错误的请求"))
+            return HttpResponse(json.dumps(R.err(msg="错误的请求"), ensure_ascii=False))
         if requisition and requisition not in ['start', 'stop', 'delete']:
-            return JsonResponse(R.err(msg="错误的请求"))
-        # 启动镜像的请求
+            return HttpResponse(json.dumps(R.err(msg="错误的请求"), ensure_ascii=False))
+        # 启动惊喜那个的请求
         if requisition == "start":
             data_count = ContainerVul.objects.filter(user_id=user.id, container_status='running').all().count()
             data_start = ContainerVul.objects.filter(user_id=user.id, image_id=image.image_id, container_status='running').first()
@@ -1813,9 +1813,9 @@ def get_operation_image_api(req):
                 except:
                     status["host"] = data_start.vul_host
                 status["port"] = data_start.vul_port
-                return JsonResponse(R.ok(data=status, msg="镜像已启动"))
+                return HttpResponse(json.dumps(R.ok(data=status, msg="镜像已启动"), ensure_ascii=False))
             if data_count > 3:
-                return JsonResponse(R.err(msg="同时启动容器数量达到上线"))
+                return HttpResponse(json.dumps(R.err(msg="同时启动容器数量达到上线"), ensure_ascii=False))
             img_info = image
             # 当前用户id
             image_id = img_info.image_id
@@ -1870,30 +1870,30 @@ def get_operation_image_api(req):
                     except:
                         status["host"] = data.vul_host
                     status["port"] = data.vul_port
-                    return JsonResponse(R.ok(data=status, msg="启动成功"))
+                    return HttpResponse(json.dumps(R.ok(data=status, msg="启动成功"), ensure_ascii=False))
                 else:
                     if num == 3:
                         break
-            return JsonResponse(R.err(msg="启动失败"))
+            return HttpResponse(json.dumps(R.err(msg="启动失败"), ensure_ascii=False))
         # 停止镜像的请求
         if requisition == "stop":
             container_vul = ContainerVul.objects.filter(image_id=image.image_id, user_id=user.id,
                                                         container_status="running").first()
             if not container_vul:
-                return JsonResponse(R.err(msg="镜像已经停止"))
+                return HttpResponse(json.dumps(R.err(msg="镜像已经停止"), ensure_ascii=False))
             if image.is_docker_compose == True:
                 original_container = ContainerVul.objects.filter(
                     Q(user_id=user.id) & Q(image_id=image.image_id) &
                     Q(container_status="running") & ~Q(docker_compose_path="")).first()
                 if not original_container:
-                    return JsonResponse(R.err(msg="镜像已经停止"))
+                    return HttpResponse(json.dumps(R.err(msg="镜像已经停止"), ensure_ascii=False))
                 task_id = tasks.stop_container_task(container_vul=original_container, user_info=user,
                                                     request_ip=get_request_ip(req))
-                return JsonResponse(R.ok(msg="停止成功"))
+                return HttpResponse(json.dumps(R.ok(msg="停止成功"), ensure_ascii=False))
             else:
                 task_id = tasks.stop_container_task(container_vul=container_vul, user_info=user,
                                                     request_ip=get_request_ip(req))
-                return JsonResponse(R.ok(msg="停止成功"))
+                return HttpResponse(json.dumps(R.ok(msg="停止成功"), ensure_ascii=False))
         # 删除镜像的请求
         if requisition == "delete":
             container_status_q = Q()
@@ -1902,17 +1902,17 @@ def get_operation_image_api(req):
             container_status_q.children.append(('container_status', "stop"))
             container_vul = ContainerVul.objects.filter(Q(image_id=image.image_id) & Q(user_id=user.id) & Q(container_status_q)).first()
             if not container_vul:
-                return JsonResponse(R.err(msg="镜像已经删除"))
+                return HttpResponse(json.dumps(R.err(msg="镜像已经删除"), ensure_ascii=False))
             if image.is_docker_compose == True:
                 original_container = ContainerVul.objects.filter(
                     Q(user_id=user.id) & Q(image_id=image.image_id) & ~Q(docker_compose_path="") & Q(container_status_q)).first()
                 if not original_container:
-                    return JsonResponse(R.err(msg="镜像已经删除"))
+                    return HttpResponse(json.dumps(R.err(msg="镜像已经删除"), ensure_ascii=False))
                 task_id = tasks.delete_container_task(container_vul=original_container, user_info=user,
                                                         request_ip=get_request_ip(req))
-                return JsonResponse(R.ok(msg='删除成功'))
+                return HttpResponse(json.dumps(R.ok(msg="删除成功"), ensure_ascii=False))
             else:
                 task_id = tasks.delete_container_task(container_vul=container_vul, user_info=user,
                                                         request_ip=get_request_ip(req))
 
-                return JsonResponse(R.ok(msg="删除成功"))
+                return HttpResponse(json.dumps(R.ok(msg="删除成功"), ensure_ascii=False))

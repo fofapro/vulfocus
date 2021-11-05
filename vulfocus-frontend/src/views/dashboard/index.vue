@@ -390,7 +390,7 @@ export default {
       listData() {
           ImgDashboard().then(response => {
             this.listdata = response.data.results
-            this.page.total = response.data.count
+            this.page.total1 = response.data.count
             this.degreeList = [{value:"全部"}]
             this.languageList = [{value:"全部"}]
             this.databaseList = [{value:"全部"}]
