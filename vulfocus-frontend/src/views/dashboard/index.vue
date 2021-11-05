@@ -160,13 +160,13 @@
             :page-size="page.size"
             @current-change="handleQuery"
             layout="total, prev, pager, next, jumper"
-            :total="page.total">
+            :total="page.total1">
           </el-pagination>
         </div>
       </el-tab-pane>
       <el-tab-pane label="已启动" name="started">
         <el-row :gutter="24" v-loading="loading">
-          <el-col :span="6" v-for="(item,index) in listdata" :key="index" style="padding-bottom: 18px;">
+          <el-col :span="6" v-for="(item,index) in startedlistdata" :key="index" style="padding-bottom: 18px;">
             <el-card :body-style="{ padding: '8px' }" shadow="hover"
                      @click.native=" item.status.status === 'running' && open(item.image_id,item.image_vul_name,item.image_desc,item.status.status,item.status.container_id,item)" >
               <div class="clearfix"  style="position: relative" >
@@ -222,7 +222,7 @@
             :page-size="page.size"
             @current-change="handleQuery"
             layout="total, prev, pager, next, jumper"
-            :total="page.total">
+            :total="page.total2">
           </el-pagination>
         </div>
       </el-tab-pane>
@@ -262,7 +262,8 @@ export default {
   data() {
     return {
       page:{
-        total: 0,
+        total1: 0,
+        total2: 0,
         size: 20,
       },
       activeClass1: 0,
@@ -289,6 +290,7 @@ export default {
       drawer:false,
       derection:"btt",
       listdata: [],
+      startedlistdata: [],
       vul_host: "",
       radioStatus:false,
       centerDialogVisible: false,
@@ -440,13 +442,24 @@ export default {
         this.search = ''
         ImgDashboard(this.search,undefined,undefined,true,allTag,this.searchRank,this.activeName).then(response =>{
             loading.close()
-            this.listdata = response.data.results
-            this.page.total = response.data.count
-            for (let i = 0; i <this.listdata.length ; i++) {
-            this.listdata[i].status.start_flag = false
-            this.listdata[i].status.stop_flag = false
-            this.listdata[i].status.delete_flag = false
-          }
+            if (this.activeName==='started'){
+              this.startedlistdata = response.data.results
+              this.page.total2 = response.data.count;
+              for (let i = 0; i <this.startedlistdata.length ; i++) {
+                this.listdata[i].status.start_flag = false
+                this.listdata[i].status.stop_flag = false
+                this.listdata[i].status.delete_flag = false
+              }
+            }else {
+              this.listdata = response.data.results
+              this.page.total1 = response.data.count;
+              for (let i = 0; i <this.listdata.length ; i++) {
+                this.listdata[i].status.start_flag = false
+                this.listdata[i].status.stop_flag = false
+                this.listdata[i].status.delete_flag = false
+              }
+            }
+
         }).catch((e)=>{})
       },
       open(id,images_name,images_desc,status,container_id,raw_data) {
@@ -600,14 +613,24 @@ export default {
               if(this.listdata.length === 1 && this.current_page == all_page+1 && this.current_page > 1){
                 this.current_page -= 1;
                 ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                  this.listdata = response.data.results;
-                  this.page.total = response.data.count;
+                  if (this.activeName==='started'){
+                    this.startedlistdata = response.data.results
+                    this.page.total2 = response.data.count;
+                  }else {
+                    this.listdata = response.data.results
+                    this.page.total1 = response.data.count;
+                  }
                 })
               }
               else {
                 ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                  this.listdata = response.data.results;
-                  this.page.total = response.data.count;
+                  if (this.activeName==='started'){
+                    this.startedlistdata = response.data.results
+                    this.page.total2 = response.data.count;
+                  }else {
+                    this.listdata = response.data.results
+                    this.page.total1 = response.data.count;
+                  }
                 })
               }
             }
@@ -618,14 +641,24 @@ export default {
               if(this.listdata.length === 1 && this.current_page===all_page+1 && this.current_page > 1){
                 this.current_page -= 1;
                 ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                  this.listdata = response.data.results;
-                  this.page.total = response.data.count;
+                  if (this.activeName==='started'){
+                    this.startedlistdata = response.data.results
+                    this.page.total2 = response.data.count;
+                  }else {
+                    this.listdata = response.data.results
+                    this.page.total1 = response.data.count;
+                  }
                 })
               }
               else {
                 ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                  this.listdata = response.data.results;
-                  this.page.total = response.data.count;
+                  if (this.activeName==='started'){
+                    this.startedlistdata = response.data.results
+                    this.page.total2 = response.data.count;
+                  }else {
+                    this.listdata = response.data.results
+                    this.page.total1 = response.data.count;
+                  }
                 })
               }
             }
@@ -648,14 +681,24 @@ export default {
               if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
                 this.current_page -= 1;
                 ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                  this.listdata = response.data.results;
-                  this.page.total = response.data.count;
+                  if (this.activeName==='started'){
+                    this.startedlistdata = response.data.results
+                    this.page.total2 = response.data.count;
+                  }else {
+                    this.listdata = response.data.results
+                    this.page.total1 = response.data.count;
+                  }
                 })
               }
               else {
                 ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                  this.listdata = response.data.results;
-                  this.page.total = response.data.count;
+                  if (this.activeName==='started'){
+                    this.startedlistdata = response.data.results
+                    this.page.total2 = response.data.count;
+                  }else {
+                    this.listdata = response.data.results
+                    this.page.total1 = response.data.count;
+                  }
                 })
               }
             }
@@ -666,14 +709,24 @@ export default {
               if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
                 this.current_page -= 1;
                 ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                  this.listdata = response.data.results;
-                  this.page.total = response.data.count;
+                  if (this.activeName==='started'){
+                    this.startedlistdata = response.data.results
+                    this.page.total2 = response.data.count;
+                  }else {
+                    this.listdata = response.data.results
+                    this.page.total1 = response.data.count;
+                  }
                 })
               }
               else {
                 ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                  this.listdata = response.data.results;
-                  this.page.total = response.data.count;
+                  if (this.activeName==='started'){
+                    this.startedlistdata = response.data.results
+                    this.page.total2 = response.data.count;
+                  }else {
+                    this.listdata = response.data.results
+                    this.page.total1 = response.data.count;
+                  }
                 })
               }
             }
@@ -708,14 +761,24 @@ export default {
                           if(this.listdata.length === 1 && this.current_page === all_page && this.current_page > 1){
                             this.current_page -= 1;
                             ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                              this.listdata = response.data.results;
-                              this.page.total = response.data.count;
+                              if (this.activeName==='started'){
+                                this.startedlistdata = response.data.results
+                                this.page.total2 = response.data.count;
+                              }else {
+                                this.listdata = response.data.results
+                                this.page.total1 = response.data.count;
+                              }
                             })
                           }
                           else {
                             ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                              this.listdata = response.data.results;
-                              this.page.total = response.data.count;
+                              if (this.activeName==='started'){
+                                this.startedlistdata = response.data.results
+                                this.page.total2 = response.data.count;
+                              }else {
+                                this.listdata = response.data.results
+                                this.page.total1 = response.data.count;
+                              }
                             })
                           }
                       }
@@ -726,14 +789,24 @@ export default {
                         if(this.listdata.length === 1 && this.current_page == all_page && this.current_page > 1){
                           this.current_page -= 1;
                           ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                            this.listdata = response.data.results;
-                            this.page.total = response.data.count;
+                            if (this.activeName==='started'){
+                              this.startedlistdata = response.data.results
+                              this.page.total2 = response.data.count;
+                            }else {
+                              this.listdata = response.data.results
+                              this.page.total1 = response.data.count;
+                            }
                           })
                         }
                         else {
                           ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                            this.listdata = response.data.results;
-                            this.page.total = response.data.count;
+                            if (this.activeName==='started'){
+                              this.startedlistdata = response.data.results
+                              this.page.total2 = response.data.count;
+                            }else {
+                              this.listdata = response.data.results
+                              this.page.total1 = response.data.count;
+                            }
                           })
                         }
                       }
@@ -797,14 +870,24 @@ export default {
                       if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
                         this.current_page -= 1;
                         ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                          this.listdata = response.data.results;
-                          this.page.total = response.data.count;
+                          if (this.activeName==='started'){
+                            this.startedlistdata = response.data.results
+                            this.page.total2 = response.data.count;
+                          }else {
+                            this.listdata = response.data.results
+                            this.page.total1 = response.data.count;
+                          }
                         })
                       }
                       else {
                         ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                          this.listdata = response.data.results;
-                          this.page.total = response.data.count;
+                          if (this.activeName==='started'){
+                            this.startedlistdata = response.data.results
+                            this.page.total2 = response.data.count;
+                          }else {
+                            this.listdata = response.data.results
+                            this.page.total1 = response.data.count;
+                          }
                         })
                       }
                     }
@@ -813,14 +896,24 @@ export default {
                       if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
                         this.current_page -= 1;
                         ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                          this.listdata = response.data.results;
-                          this.page.total = response.data.count;
+                          if (this.activeName==='started'){
+                            this.startedlistdata = response.data.results
+                            this.page.total2 = response.data.count;
+                          }else {
+                            this.listdata = response.data.results
+                            this.page.total1 = response.data.count;
+                          }
                         })
                       }
                       else {
                          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                          this.listdata = response.data.results;
-                          this.page.total = response.data.count;
+                          if (this.activeName==='started'){
+                            this.startedlistdata = response.data.results
+                            this.page.total2 = response.data.count;
+                          }else {
+                            this.listdata = response.data.results
+                            this.page.total1 = response.data.count;
+                          }
                         })
                       }
                     }
@@ -849,8 +942,13 @@ export default {
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
         ImgDashboard(this.search,false,page,true,allTag,this.searchRank,this.activeName).then(response => {
           loading.close()
-          this.listdata = response.data.results
-          this.page.total = response.data.count
+          if (this.activeName==='started'){
+              this.startedlistdata = response.data.results
+              this.page.total2 = response.data.count;
+          }else {
+            this.listdata = response.data.results
+            this.page.total1 = response.data.count;
+          }
         })
       },
       autoStop(){
@@ -878,14 +976,25 @@ export default {
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
         if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
           ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-            this.listdata = response.data.results
+            if (this.activeName==='started'){
+              this.startedlistdata = response.data.results
+              this.page.total2 = response.data.count;
+            }else {
+              this.listdata = response.data.results
+              this.page.total1 = response.data.count;
+            }
             this.page.total = response.data.count
           })
         }
         else {
           ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-            this.listdata = response.data.results
-            this.page.total = response.data.count
+            if (this.activeName==='started'){
+              this.startedlistdata = response.data.results
+              this.page.total2 = response.data.count
+            }else {
+              this.listdata = response.data.results
+              this.page.total1 = response.data.count
+            }
           })
         }
       },
@@ -1032,15 +1141,25 @@ export default {
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4);
         if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
           ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-            this.listdata = response.data.results;
-            this.page.total = response.data.count;
+            if (this.activeName==='started'){
+              this.startedlistdata = response.data.results
+              this.page.total2 = response.data.count;
+            }else {
+              this.listdata = response.data.results
+              this.page.total1 = response.data.count;
+            }
             this.loading=false
           })
         }
         else{
           ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-            this.listdata = response.data.results;
-            this.page.total = response.data.count;
+            if (this.activeName==='started'){
+              this.startedlistdata = response.data.results
+              this.page.total2 = response.data.count;
+            }else {
+              this.listdata = response.data.results
+              this.page.total1 = response.data.count;
+            }
             this.loading=false
           })
         }
