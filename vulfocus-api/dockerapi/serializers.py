@@ -124,6 +124,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         container_status_q.children.append(('container_status', "running"))
         container_status_q.children.append(('container_status', "stop"))
         data = ContainerVul.objects.all().filter(Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & container_status_q).first()
+        data_is_check = ContainerVul.objects.filter(user_id=id,image_id=obj.image_id,time_model_id=time_model_id,is_check=True).first()
         run_data = ""
         if obj.is_docker_compose == True:
             data = ContainerVul.objects.all().filter(
@@ -141,6 +142,8 @@ class ImageInfoSerializer(serializers.ModelSerializer):
                     Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & ~Q(docker_compose_path="")).first()
         status["status"] = ""
         status["is_check"] = False
+        if obj.is_docker_compose != True and data_is_check:
+            status["is_check"] = True
         status["container_id"] = ""
         status["start_date"] = ""
         status["end_date"] = ""
