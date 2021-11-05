@@ -1,5 +1,6 @@
 * [Vulfocus]()
 * [安装](INSTALL.md)
+* [API](VULFOCUSAPI.md)
 * [漏洞镜像规范](_sidebar.md)
 
 * Writeup
