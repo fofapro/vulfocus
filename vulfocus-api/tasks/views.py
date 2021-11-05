@@ -38,6 +38,15 @@ class TaskSet(viewsets.ReadOnlyModelViewSet):
                     }
                 else:
                     msg["data"]["_now"] = int(timezone.now().timestamp())
+                    try:
+                        HTTP_HOST = request.META.get("HTTP_REFERER")
+                        # 判断前端的请求地址是IP形式或者是域名形式
+                        if HTTP_HOST.count(":") < 2:
+                            origin_host = msg["data"]["host"].split(":")
+                            if len(origin_host) >= 2 and HTTP_HOST:
+                                msg["data"]["host"] = HTTP_HOST[:-1] + ":" + origin_host[1]
+                    except Exception as e:
+                        pass
                 return JsonResponse(msg, status=200)
             else:
                 return JsonResponse(msg, status=200)
@@ -138,3 +147,5 @@ class TaskSet(viewsets.ReadOnlyModelViewSet):
             else:
                 result[str(task_info.task_id)] = {"progress": 100.0, "status": 2}
         return JsonResponse(R.ok(data=result))
+
+

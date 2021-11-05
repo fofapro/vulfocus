@@ -26,6 +26,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from rest_framework.pagination import PageNumberPagination
 import requests
+import time
 
 
 class MyPageNumberPagination(PageNumberPagination):
@@ -816,6 +817,22 @@ class DashboardView(APIView):
         temp = self.request.GET.get("temp", "")
         rank = self.request.GET.get("rank", "")
         page = self.request.GET.get('page', "")
+        # 获取tab分页标签，用户可以在全部和已启动镜像中进行切换
+        activate_name = self.request.GET.get("activate_name", "all")
+        image_names = []
+        image_info_list = []
+        count = 0
+        # 表示要返回已启动的镜像
+        if activate_name == "started":
+            # 取出当前用户所启动的镜像对象
+            runnging_containers_image = ContainerVul.objects.filter(Q(user_id=request.user.id) & Q(container_status="running")
+                                                              & Q(is_docker_compose_correlation=False) &
+                                                              ~Q(docker_container_id=""))
+
+            for image in runnging_containers_image:
+                image_info = image.image_id
+                if image_info:
+                    image_names.append(image_info.image_name)
         min_rank = 0
         try:
             if rank != "undefined" and rank != "":
@@ -840,23 +857,32 @@ class DashboardView(APIView):
         user = self.request.user
         degrees = ImageInfo.objects.all().values('degree').distinct()
         HoleType, devLanguage, devDatabase, devClassify = [], [], [], []
-        for single_degree in degrees:
-            try:
-                origin_degree = json.loads(single_degree["degree"]) if "degree" in single_degree and single_degree[
-                    "degree"] else ""
-            except Exception as e:
-                pass
-            if isinstance(origin_degree, list):
-                HoleType += origin_degree
-            elif isinstance(origin_degree, dict):
-                if "HoleType" in origin_degree and origin_degree["HoleType"]:
-                    HoleType += origin_degree["HoleType"]
-                if "devLanguage" in origin_degree and origin_degree["devLanguage"]:
-                    devLanguage += origin_degree["devLanguage"]
-                if "devDatabase" in origin_degree and origin_degree["devDatabase"]:
-                    devDatabase += origin_degree["devDatabase"]
-                if "devClassify" in origin_degree and origin_degree["devClassify"]:
-                    devClassify += origin_degree["devClassify"]
+        try:
+            for single_degree in degrees:
+                try:
+                    origin_degree = json.loads(single_degree["degree"]) if "degree" in single_degree and single_degree[
+                        "degree"] else ""
+                except Exception as e:
+                    pass
+                if isinstance(origin_degree, list):
+                    for single_list_degree in origin_degree:
+                        single_list_degree.strip()
+                        HoleType.append(single_list_degree)
+                elif isinstance(origin_degree, dict):
+                    if "HoleType" in origin_degree and origin_degree["HoleType"]:
+                        current_holetype = list(map(lambda x: x.strip(), origin_degree["HoleType"]))
+                        HoleType += current_holetype
+                    if "devLanguage" in origin_degree and origin_degree["devLanguage"]:
+                        current_devlanguage = list(map(lambda x: x.strip(), origin_degree["devLanguage"]))
+                        devLanguage += current_devlanguage
+                    if "devDatabase" in origin_degree and origin_degree["devDatabase"]:
+                        current_database = list(map(lambda x: x.strip(), origin_degree["devDatabase"]))
+                        devDatabase += current_database
+                    if "devClassify" in origin_degree and origin_degree["devClassify"]:
+                        current_devclassify = list(map(lambda x: x.strip(), origin_degree["devClassify"]))
+                        devClassify += current_devclassify
+        except Exception as e:
+            pass
         return_degree_dict = {"HoleType": list(set(HoleType)), "devLanguage": list(set(devLanguage)),
                               "devDatabase": list(set(devDatabase)), "devClassify": list(set(devClassify))}
         time_img_type = []
@@ -880,17 +906,32 @@ class DashboardView(APIView):
             rank_range_greenhand.children.append(('rank__lte', 0.5))
             rank_range_greenhand.children.append(('rank__gte', 0.0))
             count = ImageInfo.objects.filter(rank_range_greenhand, is_ok=True).count()
-            image_info_list = ImageInfo.objects.filter(rank_range_greenhand, is_ok=True)[min_size:max_size]
+            if len(image_names) > 0:
+                image_info_list = ImageInfo.objects.filter(rank_range_greenhand, is_ok=True,image_name__in=image_names)[min_size:max_size]
+            elif len(image_names) == 0 and activate_name == "started":
+                pass
+            else:
+                image_info_list = ImageInfo.objects.filter(rank_range_greenhand, is_ok=True)[min_size:max_size]
         elif user.is_superuser:
             if query:
                 query = query.strip()
                 if flag and flag == "flag":
-                    count = ImageInfo.objects.filter(
-                        Q(image_name__contains=query) | Q(image_vul_name__contains=query)
-                        | Q(image_desc__contains=query)).count()
-                    image_info_list = ImageInfo.objects.filter(
-                        Q(image_name__contains=query) | Q(image_vul_name__contains=query)
-                        | Q(image_desc__contains=query))[min_size:max_size]
+                    if len(image_names) > 0:
+                        count = ImageInfo.objects.filter(
+                            Q(image_name__contains=query) | Q(image_vul_name__contains=query)
+                            | Q(image_desc__contains=query) & Q(image_name__in=image_names)).count()
+                        image_info_list = ImageInfo.objects.filter(
+                            Q(image_name__contains=query) | Q(image_vul_name__contains=query)
+                            | Q(image_desc__contains=query) & Q(image_name__in=image_names))[min_size:max_size]
+                    elif len(image_names) == 0 and activate_name == "started":
+                        pass
+                    else:
+                        count = ImageInfo.objects.filter(
+                            Q(image_name__contains=query) | Q(image_vul_name__contains=query)
+                            | Q(image_desc__contains=query)).count()
+                        image_info_list = ImageInfo.objects.filter(
+                            Q(image_name__contains=query) | Q(image_vul_name__contains=query)
+                            | Q(image_desc__contains=query))[min_size:max_size]
                 else:
                     query = query.strip()
                     time_img_type_q = Q()
@@ -928,17 +969,31 @@ class DashboardView(APIView):
                     query_q.add(is_ok_q, 'AND')
                     if not data:
                         query_q.add(image_q, 'AND')
-                    count = ImageInfo.objects.filter(query_q).count()
-                    image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
+                    if len(image_names) > 0:
+                        image_info_list = ImageInfo.objects.filter(query_q, image_name__in=image_names)[min_size:max_size]
+                    elif len(image_names) == 0 and activate_name == "started":
+                        pass
+                    else:
+                        image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
             else:
                 if temp == "temp":
                     if rank == 0.0:
                         rank = 5
                     if not img_t:
-                        count = ImageInfo.objects.filter(
-                            Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all().count()
-                        image_info_list = ImageInfo.objects.filter(
-                            Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
+                        if len(image_names) > 0:
+                            count = ImageInfo.objects.filter(
+                                Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True) &
+                                Q(image_name__in=image_names)).all().count()
+                            image_info_list = ImageInfo.objects.filter(
+                                Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True) &
+                                Q(image_name__in=image_names)).all()[min_size:max_size]
+                        elif len(image_names) == 0 and activate_name == "started":
+                            pass
+                        else:
+                            count = ImageInfo.objects.filter(
+                                Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all().count()
+                            image_info_list = ImageInfo.objects.filter(
+                                Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
@@ -950,13 +1005,29 @@ class DashboardView(APIView):
                             degree_q.connector = 'AND'
                             for img_type in img_t_list:
                                 degree_q.children.append(('degree__contains', json.dumps(img_type)))
-                        count = ImageInfo.objects.filter(
-                            ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all().count()
-                        image_info_list = ImageInfo.objects.filter(
-                            ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()[min_size:max_size]
+                        if len(image_names) > 0:
+                            count = ImageInfo.objects.filter(
+                                ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q &
+                                Q(image_name__in=image_names)).all().count()
+                            image_info_list = ImageInfo.objects.filter(
+                                ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q &
+                                Q(image_name__in=image_names)).all()[min_size:max_size]
+                        elif len(image_names) == 0 and activate_name == "started":
+                            pass
+                        else:
+                            count = ImageInfo.objects.filter(
+                                ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all().count()
+                            image_info_list = ImageInfo.objects.filter(
+                                ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()[min_size:max_size]
                 elif flag and flag == "flag":
-                    count = ImageInfo.objects.all().count()
-                    image_info_list = ImageInfo.objects.all()[min_size:max_size]
+                    if len(image_names) > 0:
+                        count = ImageInfo.objects.filter(image_name__in=image_names).count()
+                        image_info_list = ImageInfo.objects.filter(image_name__in=image_names)[min_size:max_size]
+                    elif len(image_names) == 0 and activate_name == "started":
+                        pass
+                    else:
+                        count = ImageInfo.objects.all().count()
+                        image_info_list = ImageInfo.objects.all()[min_size:max_size]
                 else:
                     time_img_type_q = Q()
                     if len(time_img_type) > 0:
@@ -977,15 +1048,29 @@ class DashboardView(APIView):
                     is_ok_q.connector = 'AND'
                     is_ok_q.children.append(('is_ok', True))
                     query_q.add(is_ok_q, 'AND')
-                    count = ImageInfo.objects.filter(query_q).count()
-                    image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
+                    if len(image_names) > 0:
+                        count = ImageInfo.objects.filter(query_q, image_name__in=image_names).count()
+                        image_info_list = ImageInfo.objects.filter(query_q, image_name__in=image_names)[min_size:max_size]
+                    elif len(image_names) == 0 and activate_name == "started":
+                        pass
+                    else:
+                        count = ImageInfo.objects.filter(query_q).count()
+                        image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
                     if image_ids:
                         imageids_q = Q()
                         imageids_q.connector = 'OR'
                         for img_id in image_ids:
                             imageids_q.children.append(('image_id', img_id))
-                        count = ImageInfo.objects.filter(imageids_q & Q(is_ok=True)).count()
-                        image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True))[min_size:max_size]
+                        if len(image_names) > 0:
+                            count = ImageInfo.objects.filter(imageids_q & Q(is_ok=True) &
+                                                             Q(image_name__in=image_names)).count()
+                            image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True) &
+                                                                       Q(image_name__in=image_names))[min_size:max_size]
+                        elif len(image_names) == 0 and activate_name == "started":
+                            pass
+                        else:
+                            count = ImageInfo.objects.filter(imageids_q & Q(is_ok=True)).count()
+                            image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True))[min_size:max_size]
         else:
             if query:
                 query = query.strip()
@@ -1025,17 +1110,33 @@ class DashboardView(APIView):
                 query_q.add(is_ok_q, 'AND')
                 if not data:
                     query_q.add(image_q, 'AND')
-                count = ImageInfo.objects.filter(query_q).count()
-                image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
+                if len(image_names) > 0:
+                    count = ImageInfo.objects.filter(query_q, image_name__in=image_names).count()
+                    image_info_list = ImageInfo.objects.filter(query_q, image_name__in=image_names)[min_size:max_size]
+                elif len(image_names) == 0 and activate_name == "started":
+                    pass
+                else:
+                    count = ImageInfo.objects.filter(query_q).count()
+                    image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
             else:
                 if temp == "temp":
                     if rank == 0.0:
                         rank = 5
                     if not img_t:
-                        count = ImageInfo.objects.filter(
-                            Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all().count()
-                        image_info_list = ImageInfo.objects.filter(
-                            Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
+                        if len(image_names) > 0:
+                            count = ImageInfo.objects.filter(
+                                Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)
+                                & Q(image_name__in=image_names)).all().count()
+                            image_info_list = ImageInfo.objects.filter(
+                                Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)
+                                & Q(image_name__in=image_names)).all()[min_size:max_size]
+                        elif len(image_names) == 0 and activate_name == "started":
+                            pass
+                        else:
+                            count = ImageInfo.objects.filter(
+                                Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all().count()
+                            image_info_list = ImageInfo.objects.filter(
+                                Q(rank__lte=rank) & Q(rank__gte=min_rank) & Q(is_ok=True)).all()[min_size:max_size]
                     else:
                         img_t_list = img_t.split(",")
                         rank_q = Q()
@@ -1047,10 +1148,20 @@ class DashboardView(APIView):
                             degree_q.connector = 'AND'
                             for img_type in img_t_list:
                                 degree_q.children.append(('degree__contains', json.dumps(img_type)))
-                        count = ImageInfo.objects.filter(
-                            ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all().count()
-                        image_info_list = ImageInfo.objects.filter(
-                            ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()[min_size:max_size]
+                        if len(image_names) > 0:
+                            count = ImageInfo.objects.filter(
+                                ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q
+                                & Q(image_name__in=image_names)).all().count()
+                            image_info_list = ImageInfo.objects.filter(
+                                ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q &
+                                Q(image_name__in=image_names)).all()[min_size:max_size]
+                        elif len(image_names) == 0 and activate_name == "started":
+                            pass
+                        else:
+                            count = ImageInfo.objects.filter(
+                                ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all().count()
+                            image_info_list = ImageInfo.objects.filter(
+                                ~Q(degree="") & rank_q & Q(is_ok=True) & degree_q).all()[min_size:max_size]
                 else:
                     time_img_type_q = Q()
                     if len(time_img_type) > 0:
@@ -1071,17 +1182,31 @@ class DashboardView(APIView):
                     is_ok_q.connector = 'AND'
                     is_ok_q.children.append(('is_ok', True))
                     query_q.add(is_ok_q, 'AND')
-                    count = ImageInfo.objects.filter(query_q).count()
-                    image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
+                    if len(image_names) > 0:
+                        count = ImageInfo.objects.filter(query_q, image_name__in=image_names).count()
+                        image_info_list = ImageInfo.objects.filter(query_q,
+                                                                   image_name__in=image_names)[min_size:max_size]
+                    elif len(image_names) == 0 and activate_name == "started":
+                        pass
+                    else:
+                        count = ImageInfo.objects.filter(query_q).count()
+                        image_info_list = ImageInfo.objects.filter(query_q)[min_size:max_size]
                     if image_ids:
                         imageids_q = Q()
                         imageids_q.connector = 'OR'
                         for img_id in image_ids:
                             imageids_q.children.append(('image_id', img_id))
-                        count = ImageInfo.objects.filter(imageids_q & Q(is_ok=True)).count()
-                        image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True))[min_size:max_size]
+                        if len(image_names) > 0:
+                            count = ImageInfo.objects.filter(imageids_q & Q(is_ok=True) &
+                                                             Q(image_name__in=image_names)).count()
+                            image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True) &
+                                                                       Q(image_name__in=image_names))[min_size:max_size]
+                        elif len(image_names) == 0 and activate_name == "started":
+                            pass
+                        else:
+                            count = ImageInfo.objects.filter(imageids_q & Q(is_ok=True)).count()
+                            image_info_list = ImageInfo.objects.filter(imageids_q & Q(is_ok=True))[min_size:max_size]
         if data and temp_pattern == 1:
-
             for image_info in image_info_list:
                 image_info.image_name = ''
                 image_info.image_vul_name = ''
@@ -1608,3 +1733,186 @@ def get_container_status(request):
     if not current_container:
         return JsonResponse({"code": 400, "msg": "容器不存在"})
     return JsonResponse({"code": 200, "status": current_container.container_status})
+
+
+@csrf_exempt
+def get_operation_image_api(req):
+    '''
+    开放api（官网）
+    '''
+
+    # 返回所有数据
+    if req.method == "GET":
+        # 获取认证的licence
+        licence = req.GET.get("licence", "")
+        # 获取用户名
+        username = req.GET.get("username", "")
+        # 判断用户是否存在
+        if username:
+            user = UserProfile.objects.filter(username=username).first()
+            if not user:
+                return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
+        else:
+            return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
+        # 判断licence是否匹配用户，符合则返回所有已下载的镜像数据
+        if licence and licence == user.licence:
+            imgs = ImageInfo.objects.filter(is_ok=True).all().values("image_name", "image_vul_name", "image_desc")
+            imglist = list()
+            for i in imgs:
+                imglist.append(i)
+            return HttpResponse(json.dumps(R.ok(data=imglist), ensure_ascii=False), content_type='application/json')
+        else:
+            return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
+
+    # 启动镜像
+    if req.method == "POST":
+        # 获取请求参数，image_name镜像名称全称+版本号，licence用于用户认证，username用户名称
+        image_name = req.POST.get("image_name", "")
+        licence = req.POST.get("licence", "")
+        username = req.POST.get("username", "")
+        requisition = req.POST.get("requisition", "")
+        # 判断用户是否存在
+        if username:
+            user = UserProfile.objects.filter(username=username).first()
+            if not user:
+                return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
+        else:
+            return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
+        # 判断licence是否匹配用户
+        if licence and licence == user.licence:
+            pass
+        else:
+            return HttpResponse(json.dumps(R.err(msg="认证信息错误"), ensure_ascii=False))
+        # 判断镜像是否存在
+        if image_name:
+            image = ImageInfo.objects.filter(image_name=image_name, is_ok=True).first()
+            if not image:
+                return HttpResponse(json.dumps(R.err(msg="镜像不存在"), ensure_ascii=False))
+        else:
+            return HttpResponse(json.dumps(R.err(msg="镜像名称不能为空"), ensure_ascii=False))
+        if not requisition:
+            return HttpResponse(json.dumps(R.err(msg="错误的请求"), ensure_ascii=False))
+        if requisition and requisition not in ['start', 'stop', 'delete']:
+            return HttpResponse(json.dumps(R.err(msg="错误的请求"), ensure_ascii=False))
+        # 启动惊喜那个的请求
+        if requisition == "start":
+            data_count = ContainerVul.objects.filter(user_id=user.id, container_status='running').all().count()
+            data_start = ContainerVul.objects.filter(user_id=user.id, image_id=image.image_id, container_status='running').first()
+            if data_start:
+                status = dict()
+                try:
+                    HTTP_HOST = req.META.get("HTTP_REFERER")
+                    if ':' in HTTP_HOST:
+                        status["host"] = data_start.vul_host
+                    else:
+                        if HTTP_HOST:
+                            HTTP_HOST = HTTP_HOST[:-1]
+                            status["host"] = HTTP_HOST
+                        else:
+                            status["host"] = data_start.vul_host
+                except:
+                    status["host"] = data_start.vul_host
+                status["port"] = data_start.vul_port
+                return HttpResponse(json.dumps(R.ok(data=status, msg="镜像已启动"), ensure_ascii=False))
+            if data_count > 3:
+                return HttpResponse(json.dumps(R.err(msg="同时启动容器数量达到上线"), ensure_ascii=False))
+            img_info = image
+            # 当前用户id
+            image_id = img_info.image_id
+            user_id = user.id
+            now_time = datetime.datetime.now().timestamp()
+            time_moudel_data = TimeMoudel.objects.filter(user_id=user_id, end_time__gte=now_time).first()
+            time_model_id = ''
+            if time_moudel_data:
+                time_model_id = time_moudel_data.time_id
+            image_info = ImageInfoSerializer(img_info).data
+            container_vul = ContainerVul.objects.filter(user_id=user_id, image_id=image_id,
+                                                        time_model_id=time_model_id, container_status='stop').first()
+            compose_container_vul = ContainerVul.objects.filter(Q(user_id=user_id) & Q(image_id=image_id) &
+                                                                Q(time_model_id=time_model_id) & Q(
+                                                                 container_status='stop') & ~Q(docker_compose_path="")).first()
+            if not container_vul or image_info['is_docker_compose'] == True:
+                if compose_container_vul:
+                    container_vul = compose_container_vul
+                else:
+                    container_vul = ContainerVul(image_id=img_info, user_id=user_id, vul_host="",
+                                                 container_status="creat",
+                                                 docker_container_id="",
+                                                 vul_port="",
+                                                 container_port="",
+                                                 time_model_id=time_model_id,
+                                                 create_date=django.utils.timezone.now(),
+                                                 container_flag="")
+                    container_vul.save()
+            if image_info['is_docker_compose'] == True:
+                task_id = tasks.start_docker_compose(req, image_id, container_vul, user,
+                                                     get_request_ip(req), time_model_id)
+            else:
+                task_id = tasks.create_container_task(container_vul, user, get_request_ip(req))
+            task_info = TaskInfo.objects.filter(task_id=task_id)
+            status = dict()
+            num = 0
+            while True:
+                num += 1
+                time.sleep(3)
+                data = ContainerVul.objects.filter(user_id=user_id, image_id=image_id, container_status='running').first()
+                if data:
+                    try:
+                        HTTP_HOST = req.META.get("HTTP_REFERER")
+                        if ':' in HTTP_HOST:
+                            status["host"] = data.vul_host
+                        else:
+                            if HTTP_HOST:
+                                HTTP_HOST = HTTP_HOST[:-1]
+                                status["host"] = HTTP_HOST
+                            else:
+                                status["host"] = data.vul_host
+                    except:
+                        status["host"] = data.vul_host
+                    status["port"] = data.vul_port
+                    return HttpResponse(json.dumps(R.ok(data=status, msg="启动成功"), ensure_ascii=False))
+                else:
+                    if num == 3:
+                        break
+            return HttpResponse(json.dumps(R.err(msg="启动失败"), ensure_ascii=False))
+        # 停止镜像的请求
+        if requisition == "stop":
+            container_vul = ContainerVul.objects.filter(image_id=image.image_id, user_id=user.id,
+                                                        container_status="running").first()
+            if not container_vul:
+                return HttpResponse(json.dumps(R.err(msg="镜像已经停止"), ensure_ascii=False))
+            if image.is_docker_compose == True:
+                original_container = ContainerVul.objects.filter(
+                    Q(user_id=user.id) & Q(image_id=image.image_id) &
+                    Q(container_status="running") & ~Q(docker_compose_path="")).first()
+                if not original_container:
+                    return HttpResponse(json.dumps(R.err(msg="镜像已经停止"), ensure_ascii=False))
+                task_id = tasks.stop_container_task(container_vul=original_container, user_info=user,
+                                                    request_ip=get_request_ip(req))
+                return HttpResponse(json.dumps(R.ok(msg="停止成功"), ensure_ascii=False))
+            else:
+                task_id = tasks.stop_container_task(container_vul=container_vul, user_info=user,
+                                                    request_ip=get_request_ip(req))
+                return HttpResponse(json.dumps(R.ok(msg="停止成功"), ensure_ascii=False))
+        # 删除镜像的请求
+        if requisition == "delete":
+            container_status_q = Q()
+            container_status_q.connector = "OR"
+            container_status_q.children.append(('container_status', "running"))
+            container_status_q.children.append(('container_status', "stop"))
+            container_vul = ContainerVul.objects.filter(Q(image_id=image.image_id) & Q(user_id=user.id) & Q(container_status_q)).first()
+            if not container_vul:
+                return HttpResponse(json.dumps(R.err(msg="镜像已经删除"), ensure_ascii=False))
+            if image.is_docker_compose == True:
+                original_container = ContainerVul.objects.filter(
+                    Q(user_id=user.id) & Q(image_id=image.image_id) & ~Q(docker_compose_path="") & Q(container_status_q)).first()
+                if not original_container:
+                    return HttpResponse(json.dumps(R.err(msg="镜像已经删除"), ensure_ascii=False))
+                task_id = tasks.delete_container_task(container_vul=original_container, user_info=user,
+                                                        request_ip=get_request_ip(req))
+                return HttpResponse(json.dumps(R.ok(msg="删除成功"), ensure_ascii=False))
+            else:
+                task_id = tasks.delete_container_task(container_vul=container_vul, user_info=user,
+                                                        request_ip=get_request_ip(req))
+
+                return HttpResponse(json.dumps(R.ok(msg="删除成功"), ensure_ascii=False))

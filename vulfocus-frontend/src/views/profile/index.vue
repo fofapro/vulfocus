@@ -2,11 +2,9 @@
   <div class="app-container">
     <div v-if="user">
       <el-row :gutter="20">
-
         <el-col :span="6" :xs="24">
           <user-card :user="user" />
         </el-col>
-
         <el-col :span="18" :xs="24">
           <el-card>
             <el-tabs v-model="activeTab">
@@ -19,7 +17,6 @@
             </el-tabs>
           </el-card>
         </el-col>
-
       </el-row>
     </div>
   </div>
@@ -46,7 +43,8 @@ export default {
       'avatar',
       'roles',
       'rank',
-      'email'
+      'email',
+      'licence'
     ])
   },
   created() {
@@ -60,6 +58,7 @@ export default {
         email: this.email,
         avatar: this.avatar,
         rank:this.rank,
+        licence:this.licence
       }
     }
   }

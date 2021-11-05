@@ -98,7 +98,7 @@ export function ContainerStart(id) {
   })
 }
 
-export function ImgDashboard(data,flag,page,temp,type,rank) {
+export function ImgDashboard(data,flag,page,temp,type,rank,activate_name) {
   if(data === undefined){
     data = ""
   }
@@ -111,7 +111,11 @@ export function ImgDashboard(data,flag,page,temp,type,rank) {
   if(page === undefined || page == null){
     page =1
   }
-  let url = "/img/dashboard/?query="+data+"&page="+page+'&rank='+rank+'&type='+type
+  // activate_name表示tab标签，默认是all,还可以选择是已启动，表示返回已启动镜像
+  if(activate_name === undefined || activate_name === null){
+    activate_name = "all"
+  }
+  let url = "/img/dashboard/?query="+data+"&page="+page+'&rank='+rank+'&type='+type+'&activate_name='+activate_name
   let paramFlag = ""
   if(flag === true){
     paramFlag = "flag"
