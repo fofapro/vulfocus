@@ -4,6 +4,18 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 
 | 漏洞名称         | 拉取命令                                  | 描述             |贡献者|
 | :--------------- | :--------------------------------------------------- | :--------------- |:--------------- |
+|CVE—2018-13137 |`docker pull  vulfocus/wordpress-CVE—2018-13137`|CVE—2018-13137 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE—2019-19985 |`docker pull  vulfocus/wordpress-CVE—2019-19985`|CVE—2019-19985 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2014—5210 |`docker pull  vulfocus/wordpress-CVE-2014—5210`|CVE-2014—5210 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE—2013—7091 |`docker pull  vulfocus/zimbra-CVE-2013—7091`|CVE—2013—7091 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE—2019—9670 |`docker pull  vulfocus/zimbra-CVE—2019—9670 `|CVE—2019—9670 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE—2020—5284 |`docker pull  vulfocus/next.js-CVE—2020—5284 `|CVE—2020—5284 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE—2016—10140 |`docker pull  vulfocus/zoneminder-CVE—2016—10140 `|CVE—2016—10140 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2016-10134 |`docker pull  vulfocus/zabbix-CVE-2016-10134 `|CVE-2016-10134 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-2893 |`docker pull  vulfocus/weblogic-CVE-2018-2893 `|CVE-2018-2893 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2018-11528 |`docker pull  vulfocus/wuzhicms-CVE-2018-11528  `|CVE-2018-11528 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-2019-18662 |`docker pull  vulfocus/youphptube-CVE_2019_18662 `|CVE-2019-18662 |[Vulfocus](https://github.com/fofapro/vulfocus)|
+|CVE-CVE-2019-5120 |`docker pull  vulfocus/youphptube-CVE-2019-5120 `|CVE-2019-5120 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2014-4210 |`docker pull  vulfocus/weblogic-CVE-2014-4210 `|CVE-2014-4210 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2020-14883 |`docker pull  vulfocus/weblogic-CVE-2020-14883 `|CVE-2020-14883 |[Vulfocus](https://github.com/fofapro/vulfocus)|
 |CVE-2018-3245 |`docker pull  vulfocus/weblogic-CVE-2018-3245 `|CVE-2018-3245 |[Vulfocus](https://github.com/fofapro/vulfocus)|
@@ -235,6 +247,21 @@ Vulfocus 镜像维护目录，该目录中存储 Vulfocus 所有的 Dockerfile �
 | CVE-2014-3120    | `docker pull vulfocus/elasticsearch-cve_2014_3120`   | CVE-2014-3120    | [Vulfocus](https://github.com/fofapro/vulfocus)|
 
 ## 镜像新增日志
+
+2021-11-05
+
+- vulfocus/youphptube-cve_2019_5120 
+- vulfocus/youphptube-cve_2019_18662 
+- vulfocus/wuzhicms-cve_2018_11528 
+- vulfocus/weblogic-cve_2018_2893
+- vulfocus/zabbix-cve_2016_10134
+- vulfocus/zoneminder-cve_2016_10140
+- vulfocus/next.js-cve_2020_5284
+- vulfocus/zimbra-cve_2019_9670
+- vulfocus/zimbra-cve_2013_7091
+- vulfocus/wordpress-cve_2014_5201
+- vulfocus/wordpress-cve_2019_19985
+- vulfocus/wordpress-cve_2018_13137
 
 2021-10-22
 
