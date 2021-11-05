@@ -385,6 +385,7 @@ export default {
         this.current_page = 1;
         this.loading = true;
         this.listdata = [];
+        this.startedlistdata = [];
         this.page.total = 0;
       },
       listData() {
@@ -446,9 +447,9 @@ export default {
               this.startedlistdata = response.data.results
               this.page.total2 = response.data.count;
               for (let i = 0; i <this.startedlistdata.length ; i++) {
-                this.listdata[i].status.start_flag = false
-                this.listdata[i].status.stop_flag = false
-                this.listdata[i].status.delete_flag = false
+                this.startedlistdata[i].status.start_flag = false
+                this.startedlistdata[i].status.stop_flag = false
+                this.startedlistdata[i].status.delete_flag = false
               }
             }else {
               this.listdata = response.data.results

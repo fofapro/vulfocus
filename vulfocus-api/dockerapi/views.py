@@ -1802,12 +1802,14 @@ def get_operation_image_api(req):
                 status = dict()
                 try:
                     HTTP_HOST = req.META.get("HTTP_REFERER")
-                    if ':' in HTTP_HOST:
+                    if HTTP_HOST.count(":") == 2:
                         status["host"] = data_start.vul_host
                     else:
                         if HTTP_HOST:
-                            HTTP_HOST = HTTP_HOST[:-1]
-                            status["host"] = HTTP_HOST
+                            HTTP_HOST = HTTP_HOST.replace("http://", "").replace("https://", "")
+                            origin_host = data_start.vul_host.split(":")
+                            if len(origin_host) >= 2:
+                                status["host"] = HTTP_HOST[:-1] + ":" + origin_host[1]
                         else:
                             status["host"] = data_start.vul_host
                 except:
@@ -1859,12 +1861,14 @@ def get_operation_image_api(req):
                 if data:
                     try:
                         HTTP_HOST = req.META.get("HTTP_REFERER")
-                        if ':' in HTTP_HOST:
+                        if HTTP_HOST.count(":") == 2:
                             status["host"] = data.vul_host
                         else:
                             if HTTP_HOST:
-                                HTTP_HOST = HTTP_HOST[:-1]
-                                status["host"] = HTTP_HOST
+                                HTTP_HOST = HTTP_HOST.replace("http://", "").replace("https://", "")
+                                origin_host = data.vul_host.split(":")
+                                if len(origin_host) >= 2:
+                                    status["host"] = HTTP_HOST[:-1] + ":" + origin_host[1]
                             else:
                                 status["host"] = data.vul_host
                     except:

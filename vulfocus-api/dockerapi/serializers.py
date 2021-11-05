@@ -163,6 +163,7 @@ class ImageInfoSerializer(serializers.ModelSerializer):
                         status["host"] = data.vul_host
                     else:
                         if HTTP_HOST:
+                            HTTP_HOST = HTTP_HOST.replace("http://", "").replace("https://", "")
                             origin_host = data.vul_host.split(":")
                             if len(origin_host) >= 2:
                                 status["host"] = HTTP_HOST[:-1] + ":" + origin_host[1]
