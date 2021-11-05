@@ -1,5 +1,5 @@
 <template>
-  <div class="reg-container">
+  <div class="reg-container"  v-bind:style="{backgroundImage:'url(' + bg + ')',backgroundSize:'100% 100%', backgroundRepeat:'no-repeat', backgroundPosition:'center'}">
     <div class="icon-con" style="float: right;margin-top: 0px" >
       <a href="https://github.com/fofapro/vulfocus" target="_blank" class="github-corner" aria-label="View source on Github">
         <svg
@@ -27,7 +27,7 @@
     </div>
     <el-form ref="ruleForm" :model="ruleForm" :rules="rules" class="reg-form" auto-complete="on"  label-width="100px">
       <div class="title-container">
-        <img src="../../assets/logintitle.png" style="margin-top: 30px;margin-left: 15%;margin-bottom: 10px;"/>
+        <img :src="logoimg" style="margin-top: 30px;margin-left: 15%;margin-bottom: 10px;width: 80%;height: 66px"/>
       </div>
 
       <el-form-item prop="name" label="用户名" style="margin-left: 12px;margin-right: 13px">
@@ -76,6 +76,7 @@
   // import { validUsername } from '@/utils/validate'
   import Message from 'element-ui/packages/message/src/main'
   import { capt,send_reg_mail,get_captcha } from "@/api/user"
+  import { settingimg } from "@/api/setting"
   export default {
     name: 'Register',
     data() {
@@ -120,6 +121,8 @@
         passwordType: 'password',
         redirect: undefined,
         disabled:false,
+        bg:require('../../assets/loginbg02.png'),
+        logoimg: require('../../assets/logintitle.png'),
       }
     },
     // mounted() {
@@ -181,6 +184,23 @@
         this.ruleForm.hashkey = data.hashkey;
       })
     }
+    },
+    beforeCreate(){
+      settingimg().then(response => {
+        let data = response.data
+        if (data){
+          let enterprise_bg = data.data['enterprise_bg']
+          let enterprise_logo = data.data['enterprise_logo']
+          this.cancel_registration = data.data['cancel_registration']
+          if (enterprise_bg){
+            this.bg = enterprise_bg || require('../../assets/loginbackground.png')
+          }
+          if (enterprise_logo){
+            this.logoimg = enterprise_logo || require('../../assets/logintitle.png')
+          }
+        }
+      })
+
     }
   }
 </script>
@@ -268,8 +288,8 @@
     height: 100%;
     background-color: $bg;
     overflow: hidden;
-    background: url("../../assets/loginbackground.png") center no-repeat;
-    background-size: 100%;
+    /*background: url("../../assets/loginbackground.png") center no-repeat;*/
+    /*background-size: 100%;*/
     .reg-form {
       position: relative;
       width: 400px;

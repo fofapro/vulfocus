@@ -6,6 +6,12 @@
     <el-form-item label="邮箱">
       <el-input v-model.trim="user.email" :disabled="true" />
     </el-form-item>
+    <el-form-item label="Licence">
+      <el-input v-model.trim="user.licence" class="copy-code-button" :disabled="true">
+        <el-button slot="append" icon="el-icon-document-copy" class="copy-code-button" :data-clipboard-text="user.licence" @click="copy">
+        </el-button>
+      </el-input>
+    </el-form-item>
     <el-form-item label="旧密码" v-if="updatePwd === true">
       <el-input v-model.trim="ruleForm.oldPassword" />
     </el-form-item>
@@ -25,6 +31,7 @@
 
 <script>
 import { updatePassword } from "@/api/user"
+import Clipboard from 'clipboard'
 
 export default {
   data(){
@@ -86,6 +93,23 @@ export default {
     },
     closeHandlerPwd(){
       this.updatePwd = false
+    },
+    copy () {
+      let clipboard = new Clipboard('.copy-code-button') // 这里可以理解为选择器，选择上面的复制按钮
+        clipboard.on('success', e => {
+            clipboard.destroy()
+            this.$message({
+              message: '复制成功',
+              type: "success",
+            })
+        })
+        clipboard.on('error', e => {
+          clipboard.destroy()
+          this.$message({
+            message: '复制失败',
+            type: "error",
+        })
+      })
     },
     handleUpdatePwd(){
       this.$refs.ruleForm.validate(valid => {

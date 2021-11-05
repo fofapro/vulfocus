@@ -36,6 +36,10 @@ app.conf.update(
         'download_images': {
             'task': 'tasks.download_images',
             'schedule':  timedelta(hours=1),
+        },
+        'duplicate': {
+            'task': 'tasks.duplicate',
+            'schedule': timedelta(minutes=10),
         }
     }
 )

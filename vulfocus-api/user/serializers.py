@@ -41,7 +41,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count", "date_joined", 'greenhand')
+        fields = ("id", "name", "roles", "avatar", "email", "rank", "status_moudel", "rank_count", "date_joined", 'greenhand', 'licence')
 
     def transition_time(self,obj):
         time = obj.date_joined.strftime('%Y-%m-%d %H:%M:%S')

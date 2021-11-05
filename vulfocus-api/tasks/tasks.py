@@ -1239,6 +1239,26 @@ def share_image(task_id):
     task_info.save()
 
 
+@shared_task(name="tasks.duplicate")
+def duplicate():
+    """
+    去重用户licence
+    """
+    try:
+        print('执行用户licence去重成功')
+        user_info = UserProfile.objects.all()
+        user_count = UserProfile.objects.all().count()
+        licence_count = UserProfile.objects.all().values("licence").distinct().count()
+        if user_count > licence_count:
+            for i in user_info:
+                i.licence = str(uuid.uuid1()).replace("-", "")
+                i.save()
+        print("用户licence去重成功")
+    except:
+        print("用户licence去重失败")
+
+
+
 @shared_task(name="tasks.update_images")
 def update_images():
     """
