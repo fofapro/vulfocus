@@ -825,10 +825,8 @@ class DashboardView(APIView):
         # 表示要返回已启动的镜像
         if activate_name == "started":
             # 取出当前用户所启动的镜像对象
-            runnging_containers_image = ContainerVul.objects.filter(Q(user_id=request.user.id) & Q(container_status="running")
-                                                              & Q(is_docker_compose_correlation=False) &
-                                                              ~Q(docker_container_id=""))
-
+            runnging_containers_image = ContainerVul.objects.filter(Q(user_id=request.user.id) & Q(container_status="running") &
+                                                                    ~Q(docker_container_id=""))
             for image in runnging_containers_image:
                 image_info = image.image_id
                 if image_info:

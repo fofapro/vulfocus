@@ -123,26 +123,30 @@ class ImageInfoSerializer(serializers.ModelSerializer):
         container_status_q.connector = "OR"
         container_status_q.children.append(('container_status', "running"))
         container_status_q.children.append(('container_status', "stop"))
-        data = ContainerVul.objects.all().filter(Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & container_status_q).first()
-        data_is_check = ContainerVul.objects.filter(user_id=id,image_id=obj.image_id,time_model_id=time_model_id,is_check=True).first()
         run_data = ""
+        data_is_check = ContainerVul.objects.filter(user_id=id, image_id=obj.image_id, time_model_id=time_model_id,
+                                                    is_check=True).first()
         if obj.is_docker_compose == True:
             data = ContainerVul.objects.all().filter(
-                Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="") &
-                Q(is_check=True) & Q(time_model_id=time_model_id)).first()
-            if data:
-                # 通过删除后再次启动的容器
-                run_data = ContainerVul.objects.all().filter(
-                    Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="") &
-                    Q(is_check=False) & Q(time_model_id=time_model_id) & ~Q(container_status__contains="delete") ).first()
-                if run_data:
-                    data = run_data
+                Q(user_id=id) & Q(image_id=obj.image_id) & ~Q(docker_compose_path="") & Q(
+                    time_model_id=time_model_id) & Q(container_status__contains="running") & Q(
+                    is_docker_compose_correlation=False)).first()
             if not data:
                 data = ContainerVul.objects.all().filter(
-                    Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & ~Q(docker_compose_path="")).first()
+                    Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & ~Q(
+                        docker_compose_path="") & Q(container_status__contains="stop") & Q(
+                        is_docker_compose_correlation=False)).first()
+        else:
+            data = ContainerVul.objects.all().filter(
+                Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & Q(
+                    container_status='running')).first()
+            if not data:
+                data = ContainerVul.objects.all().filter(
+                    Q(user_id=id) & Q(image_id=obj.image_id) & Q(time_model_id=time_model_id) & Q(
+                        container_status='stop')).first()
         status["status"] = ""
         status["is_check"] = False
-        if obj.is_docker_compose != True and data_is_check:
+        if data_is_check:
             status["is_check"] = True
         status["container_id"] = ""
         status["start_date"] = ""
@@ -184,10 +188,10 @@ class ImageInfoSerializer(serializers.ModelSerializer):
                         status["start_date"] = ""
                         status["end_date"] = ""
             status["status"] = data.container_status
-            if run_data != "" and data == run_data:
-                status["is_check"] = True
-            else:
-                status["is_check"] = data.is_check
+            # if run_data != "" and data == run_data:
+            #     status["is_check"] = True
+            # else:
+            #     status["is_check"] = data.is_check
             status["container_id"] = data.container_id
         # 查询正在拉取镜像的任务
         operation_args = {
