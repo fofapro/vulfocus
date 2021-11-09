@@ -91,7 +91,7 @@ export default {
       this.notice_timer = setInterval(this.get_count,6000*5)
   },
   beforeDestroy() {
-      clearInterval(notice_timer);
+      clearInterval(this.notice_timer);
   }
 }
 </script>
