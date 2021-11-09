@@ -825,10 +825,8 @@ class DashboardView(APIView):
         # 表示要返回已启动的镜像
         if activate_name == "started":
             # 取出当前用户所启动的镜像对象
-            runnging_containers_image = ContainerVul.objects.filter(Q(user_id=request.user.id) & Q(container_status="running")
-                                                              & Q(is_docker_compose_correlation=False) &
-                                                              ~Q(docker_container_id=""))
-
+            runnging_containers_image = ContainerVul.objects.filter(Q(user_id=request.user.id) & Q(container_status="running") &
+                                                                    ~Q(docker_container_id=""))
             for image in runnging_containers_image:
                 image_info = image.image_id
                 if image_info:
@@ -1802,12 +1800,14 @@ def get_operation_image_api(req):
                 status = dict()
                 try:
                     HTTP_HOST = req.META.get("HTTP_REFERER")
-                    if ':' in HTTP_HOST:
+                    if HTTP_HOST.count(":") == 2:
                         status["host"] = data_start.vul_host
                     else:
                         if HTTP_HOST:
-                            HTTP_HOST = HTTP_HOST[:-1]
-                            status["host"] = HTTP_HOST
+                            HTTP_HOST = HTTP_HOST.replace("http://", "").replace("https://", "")
+                            origin_host = data_start.vul_host.split(":")
+                            if len(origin_host) >= 2:
+                                status["host"] = HTTP_HOST[:-1] + ":" + origin_host[1]
                         else:
                             status["host"] = data_start.vul_host
                 except:
@@ -1859,12 +1859,14 @@ def get_operation_image_api(req):
                 if data:
                     try:
                         HTTP_HOST = req.META.get("HTTP_REFERER")
-                        if ':' in HTTP_HOST:
+                        if HTTP_HOST.count(":") == 2:
                             status["host"] = data.vul_host
                         else:
                             if HTTP_HOST:
-                                HTTP_HOST = HTTP_HOST[:-1]
-                                status["host"] = HTTP_HOST
+                                HTTP_HOST = HTTP_HOST.replace("http://", "").replace("https://", "")
+                                origin_host = data.vul_host.split(":")
+                                if len(origin_host) >= 2:
+                                    status["host"] = HTTP_HOST[:-1] + ":" + origin_host[1]
                             else:
                                 status["host"] = data.vul_host
                     except:

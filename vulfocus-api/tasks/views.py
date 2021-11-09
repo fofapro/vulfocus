@@ -42,6 +42,7 @@ class TaskSet(viewsets.ReadOnlyModelViewSet):
                         HTTP_HOST = request.META.get("HTTP_REFERER")
                         # 判断前端的请求地址是IP形式或者是域名形式
                         if HTTP_HOST.count(":") < 2:
+                            HTTP_HOST = HTTP_HOST.replace("http://", "").replace("https://", "")
                             origin_host = msg["data"]["host"].split(":")
                             if len(origin_host) >= 2 and HTTP_HOST:
                                 msg["data"]["host"] = HTTP_HOST[:-1] + ":" + origin_host[1]

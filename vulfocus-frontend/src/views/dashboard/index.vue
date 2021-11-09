@@ -385,6 +385,7 @@ export default {
         this.current_page = 1;
         this.loading = true;
         this.listdata = [];
+        this.startedlistdata = [];
         this.page.total = 0;
       },
       listData() {
@@ -440,17 +441,20 @@ export default {
         let allTag = []
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
         this.search = ''
-        ImgDashboard(this.search,undefined,undefined,true,allTag,this.searchRank,this.activeName).then(response =>{
-            loading.close()
-            if (this.activeName==='started'){
+          if (this.activeName === "started"){
+            ImgDashboard(this.search,undefined,undefined,true,allTag,this.searchRank,this.activeName).then(response =>{
+
               this.startedlistdata = response.data.results
               this.page.total2 = response.data.count;
               for (let i = 0; i <this.startedlistdata.length ; i++) {
-                this.listdata[i].status.start_flag = false
-                this.listdata[i].status.stop_flag = false
-                this.listdata[i].status.delete_flag = false
+                this.startedlistdata[i].status.start_flag = false
+                this.startedlistdata[i].status.stop_flag = false
+                this.startedlistdata[i].status.delete_flag = false
               }
-            }else {
+              loading.close()
+            })
+          }else {
+          ImgDashboard(this.search,undefined,undefined,true,allTag,this.searchRank,this.activeName).then(response =>{
               this.listdata = response.data.results
               this.page.total1 = response.data.count;
               for (let i = 0; i <this.listdata.length ; i++) {
@@ -458,9 +462,9 @@ export default {
                 this.listdata[i].status.stop_flag = false
                 this.listdata[i].status.delete_flag = false
               }
-            }
-
-        }).catch((e)=>{})
+            loading.close()
+          })
+        }
       },
       open(id,images_name,images_desc,status,container_id,raw_data) {
         this.images_id = ""
@@ -610,28 +614,32 @@ export default {
               // 获取当前所有分页的最后一页
               let all_page = parseInt(this.page.total/this.page.size);
               // 判断当前页面中是否只有一个镜像并且是否为最后一页
-              if(this.listdata.length === 1 && this.current_page == all_page+1 && this.current_page > 1){
+              if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
                 this.current_page -= 1;
-                ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                  if (this.activeName==='started'){
+                if (this.activeName === "started"){
+                  ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                     this.startedlistdata = response.data.results
                     this.page.total2 = response.data.count;
-                  }else {
+                  })
+                }else {
+                  ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                     this.listdata = response.data.results
                     this.page.total1 = response.data.count;
-                  }
-                })
+                  })
+                }
               }
               else {
-                ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                  if (this.activeName==='started'){
+                if (this.activeName === "started"){
+                  ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                     this.startedlistdata = response.data.results
                     this.page.total2 = response.data.count;
-                  }else {
+                  })
+                }else {
+                  ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                     this.listdata = response.data.results
                     this.page.total1 = response.data.count;
-                  }
-                })
+                  })
+                }
               }
             }
             else {
@@ -640,26 +648,30 @@ export default {
               // 判断当前页面中是否只有一个镜像并且是否为最后一页
               if(this.listdata.length === 1 && this.current_page===all_page+1 && this.current_page > 1){
                 this.current_page -= 1;
-                ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                  if (this.activeName==='started'){
+                if (this.activeName === "started"){
+                  ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                     this.startedlistdata = response.data.results
                     this.page.total2 = response.data.count;
-                  }else {
+                  })
+                }else {
+                  ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                     this.listdata = response.data.results
                     this.page.total1 = response.data.count;
-                  }
-                })
+                  })
+                }
               }
               else {
-                ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                  if (this.activeName==='started'){
+                if (this.activeName === "started"){
+                  ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                     this.startedlistdata = response.data.results
                     this.page.total2 = response.data.count;
-                  }else {
+                  })
+                }else {
+                  ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                     this.listdata = response.data.results
                     this.page.total1 = response.data.count;
-                  }
-                })
+                  })
+                }
               }
             }
           }
@@ -680,26 +692,30 @@ export default {
               // 判断当前页面中是否只有一个镜像并且是否为最后一页
               if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
                 this.current_page -= 1;
-                ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                  if (this.activeName==='started'){
+                if (this.activeName === "started"){
+                  ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                     this.startedlistdata = response.data.results
                     this.page.total2 = response.data.count;
-                  }else {
+                  })
+                }else {
+                  ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                     this.listdata = response.data.results
                     this.page.total1 = response.data.count;
-                  }
-                })
+                  })
+                }
               }
               else {
-                ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                  if (this.activeName==='started'){
+                if (this.activeName === "started"){
+                  ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                     this.startedlistdata = response.data.results
                     this.page.total2 = response.data.count;
-                  }else {
+                  })
+                }else {
+                  ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                     this.listdata = response.data.results
                     this.page.total1 = response.data.count;
-                  }
-                })
+                  })
+                }
               }
             }
             else {
@@ -708,26 +724,30 @@ export default {
               // 判断当前页面中是否只有一个镜像并且是否为最后一页
               if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
                 this.current_page -= 1;
-                ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                  if (this.activeName==='started'){
+                if (this.activeName === "started"){
+                  ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                     this.startedlistdata = response.data.results
                     this.page.total2 = response.data.count;
-                  }else {
+                  })
+                }else {
+                  ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                     this.listdata = response.data.results
                     this.page.total1 = response.data.count;
-                  }
-                })
+                  })
+                }
               }
               else {
-                ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                  if (this.activeName==='started'){
+                if (this.activeName === "started"){
+                  ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                     this.startedlistdata = response.data.results
                     this.page.total2 = response.data.count;
-                  }else {
+                  })
+                }else {
+                  ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                     this.listdata = response.data.results
                     this.page.total1 = response.data.count;
-                  }
-                })
+                  })
+                }
               }
             }
           }
@@ -760,54 +780,62 @@ export default {
                           // 判断当前页面中是否只有一个镜像并且是否为最后一页
                           if(this.listdata.length === 1 && this.current_page === all_page && this.current_page > 1){
                             this.current_page -= 1;
-                            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                              if (this.activeName==='started'){
+                            if (this.activeName === "started"){
+                              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                                 this.startedlistdata = response.data.results
                                 this.page.total2 = response.data.count;
-                              }else {
+                              })
+                            }else {
+                              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                                 this.listdata = response.data.results
                                 this.page.total1 = response.data.count;
-                              }
-                            })
+                              })
+                            }
                           }
                           else {
-                            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                              if (this.activeName==='started'){
+                            if (this.activeName === "started"){
+                              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                                 this.startedlistdata = response.data.results
                                 this.page.total2 = response.data.count;
-                              }else {
+                              })
+                            }else {
+                              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                                 this.listdata = response.data.results
                                 this.page.total1 = response.data.count;
-                              }
-                            })
+                              })
+                            }
                           }
-                      }
+                        }
                       else {
                         // 获取当前所有分页的最后一页
                         let all_page = parseInt(this.page.total/this.page.size);
                         // 判断当前页面中是否只有一个镜像并且是否为最后一页
-                        if(this.listdata.length === 1 && this.current_page == all_page && this.current_page > 1){
+                        if(this.listdata.length === 1 && this.current_page === all_page && this.current_page > 1){
                           this.current_page -= 1;
-                          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                            if (this.activeName==='started'){
+                            if (this.activeName === "started"){
+                              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                               this.startedlistdata = response.data.results
                               this.page.total2 = response.data.count;
+                              })
                             }else {
+                              ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                               this.listdata = response.data.results
                               this.page.total1 = response.data.count;
-                            }
-                          })
+                            })
+                          }
                         }
                         else {
-                          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                            if (this.activeName==='started'){
+                          if (this.activeName === "started"){
+                            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                               this.startedlistdata = response.data.results
                               this.page.total2 = response.data.count;
-                            }else {
+                            })
+                          }else {
+                            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                               this.listdata = response.data.results
                               this.page.total1 = response.data.count;
-                            }
-                          })
+                            })
+                          }
                         }
                       }
                     } else {
@@ -869,52 +897,60 @@ export default {
                       // 判断当前页面中是否只有一个镜像并且是否为最后一页
                       if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
                         this.current_page -= 1;
-                        ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                          if (this.activeName==='started'){
+                        if (this.activeName === "started"){
+                          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                             this.startedlistdata = response.data.results
                             this.page.total2 = response.data.count;
-                          }else {
+                          })
+                        }else {
+                          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                             this.listdata = response.data.results
                             this.page.total1 = response.data.count;
-                          }
-                        })
+                          })
+                        }
                       }
                       else {
-                        ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-                          if (this.activeName==='started'){
+                        if (this.activeName === "started"){
+                          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                             this.startedlistdata = response.data.results
                             this.page.total2 = response.data.count;
-                          }else {
+                          })
+                        }else {
+                          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
                             this.listdata = response.data.results
                             this.page.total1 = response.data.count;
-                          }
-                        })
+                          })
+                        }
                       }
                     }
                     else {
                       let all_page = parseInt(this.page.total/this.page.size);
                       if(this.listdata.length === 1 && this.current_page === all_page+1 && this.current_page > 1){
                         this.current_page -= 1;
-                        ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                          if (this.activeName==='started'){
+                        if (this.activeName === "started"){
+                          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                             this.startedlistdata = response.data.results
                             this.page.total2 = response.data.count;
-                          }else {
+                          })
+                        }else {
+                          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                             this.listdata = response.data.results
                             this.page.total1 = response.data.count;
-                          }
-                        })
+                          })
+                        }
                       }
                       else {
-                         ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-                          if (this.activeName==='started'){
+                        if (this.activeName === "started"){
+                          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                             this.startedlistdata = response.data.results
                             this.page.total2 = response.data.count;
-                          }else {
+                          })
+                        }else {
+                          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
                             this.listdata = response.data.results
                             this.page.total1 = response.data.count;
-                          }
-                        })
+                          })
+                        }
                       }
                     }
                   }else{
@@ -940,16 +976,19 @@ export default {
         this.current_page = page
         let allTag = []
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
-        ImgDashboard(this.search,false,page,true,allTag,this.searchRank,this.activeName).then(response => {
-          loading.close()
-          if (this.activeName==='started'){
+        if (this.activeName === "started"){
+          ImgDashboard(this.search,false,page,true,allTag,this.searchRank,this.activeName).then(response => {
               this.startedlistdata = response.data.results
               this.page.total2 = response.data.count;
-          }else {
+            loading.close()
+          })
+        }else {
+          ImgDashboard(this.search,false,page,true,allTag,this.searchRank,this.activeName).then(response => {
             this.listdata = response.data.results
             this.page.total1 = response.data.count;
-          }
-        })
+            loading.close()
+          })
+        }
       },
       autoStop(){
         stoptimetemp().then(response => {
@@ -974,28 +1013,31 @@ export default {
         }
         let allTag = []
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4)
-        if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
-          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-            if (this.activeName==='started'){
+        if(allTag.length > 0 || this.searchRank !== 0 || this.search !== ""){
+          if (this.activeName === "started"){
+            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
               this.startedlistdata = response.data.results
               this.page.total2 = response.data.count;
-            }else {
+            })
+          }else {
+            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
               this.listdata = response.data.results
               this.page.total1 = response.data.count;
-            }
-            this.page.total = response.data.count
-          })
+            })
+          }
         }
         else {
-          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-            if (this.activeName==='started'){
+          if (this.activeName === "started"){
+            ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
               this.startedlistdata = response.data.results
               this.page.total2 = response.data.count
-            }else {
+            })
+          }else {
+            ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
               this.listdata = response.data.results
               this.page.total1 = response.data.count
-            }
-          })
+            })
+          }
         }
       },
       closeDrawer(done){
@@ -1139,29 +1181,35 @@ export default {
         this.changetableinit();
         let allTag = [];
         allTag = allTag.concat(this.allTag5,this.allTag2,this.allTag3,this.allTag4);
-        if(allTag.length > 0 || this.searchRank != 0 || this.search != ""){
-          ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
-            if (this.activeName==='started'){
+        if(allTag.length > 0 || this.searchRank !== 0 || this.search !== ""){
+          if (this.activeName==='started'){
+            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
               this.startedlistdata = response.data.results
               this.page.total2 = response.data.count;
-            }else {
+              this.loading=false
+            })
+          }else {
+            ImgDashboard(this.search,undefined,this.current_page,true,allTag,this.searchRank,this.activeName).then(response => {
               this.listdata = response.data.results
               this.page.total1 = response.data.count;
-            }
-            this.loading=false
-          })
+              this.loading=false
+            })
+          }
         }
         else{
-          ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
-            if (this.activeName==='started'){
+          if (this.activeName==='started'){
+            ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
               this.startedlistdata = response.data.results
               this.page.total2 = response.data.count;
-            }else {
+              this.loading=false
+            })
+          }else {
+            ImgDashboard(undefined,undefined,this.current_page,undefined,allTag,undefined,this.activeName).then(response => {
               this.listdata = response.data.results
               this.page.total1 = response.data.count;
-            }
-            this.loading=false
-          })
+              this.loading=false
+            })
+          }
         }
       },
   },
