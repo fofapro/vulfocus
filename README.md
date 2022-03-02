@@ -80,54 +80,174 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 ![](./imgs/11.gif)
 
-## 合作伙伴
-
->  按注册顺序排序，欢迎用户在 [https://github.com/fofapro/vulfocus/issues/198](https://github.com/fofapro/vulfocus/issues/198) 登记（仅供社区参考）
-
-<table>
-<tr>
-<td><a href="http://www.sinorail.com/" target="_blank">中铁信网络技术研究院</a></td>
-<td><a href="http://www.snnu.edu.cn/" target="_blank"><img src="./cooperate/snnu.png"  width="190px" height="80px" alt="陕西师范大学"></a></td>
-<td><a href="http://www.baimaohui.net/" target="_blank"><img src="./cooperate/baimaohui.png"  width="190px" height="80px" alt="白帽汇安全研究院"></a></td>
-<td><a href="https://github.com/0verSp4ce" target="_blank"><img src="./cooperate/0verSp4ce.png" width="190px" height="80px" alt="凌驭空间（OverSpace）安全团队"></a></td>
-</tr>
-<tr>
-<td><a href="https://red-team.cn/" target="_blank"><img src="./cooperate/red-team.png" width="190px" height="80px" alt="公鸡队之家·知识星球"></a></td>
-<td><a href="https://www.sierting.com/" target="_blank"><img src="./cooperate/sierting.png" width="190px" height="80px" alt="克拉玛依市思而听网络科技有限公司"></a></td>
-<td><a href="https://wx.zsxq.com/dweb2/index/group/88512188158852" target="_blank">赛博回忆录</a></td>
-<td><a href="https://github.com/medicean/vulapps" target="_blank">VulApps</a></td>
-</tr>
-<tr>
-<td><a href="https://www.huoxian.cn" target="_blank"><img src="./cooperate/huoxian.png"  width="190px" height="80px" alt="火线平台"></a></td>
-<td><a href="https://dongtai.io/" target="_blank"><img src="./cooperate/dongtai.png"  width="190px" height="80px" alt="洞态"></a></td>
-<td><a href="#" target="_blank">建成信息安全科技有限公司</a></td>
-<td><a href="#" target="_blank">FACday安全团队</a></td>
-</tr>
-<tr>
-<td><a href="http://www.tmsec.net/" target="_blank">天幕安全团队</a></td>
-<td><a href="https://github.com/vulhub/vulhub" target="_blank"><img src="./cooperate/vulhub.svg"  width="190px" height="80px" alt="Vulhub"></a></td>
-</tr>
-</table>
-
 ## FAQ
+
+
+
+**普通用户无法查看漏洞题目?**
+
+  1.以管理员身份登录系统，进入镜像管理界面，选择某一个镜像进行修改（如果这里镜像显示为空可以先添加镜像）
+
+  ![](https://img.wenhairu.com/images/2022/02/15/QdgjU.png)
+
+   2.将镜像的分数设置为0
+
+  ![](https://img.wenhairu.com/images/2022/02/15/Qd0sK.png)
+
+3.以普通用户身份登录进入vulfocus首页，这时可以看见自己刚才修改的镜像，启动镜像并且提交flag,通关后将显示所有镜像
+
+![](https://img.wenhairu.com/images/2022/02/15/QdzXP.png)
+
+
 
 **镜像启动后立即访问地址失败？**
 
 1. 根据镜像的大小，启动时间会有不同的延迟，一般在几秒以内。
 
+
+
 **提交完 flag 后会有卡住？**
 
 1. 在提交完正确flag后，会进行镜像关闭的动作，所以会有几秒的延迟。
 
+
+
 **拉取镜像时一直卡在哪里**
 
 1. 由于网络延迟或镜像太大的原因时间会长一点。
-
 2. 镜像名称填错，也会卡在哪里，建议强刷一下。
+
+
+
+**通过docker运行vulfocus提示服务器内部错误**
+
+   1.通过docker logs命令查看容器日志信息
+
+![](https://img.wenhairu.com/images/2022/02/15/QiQcp.png)
+
+   2.通过docker exec -it <container_id> /bin/sh命令进入容器（container_id为容器运行id）在容器内部执行tail -f celery.log查看后台日志信息
+
+![](https://img.wenhairu.com/images/2022/02/15/QiHDX.png)
+
+
 
 **Centos 无权限操作Docker**
 
 [centos7 docker版本应用无法添加镜像](https://github.com/fofapro/vulfocus/issues/6)
+
+
+
+**环境一直处于启动中**
+
+1. 查看celery.log的日志文件输出，检查是否抛出异常信息
+2. 检查服务器CPU和内存的使用情况，倘若内存和CPU不足也会导致镜像无法启动
+
+
+
+**如何将容器内部数据保存到主机上**
+
+```
+docker create -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock -v /xxx/db.sqlite3:/vulfocus-api/db.sqlite3 -e VUL_IP=xxx.xxx.xxx.xxx vulfocus/vulfocus:latest
+
+docker start container_id
+```
+
+ 注意：当第一次使用docker create  -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock -v /xxx/db.sqlite3:/vulfocus-api/db.sqlite3 -e VUL_IP=xxx.xxx.xxx.xxx vulfocus/vulfocus:latest 时必须要保证/xxx/db.sqlite3是从GitHub上下载的最新数据库，否则容器运行将会抛出服务器内部错误
+
+
+
+**自定义安装数据库迁移报错**
+
+进入项目所在的目录的vulfocus-api文件夹目录下，执行下面命令
+
+```
+rm -rf $(find ./**/migrations/00*)
+```
+
+![](https://img.wenhairu.com/images/2022/02/26/RO6uR.png)
+
+
+
+执行命令
+
+```
+python3 manage.py makemigrations
+python3 manage.py migrate --fake
+```
+
+若经过上面步骤如果数据库迁移还是报错，请检查数据库是否与文件夹下的迁移记录产生冲突，可用数据库连接工具检查数据库的表结构
+
+
+
+**场景无法下载**
+
+目前官网的所有场景支持压缩包方式构建，构建步骤如下
+
+1. 进入场景管理/环境编排管理，点击添加场景，选择创建编排模式
+
+![](https://img.wenhairu.com/images/2022/02/26/RO8ZN.png)
+
+   2.点击上传，选中要构建的场景压缩包（压缩包暂不支持普通用户下载，可联系系统管理员下载）
+
+![](https://img.wenhairu.com/images/2022/02/26/ROAzB.png)
+
+
+
+![](https://img.wenhairu.com/images/2022/02/26/ROqKn.png)
+
+​     3.上传成功后点击保存
+
+![](https://img.wenhairu.com/images/2022/02/26/ROF7A.png)
+
+​    4.这时可在环境编排管理界面看见新上传的场景，点击发布并且发布成功后即可使用（发布的过程会下载场景所需镜像，等待镜像下载完毕即可）
+
+![](https://img.wenhairu.com/images/2022/02/26/ROfNG.png)
+
+   5.发布成功后即可在场景处看见新的场景
+
+![](https://img.wenhairu.com/images/2022/02/26/ROwnv.png)
+
+
+
+**如何设置镜像运行时长**
+
+在系统管理/系统配置处可修改镜像的运行时长
+
+![](https://img.wenhairu.com/images/2022/02/26/ROCV0.png)
+
+
+
+**镜像一键同步报错**
+
+
+
+- 自定义安装
+
+修改项目目录下的vulfocus-api/dockerapi/views.py文件，修改get_timing_imgs函数，将vulfocus.fofa.so替换成vulfocus.io
+
+![](https://img.wenhairu.com/images/2022/02/26/ROWuj.png)
+
+
+
+- docker镜像启动
+
+  1.将容器内部的/vulfocus-api/dockerapi/views.py文件拷贝至主机当前目录
+
+![](https://img.wenhairu.com/images/2022/02/26/RODZg.png)
+
+
+
+修改当前目录下拷贝出来的views.py文件，修改get_timing_imgs函数，将vulfocus.fofa.so替换成vulfocus.io
+
+![](https://img.wenhairu.com/images/2022/02/26/ROWuj.png)
+
+
+
+将修改好的views文件重新copy至容器内部
+
+![](https://img.wenhairu.com/images/2022/02/26/ROEjK.png)
+
+
 
 ## Contributors
 
@@ -136,7 +256,6 @@ Thanks goes to these wonderful people :
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
-
 <table>
   <tr>
     <td align="center"><a href="https://github.com/anonymity3712"><img src="https://avatars0.githubusercontent.com/u/40228178?v=4?s=100" width="100px;" alt=""/><br /><sub><b>anonymity3712</b></sub></a><br /><a href="https://github.com/fofapro/vulfocus/issues?q=author%3Aanonymity3712" title="Bug reports">🐛</a> <a href="#blog-anonymity3712" title="Blogposts">📝</a></td>
@@ -191,9 +310,7 @@ GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fo
 
 - [Vue Element Admin](https://github.com/PanJiaChen/vue-element-admin)
 - [Vulhub](https://vulhub.org/)
-- [VulApps](https://github.com/Medicean/VulApps)
 
 ## 声明
 
 该项目会收集了当下比较流行的漏洞环境，若有侵权，请联系我们！
-
