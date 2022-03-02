@@ -1,0 +1,65 @@
+version: '3.3'
+services:
+  redis:
+    image: redis:6.2.6
+    container_name: redis
+    volumes:
+      - ./data/redis_data:/data
+    command: redis-server --requirepass vulfocus
+    networks:
+      - vulfocus
+    restart: always
+  vulfocus-api:
+    image: vulfocus/vulfocus-api:latest
+    container_name: vulfocus-api
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/static:/vulfocus-api/static
+      - ./data/db.sqlite3:/vulfocus-api/db.sqlite3
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASS: vulfocus
+      VUL_IP: xxx.xxx.xxx.xxx
+    networks:
+      - vulfocus
+    depends_on:
+      - redis
+    restart: always
+  vulfocus-worker:
+    image: vulfocus/vulfocus-api:latest
+    container_name: vulfocus-worker
+    command: ['celery', 'worker', '-A', 'vulfocus', '-l', 'info']
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/static:/vulfocus-api/static
+      - ./data/db.sqlite3:/vulfocus-api/db.sqlite3
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASS: vulfocus
+      VUL_IP: xxx.xxx.xxx.xxx
+    networks:
+      - vulfocus
+    depends_on:
+      - redis
+    restart: always
+  vulfocus-web:
+    image: vulfocus/vulfocus-web:latest
+    container_name: vulfocus-web
+    volumes:
+      - ./data/static:/vulfocus-api/static
+    ports:
+      - "81:80"
+    networks:
+      - vulfocus
+    depends_on:
+      - vulfocus-api
+    restart: always
+
+networks:
+  vulfocus:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.77.77.0/24
