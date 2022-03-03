@@ -50,7 +50,7 @@ services:
     volumes:
       - ./data/static:/vulfocus-api/static
     ports:
-      - "81:80"
+      - "80:80"
     networks:
       - vulfocus
     depends_on:
