@@ -88,15 +88,15 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
   1.以管理员身份登录系统，进入镜像管理界面，选择某一个镜像进行修改（如果这里镜像显示为空可以先添加镜像）
 
-  ![](https://img.wenhairu.com/images/2022/02/15/QdgjU.png)
+![](./imgs/image_point.png)
 
    2.将镜像的分数设置为0
 
-  ![](https://img.wenhairu.com/images/2022/02/15/Qd0sK.png)
+  ![](./imgs/image_manage.png)
 
 3.以普通用户身份登录进入vulfocus首页，这时可以看见自己刚才修改的镜像，启动镜像并且提交flag,通关后将显示所有镜像
 
-![](https://img.wenhairu.com/images/2022/02/15/QdzXP.png)
+![](./imgs/image_index.png)
 
 
 
@@ -123,11 +123,11 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
    1.通过docker logs命令查看容器日志信息
 
-![](https://img.wenhairu.com/images/2022/02/15/QiQcp.png)
+![](./imgs/docker_logs.png)
 
    2.通过docker exec -it <container_id> /bin/sh命令进入容器（container_id为容器运行id）在容器内部执行tail -f celery.log查看后台日志信息
 
-![](https://img.wenhairu.com/images/2022/02/15/QiHDX.png)
+![](./imgs/docker_celery.png)
 
 
 
@@ -164,7 +164,7 @@ docker start container_id
 rm -rf $(find ./**/migrations/00*)
 ```
 
-![](https://img.wenhairu.com/images/2022/02/26/RO6uR.png)
+![](./imgs/rm_migrations.png)
 
 
 
@@ -185,27 +185,27 @@ python3 manage.py migrate --fake
 
 1. 进入场景管理/环境编排管理，点击添加场景，选择创建编排模式
 
-![](https://img.wenhairu.com/images/2022/02/26/RO8ZN.png)
+![](./imgs/upload_scene.png)
 
    2.点击上传，选中要构建的场景压缩包（压缩包暂不支持普通用户下载，可联系系统管理员下载）
 
-![](https://img.wenhairu.com/images/2022/02/26/ROAzB.png)
+![](./imgs/upload.png)
 
 
 
-![](https://img.wenhairu.com/images/2022/02/26/ROqKn.png)
+![](./imgs/example.png)
 
 ​     3.上传成功后点击保存
 
-![](https://img.wenhairu.com/images/2022/02/26/ROF7A.png)
+![](./imgs/save_scene.png)
 
 ​    4.这时可在环境编排管理界面看见新上传的场景，点击发布并且发布成功后即可使用（发布的过程会下载场景所需镜像，等待镜像下载完毕即可）
 
-![](https://img.wenhairu.com/images/2022/02/26/ROfNG.png)
+![](./imgs/publish.png)
 
    5.发布成功后即可在场景处看见新的场景
 
-![](https://img.wenhairu.com/images/2022/02/26/ROwnv.png)
+![](./imgs/scene_index.png)
 
 
 
@@ -213,7 +213,7 @@ python3 manage.py migrate --fake
 
 在系统管理/系统配置处可修改镜像的运行时长
 
-![](https://img.wenhairu.com/images/2022/02/26/ROCV0.png)
+![](./imgs/system.png)
 
 
 
@@ -225,7 +225,7 @@ python3 manage.py migrate --fake
 
 修改项目目录下的vulfocus-api/dockerapi/views.py文件，修改get_timing_imgs函数，将vulfocus.fofa.so替换成vulfocus.io
 
-![](https://img.wenhairu.com/images/2022/02/26/ROWuj.png)
+![](./imgs/views.png)
 
 
 
@@ -233,19 +233,19 @@ python3 manage.py migrate --fake
 
   1.将容器内部的/vulfocus-api/dockerapi/views.py文件拷贝至主机当前目录
 
-![](https://img.wenhairu.com/images/2022/02/26/RODZg.png)
+![](./imgs/docker_cp.png)
 
 
 
 修改当前目录下拷贝出来的views.py文件，修改get_timing_imgs函数，将vulfocus.fofa.so替换成vulfocus.io
 
-![](https://img.wenhairu.com/images/2022/02/26/ROWuj.png)
+![](./imgs/views.png)
 
 
 
 将修改好的views文件重新copy至容器内部
 
-![](https://img.wenhairu.com/images/2022/02/26/ROEjK.png)
+![](./imgs/cpview.png)
 
 
 
