@@ -4,7 +4,10 @@
 
 ## 快速安装
 
+### 普通docker镜像安装
+
 拉取 Vulfocus 镜像：
+
 ```
 docker pull vulfocus/vulfocus:latest
 ```
@@ -28,6 +31,39 @@ docker run -d -p 80:80 -v /var/run/docker.sock:/var/run/docker.sock  -e VUL_IP=x
 - 默认账户密码为 `admin/admin`。
 
 ![](./imgs/login.png)
+
+
+
+### docker-compose 安装
+
+#### 拉取 vulfocus 和安装项目依赖
+
+```
+cd /data
+git clone https://github.com/fofapro/vulfocus.git web
+```
+
+#### 配置环境参数
+
+```
+cd /data/web
+vim docker-compose.yaml
+```
+#### 修改环境运行ip
+
+将环境变量VUL_IP替换成本机ip
+
+![](./imgs/compose.png)
+
+
+
+#### 启动项目
+
+```
+docker-compose up
+```
+
+这时浏览器地址栏输入本机ip即可访问vulfocus服务
 
 ## 自定义安装(centos 7系统,需关闭selinux)
 
@@ -360,37 +396,4 @@ systemctl restart firewalld.service
    usermod -aG docker nginx
    chmod 666 /var/run/docker.sock #注意此处完成配置后尽量不要重新启动docker,否则nginx用户将失去docker的运行权限
    ```
-
-
-
-## docker-compose 安装
-
-#### 拉取 vulfocus 和安装项目依赖
-
-```
-cd /data
-git clone https://github.com/fofapro/vulfocus.git web
-```
-
-#### 配置环境参数
-
-```
-cd /data/web
-vim docker-compose.yaml
-```
-#### 修改环境运行ip
-
-将环境变量VUL_IP替换成本机ip
-
-![](https://img.wenhairu.com/images/2022/02/26/ROK6U.png)
-
-
-
-#### 启动项目
-
-```
-docker-compose up
-```
-
-这时浏览器地址栏输入本机ip即可访问vulfocus服务
 
