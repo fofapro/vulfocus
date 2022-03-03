@@ -1779,11 +1779,17 @@ def synchronous_image():
                     single_img.rank = item['rank']
                 if single_img.degree != item['degree']:
                     single_img.degree = json.dumps(item['degree'])
+                if "writeup_date" in item and single_img.writeup_date != item['writeup_date']:
+                    single_img.writeup_date = item['writeup_date']
                 single_img.save()
             else:
+                if "writeup_date" in item:
+                    writeup_date = item['writeup_date']
+                else:
+                    writeup_date = ""
                 image_info = ImageInfo(image_name=item['image_name'], image_vul_name=item['image_vul_name'],
                                        image_desc=item['image_desc'], rank=item['rank'],
-                                       degree=json.dumps(item['degree']),
+                                       degree=json.dumps(item['degree']), writeup_date=writeup_date,
                                        is_ok=False, create_date=timezone.now(), update_date=timezone.now())
                 image_info.save()
         page += 1
