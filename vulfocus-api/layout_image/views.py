@@ -1578,7 +1578,7 @@ def download_official_website_layout(request):
     data = request.data
     id = data['layout_id']    # 真实官网id
     user = request.user
-    url = "http://vulfocus.fofa.so/api/layoutinfodet?layout_id={}".format(id)
+    url = "http://vulfocus.io/api/layoutinfodet?layout_id={}".format(id)
     res = requests.get(url, verify=False).content
     req = json.loads(res)
     raw_data = req['data']['layout_raw_content']
@@ -1820,7 +1820,7 @@ def get_official_website_layout(request):
     '''
     获取官网编排场景信息（社区）
     '''
-    url = "http://vulfocus.fofa.so/api/get/layoutinfo/"
+    url = "http://vulfocus.io/api/get/layoutinfo/"
     try:
         res = requests.get(url, verify=False).content
         req = json.loads(res)

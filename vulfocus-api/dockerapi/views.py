@@ -1572,45 +1572,9 @@ def get_timing_imgs(request):
     """
     获取官网镜像信息
     """
-    try:
-        url = "http://vulfocus.fofa.so/api/imgs/info"
-        res = requests.get(url, verify=False).content
-        req = json.loads(res)
-        image_names = list(ImageInfo.objects.all().values_list('image_name', flat=True))
-        for item in req:
-            if item['image_name'] == "":
-                continue
-            if 'is_docker_compose' in item:
-                if item['is_docker_compose'] == True:
-                    continue
-            if item['image_name'] in image_names:
-                if item['image_name'] == "vulfocus/vulfocus:latest":
-                    continue
-                single_img = ImageInfo.objects.filter(image_name__contains=item['image_name']).first()
-                if single_img.image_vul_name != item['image_vul_name'] or single_img.image_vul_name == "":
-                    single_img.image_vul_name = item['image_vul_name']
-                if single_img.image_desc == "":
-                    single_img.image_desc = item['image_desc']
-                if single_img.rank != item['rank']:
-                    single_img.rank = item['rank']
-                if single_img.degree != item['degree']:
-                    single_img.degree = json.dumps(item['degree'])
-                if "writeup_date" in item and single_img.writeup_date != item['writeup_date']:
-                    single_img.writeup_date = item['writeup_date']
-                single_img.save()
-            else:
-                if "writeup_date" in item:
-                    writeup_date = item['writeup_date']
-                else:
-                    writeup_date = ""
-                image_info = ImageInfo(image_name=item['image_name'], image_vul_name=item['image_vul_name'],
-                                       image_desc=item['image_desc'], rank=item['rank'], degree=json.dumps(item['degree']),
-                                       is_ok=False, create_date=timezone.now(), writeup_date=writeup_date,
-                                       update_date=timezone.now())
-                image_info.save()
-        return JsonResponse({"code": 200, "data": "成功"})
-    except Exception as e:
-        return JsonResponse({"code": 201, "data": e})
+    tasks.synchronous_image.delay()
+    return JsonResponse({"code": 200, "data": "镜像同步中"})
+
 
 
 @api_view(http_method_names=["POST"])
@@ -1680,22 +1644,6 @@ def get_local_ip():
     finally:
         s.close()
     return local_ip
-
-
-@csrf_exempt
-def get_img_info(req):
-    if req.method == "GET":
-        imgs = ImageInfo.objects.filter(is_docker_compose=False).all().values("image_name", "image_vul_name", "image_desc", "rank", "degree", "writeup_date")
-        imglist = list()
-        for i in imgs:
-            degree = []
-            try:
-                degree = json.loads(i['degree'])
-            except Exception as e:
-                pass
-            i['degree']=degree
-            imglist.append(i)
-        return JsonResponse(imglist, safe=False)
 
 
 @csrf_exempt

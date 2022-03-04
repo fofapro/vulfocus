@@ -654,7 +654,7 @@
            if (data.code===200){
              this.$message(
              {
-              message:"同步完成",
+              message:"同步任务下发成功",
               type:"success"
              })
              this.reload()
