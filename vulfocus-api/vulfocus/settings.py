@@ -74,10 +74,12 @@ if REDIS_PASS:
 else:
     CELERY_BROKER_URL = 'redis://%s:%s/0' % (REDIS_HOST, str(REDIS_PORT))
     REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), decode_responses=True,db=1)
-
-REDIS_IMG = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), db=6, decode_responses=True)
-REDIS_USER_CACHE = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), db=7, decode_responses=True)
-
+if REDIS_PASS:
+    REDIS_IMG = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), password=REDIS_PASS, db=6, decode_responses=True)
+    REDIS_USER_CACHE = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), password=REDIS_PASS, db=7, decode_responses=True)
+else:
+    REDIS_IMG = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), db=6, decode_responses=True)
+    REDIS_USER_CACHE = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), db=7, decode_responses=True)
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
 CELERY_ACCEPT_CONTENT = ['json']

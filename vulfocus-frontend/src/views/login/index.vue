@@ -98,7 +98,7 @@ export default {
       redirect: undefined,
       displayInput:false,
       version: '',
-      bg: require('../../assets/loginbg02.png'),
+      bg: require('../../assets/loginbg02.jpg'),
       logoimg: require('../../assets/logintitle.png'),
       cancel_registration: true
     }
@@ -119,7 +119,7 @@ export default {
           let enterprise_logo = data.data['enterprise_logo']
           this.cancel_registration = data.data['cancel_registration']
           if (enterprise_bg){
-            this.bg = enterprise_bg || require('../../assets/loginbackground.png')
+            this.bg = enterprise_bg || require('../../assets/loginbg02.jpg')
           }
           if (enterprise_logo){
             this.logoimg = enterprise_logo || require('../../assets/logintitle.png')
