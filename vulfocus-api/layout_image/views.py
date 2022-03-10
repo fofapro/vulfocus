@@ -1359,7 +1359,8 @@ def upload_zip_file(request):
                         for single_network in docker_networks:
                             config_list = single_network.attrs['IPAM']['Config']
                             for single_config in config_list:
-                                network_list.append(single_config["Gateway"].split(".")[0:2])
+                                if "Gateway" in single_config:
+                                    network_list.append(single_config["Gateway"].split(".")[0:2])
                             if single_network.name == network_name:
                                 network_name_temp = network_name
                                 network_name = str(uuid.uuid4())
@@ -1392,7 +1393,8 @@ def upload_zip_file(request):
                                 return JsonResponse({"code": 400, "msg": "编排环境中子网或者网关设置错误"})
                             net_work_client_id = str(net_work.id)
                             if not gateway:
-                                gateway = net_work.attrs['IPAM']['Config']['Gateway']
+                                if "Gateway" in net_work.attrs['IPAM']['Config']:
+                                    gateway = net_work.attrs['IPAM']['Config']['Gateway']
                             created_network = NetWorkInfo(net_work_id=str(uuid.uuid4()),
                                                             net_work_client_id=net_work_client_id,
                                                             create_user=user.id,
@@ -1646,7 +1648,8 @@ def download_official_website_layout(request):
             for single_network in docker_networks:
                 config_list = single_network.attrs['IPAM']['Config']
                 for single_config in config_list:
-                    network_list.append(single_config["Gateway"].split(".")[0:2])
+                    if "Gateway" in single_config:
+                        network_list.append(single_config["Gateway"].split(".")[0:2])
                 if single_network.name == network_name:
                     network_name_temp = network_name
                     network_name = str(uuid.uuid4())
@@ -1679,7 +1682,8 @@ def download_official_website_layout(request):
                     return JsonResponse({"code": 400, "msg": "编排环境中子网或者网关设置错误"})
                 net_work_client_id = str(net_work.id)
                 if not gateway:
-                    gateway = net_work.attrs['IPAM']['Config']['Gateway']
+                    if "Gateway" in net_work.attrs['IPAM']['Config']:
+                        gateway = net_work.attrs['IPAM']['Config']['Gateway']
                 created_network = NetWorkInfo(net_work_id=str(uuid.uuid4()),
                                               net_work_client_id=net_work_client_id,
                                               create_user=user.id,

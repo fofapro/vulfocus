@@ -62,18 +62,28 @@ INSTALLED_APPS = [
     'notice',
 ]
 
-# redis host
-REDIS_HOST = "127.0.0.1"
+REDIS_HOST = os.environ.get('REDIS_HOST')
+if not REDIS_HOST or REDIS_HOST == '':
+    REDIS_HOST = "127.0.0.1"
+
 # redis port
-REDIS_PORT = 6379
+REDIS_PORT = os.environ.get('REDIS_PORT')
+if not REDIS_PORT or REDIS_PORT == '' or REDIS_PORT == 0:
+    REDIS_PORT = "6379"
+
 # redis pass
-REDIS_PASS = ""
+REDIS_PASS = os.environ.get('REDIS_PASS')
+if not REDIS_PASS or REDIS_PASS == '':
+    REDIS_PASS = ""
+
 if REDIS_PASS:
     CELERY_BROKER_URL = "redis://:%s@%s:%s/0" % (REDIS_PASS, str(REDIS_HOST), str(REDIS_PORT))
-    REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), password=REDIS_PASS, decode_responses=True, db=1)
+    REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), password=REDIS_PASS, decode_responses=True,
+                                      db=1)
 else:
     CELERY_BROKER_URL = 'redis://%s:%s/0' % (REDIS_HOST, str(REDIS_PORT))
-    REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), decode_responses=True,db=1)
+    REDIS_POOL = redis.ConnectionPool(host=REDIS_HOST, port=int(REDIS_PORT), decode_responses=True, db=1)
+
 if REDIS_PASS:
     REDIS_IMG = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), password=REDIS_PASS, db=6, decode_responses=True)
     REDIS_USER_CACHE = redis.Redis(host=REDIS_HOST, port=int(REDIS_PORT), password=REDIS_PASS, db=7, decode_responses=True)
