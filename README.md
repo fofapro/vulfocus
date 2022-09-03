@@ -54,7 +54,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
    漏洞镜像的拉取和上传（**需管理员权限**）：
 
-   (1)、在进行管理中，添加功能
+   (1)、在镜像管理中，添加功能
 
    ![](./imgs/image.gif)
 
@@ -62,7 +62,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
    - 镜像又分为文件和文本
   - 文本：是从 [https://hub.docker.com/u/vulfocus](https://hub.docker.com/u/vulfocus) 官网拉取镜像。内容为如： `vulfocus/webmin-cve_2019_15107` 。
-     - 文件：本地漏洞镜像打成tar包的形式进行上传。
+     - 文件：本地漏洞镜像打成tar包的形式上传。
 
 4. 下载完成后点击启动即可。
 
@@ -86,7 +86,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 **普通用户无法查看漏洞题目?**
 
-  1.以管理员身份登录系统，进入镜像管理界面，选择某一个镜像进行修改（如果这里镜像显示为空可以先添加镜像）
+  1.以管理员身份登录系统，进入镜像管理界面，选择某一个镜像修改（如果这里镜像显示为空可以先添加镜像）
 
 ![](./imgs/image_point.png)
 
@@ -108,7 +108,7 @@ Vulfocus 的 docker 仓库 [https://hub.docker.com/u/vulfocus](https://hub.docke
 
 **提交完 flag 后会有卡住？**
 
-1. 在提交完正确flag后，会进行镜像关闭的动作，所以会有几秒的延迟。
+1. 在提交完正确flag后，会镜像关闭的动作，所以会有几秒的延迟。
 
 
 
