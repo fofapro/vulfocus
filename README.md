@@ -16,7 +16,7 @@ Vulfocus 官网：[https://fofapro.github.io/vulfocus/](https://fofapro.github.i
 
 在线 Vulfocus：
 
-[http://vulfocus.fofa.so/](http://vulfocus.fofa.so/)
+[http://vulfocus.cn/](http://vulfocus.cn/)
 
 [http://vulfocus.io/](http://vulfocus.io/)
 
