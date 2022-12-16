@@ -1753,7 +1753,7 @@ def synchronous_image():
     image_names = list(ImageInfo.objects.all().values_list('image_name', flat=True))
     req = None
     while True:
-        url = "http://vulfocus.io/api/imgs/info"
+        url = "https://vulfocus.cn/api/imgs/info"
         try:
             res = requests.get(url, verify=False, params={"page": page}).content
             req = json.loads(res)

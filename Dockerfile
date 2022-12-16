@@ -4,11 +4,7 @@ EXPOSE 80
 RUN mkdir /vulfocus-api/
 WORKDIR /vulfocus-api/
 ADD vulfocus-api/ /vulfocus-api/
-ENV VUL_IP=""
-ENV EMAIL_HOST=""
-ENV EMAIL_HOST_USER=""
-ENV EMAIL_HOST_PASSWORD=""
-ENV DOCKER_URL="unix://var/run/docker.sock"
+ENV VUL_IP="" EMAIL_HOST="" EMAIL_HOST_USER="" EMAIL_HOST_PASSWORD="" DOCKER_URL="unix://var/run/docker.sock"
 RUN mv /etc/apt/sources.list /etc/apt/sources.list.back && \
     cp /vulfocus-api/sources.list /etc/apt/sources.list && \
     apt update && \
@@ -21,6 +17,7 @@ RUN mv /etc/apt/sources.list /etc/apt/sources.list.back && \
     cp /vulfocus-api/default /etc/nginx/sites-enabled/default && \
     python3 -m pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple && \
     pip install -i https://pypi.tuna.tsinghua.edu.cn/simple some-package -r requirements.txt && \
-    chmod u+x /vulfocus-api/run.sh
+    chmod u+x /vulfocus-api/run.sh && \
+    python3 /vulfocus-api/manage.py makemigrations
 ADD dist/ /var/www/html/
 CMD ["sh", "/vulfocus-api/run.sh"]
