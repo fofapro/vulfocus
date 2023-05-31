@@ -3,7 +3,7 @@ name: 提交 BUG
 about: Create a report to help us improve
 title: ''
 labels: bug
-assignees: 0nise
+assignees: ''
 
 ---
 
