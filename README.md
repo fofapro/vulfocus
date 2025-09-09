@@ -16,11 +16,8 @@ Vulfocus 官网：[https://fofapro.github.io/vulfocus/](https://fofapro.github.i
 
 在线 Vulfocus：
 
-[http://vulfocus.cn/](http://vulfocus.cn/)
+[https://vulfocus.cn/](https://vulfocus.cn/)
 
-[http://vulfocus.io/](http://vulfocus.io/)
-
-[http://vulfocus.club/](http://vulfocus.club/)
 
 ## 背景
 
@@ -223,7 +220,7 @@ python3 manage.py migrate --fake
 
 - 自定义安装
 
-修改项目目录下的vulfocus-api/dockerapi/views.py文件，修改get_timing_imgs函数，将vulfocus.fofa.so替换成vulfocus.io
+修改项目目录下的vulfocus-api/dockerapi/views.py文件，修改get_timing_imgs函数，将vulfocus.fofa.so替换成vulfocus.cn
 
 ![](./imgs/views.png)
 
@@ -237,7 +234,7 @@ python3 manage.py migrate --fake
 
 
 
-修改当前目录下拷贝出来的views.py文件，修改get_timing_imgs函数，将vulfocus.fofa.so替换成vulfocus.io
+修改当前目录下拷贝出来的views.py文件，修改get_timing_imgs函数，将vulfocus.fofa.so替换成vulfocus.cn
 
 ![](./imgs/views.png)
 
