@@ -301,7 +301,7 @@ GitHub issue: [https://github.com/fofapro/vulfocus/issues](https://github.com/fo
 
 微信群: 通过扫描以下二维码加入并且备注 `申请 Vulfocus` 加入 Vulfocus 官方微信群。
 
-<img src="./imgs/wechat.jpeg" widht="500px" height="500px"  />
+<img src="./imgs/wechat.jpeg" width="500px" height="500px"  />
 
 ## 致谢
 
