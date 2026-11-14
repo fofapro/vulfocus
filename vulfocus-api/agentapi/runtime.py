@@ -161,11 +161,11 @@ def ensure_images(item):
             all_present = False
     if all_present:
         return
-    lock = locked('image-import')
-    try:
-        managed_path = state_root() / 'managed-images.json'
-        managed = json.loads(managed_path.read_text()) if managed_path.exists() else {}
-        for image_key in image_keys:
+    managed_path = state_root() / 'managed-images.json'
+    for image_key in image_keys:
+        image_lock = locked('image-import-key-' + hashlib.sha256(
+            image_key.encode('utf-8')).hexdigest()[:24])
+        try:
             record = manifest['images'].get(image_key)
             if not record or record.get('status') != 'verified':
                 raise RuntimeError('镜像归档未通过校验：' + image_key)
@@ -178,70 +178,98 @@ def ensure_images(item):
                 continue
             except ImageNotFound:
                 pass
-            root = package_root()
-            archive = (root / record['archive']).resolve()
-            if root not in archive.parents or not archive.is_file():
-                raise RuntimeError('镜像归档缺失：' + image_key)
-            digest = hashlib.sha256()
-            with archive.open('rb') as source:
-                for chunk in iter(lambda: source.read(1024 * 1024), b''):
-                    digest.update(chunk)
-            if digest.hexdigest() != record['sha256']:
-                raise RuntimeError('镜像归档校验失败：' + image_key)
-            free = shutil.disk_usage(str(state_root())).free
-            minimum = int(os.environ.get('VULFOCUS_AGENT_MIN_FREE_GIB', '10')) * 1024 ** 3
-            if free - int(record.get('image_size', 0)) < minimum:
-                raise RuntimeError('导入后资源卷可用空间会低于预留阈值')
-            archive_tags = record.get('archive_tags') or []
-            if not archive_tags:
-                raise RuntimeError('镜像归档没有可导入标签：' + image_key)
-            new_tags = []
-            existing_alias = None
-            for archive_tag in archive_tags:
+            # Separate images can load concurrently. Limit Docker imports to
+            # twenty lanes; the per-image lock prevents duplicate imports.
+            slot = None
+            while slot is None:
+                for number in range(20):
+                    candidate = (state_root() /
+                                 ('image-import-slot-%s.lock' % number)).open('a+')
+                    try:
+                        fcntl.flock(candidate, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        slot = candidate
+                        break
+                    except BlockingIOError:
+                        candidate.close()
+                if slot is None:
+                    time.sleep(0.5)
+            try:
+                # Recheck after waiting for a slot: another worker may have
+                # loaded this image while we were waiting.
                 try:
-                    candidate = client.images.get(archive_tag)
-                    verify_loaded_image(candidate, record, image_key)
-                    existing_alias = candidate
+                    present = client.images.get(tag)
+                    verify_loaded_image(present, record, image_key)
+                    continue
                 except ImageNotFound:
-                    new_tags.append(archive_tag)
-            if existing_alias:
-                existing_alias.tag('ctf-offline/runtime', tag=image_key)
-                new_tags = [tag]
-            else:
-                # Docker's image-load endpoint accepts gzip directly. Streaming
-                # the compressed archive avoids re-expanding many gigabytes in
-                # the worker and over the Unix socket.
-                # Large offline archives can take several minutes to load.
-                # The platform's shared Docker client defaults to 60 seconds,
-                # which reports a false startup failure while dockerd keeps
-                # importing the image in the background.
-                import docker
-                timeout = int(os.environ.get('VULFOCUS_AGENT_IMAGE_LOAD_TIMEOUT', '1800'))
-                if timeout < 60:
-                    raise RuntimeError('镜像导入超时必须至少为 60 秒')
-                loader = docker.APIClient(base_url='unix:///var/run/docker.sock',
-                                          version=api_docker_client._version,
-                                          timeout=timeout)
+                    pass
+                root = package_root()
+                archive = (root / record['archive']).resolve()
+                if root not in archive.parents or not archive.is_file():
+                    raise RuntimeError('镜像归档缺失：' + image_key)
+                digest = hashlib.sha256()
+                with archive.open('rb') as source:
+                    for chunk in iter(lambda: source.read(1024 * 1024), b''):
+                        digest.update(chunk)
+                if digest.hexdigest() != record['sha256']:
+                    raise RuntimeError('镜像归档校验失败：' + image_key)
+                free = shutil.disk_usage(str(state_root())).free
+                minimum = int(os.environ.get('VULFOCUS_AGENT_MIN_FREE_GIB', '10')) * 1024 ** 3
+                if free - int(record.get('image_size', 0)) < minimum:
+                    raise RuntimeError('导入后资源卷可用空间会低于预留阈值')
+                archive_tags = record.get('archive_tags') or []
+                if not archive_tags:
+                    raise RuntimeError('镜像归档没有可导入标签：' + image_key)
+                new_tags = []
+                existing_alias = None
+                for archive_tag in archive_tags:
+                    try:
+                        candidate = client.images.get(archive_tag)
+                        verify_loaded_image(candidate, record, image_key)
+                        existing_alias = candidate
+                    except ImageNotFound:
+                        new_tags.append(archive_tag)
+                if existing_alias:
+                    existing_alias.tag('ctf-offline/runtime', tag=image_key)
+                    new_tags = [tag]
+                else:
+                    # Docker accepts the compressed archive directly.
+                    import docker
+                    timeout = int(os.environ.get('VULFOCUS_AGENT_IMAGE_LOAD_TIMEOUT', '1800'))
+                    if timeout < 60:
+                        raise RuntimeError('镜像导入超时必须至少为 60 秒')
+                    loader = docker.APIClient(base_url='unix:///var/run/docker.sock',
+                                              version=api_docker_client._version,
+                                              timeout=timeout)
+                    try:
+                        with archive.open('rb') as source:
+                            for event in loader.load_image(source, quiet=True):
+                                if event.get('error'):
+                                    raise RuntimeError('Docker 导入失败：' + event['error'])
+                    finally:
+                        loader.close()
+                    if tag not in archive_tags:
+                        loaded = client.images.get(archive_tags[0])
+                        verify_loaded_image(loaded, record, image_key)
+                        loaded.tag('ctf-offline/runtime', tag=image_key)
+                        new_tags.append(tag)
+                imported = client.images.get(tag)
+                verify_loaded_image(imported, record, image_key)
+                # Serialize only the small bookkeeping update and image
+                # reclamation, never the multi-gigabyte Docker load.
+                lock = locked('image-import')
                 try:
-                    with archive.open('rb') as source:
-                        for event in loader.load_image(source, quiet=True):
-                            if event.get('error'):
-                                raise RuntimeError('Docker 导入失败：' + event['error'])
+                    managed = (json.loads(managed_path.read_text())
+                               if managed_path.exists() else {})
+                    managed[image_key] = new_tags
+                    temporary = managed_path.with_suffix('.tmp')
+                    temporary.write_text(json.dumps(managed))
+                    os.replace(str(temporary), str(managed_path))
                 finally:
-                    loader.close()
-                if tag not in archive_tags:
-                    loaded = client.images.get(archive_tags[0])
-                    verify_loaded_image(loaded, record, image_key)
-                    loaded.tag('ctf-offline/runtime', tag=image_key)
-                    new_tags.append(tag)
-            imported = client.images.get(tag)
-            verify_loaded_image(imported, record, image_key)
-            managed[image_key] = new_tags
-            temporary = managed_path.with_suffix('.tmp')
-            temporary.write_text(json.dumps(managed))
-            os.replace(str(temporary), str(managed_path))
-    finally:
-        lock.close()
+                    lock.close()
+            finally:
+                slot.close()
+        finally:
+            image_lock.close()
 
 
 def primary_service(compose):
@@ -568,14 +596,18 @@ def release_images(run):
         if not path.exists():
             return
         managed = json.loads(path.read_text())
+        # The offline catalog is large; read it once for this release.
+        units = catalog()['units']
         needed = set()
         for other in AgentRun.objects.filter(status__in=('starting', 'running', 'restarting', 'stopping')):
             if other.pk != run.pk:
-                try:
-                    needed.update(required_images(unit(other.challenge_key)))
-                except ValueError:
-                    pass
-        for image_key in required_images(unit(run.challenge_key)):
+                item = units.get(other.challenge_key)
+                if item and item.get('status') == 'ready' and item.get('compose'):
+                    needed.update(required_images(item))
+        item = units.get(run.challenge_key)
+        if not item or item.get('status') != 'ready' or not item.get('compose'):
+            raise ValueError('题目资源未齐全或不是独立题目')
+        for image_key in required_images(item):
             if image_key in needed or image_key not in managed:
                 continue
             remaining = []
