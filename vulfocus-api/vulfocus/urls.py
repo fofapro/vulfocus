@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
+from agentapi import views as agent_views
 from rest_framework import routers
 from dockerapi.views import ImageInfoViewSet, ContainerVulViewSet, SysLogSet, get_setting, update_setting, TimeMoudelSet, CreateTimeTemplate, UserRank, TimeRankSet, get_timing_imgs, DashboardView, get_writeup_info, get_version, get_url_name, update_enterprise_setting, get_setting_img, get_operation_image_api
 from user.views import UserRegView, UserSet, get_user_rank, LoginViewset, SendEmailViewset, ResetPasswordViewset, UpdatePassViewset, AccessLinkView, send_register_email
@@ -49,6 +50,15 @@ router.register("notice", NoticeViewset, basename="notice")
 router.register("comment", CommentView, basename="comment")
 
 urlpatterns = [
+    url(r'^agent/v1/runs/?$', agent_views.runs),
+    url(r'^agent/v1/result/?$', agent_views.result),
+    url(r'^agent/v1/cleanup/?$', agent_views.cleanup),
+    url(r'^agent/v1/challenge/?$', agent_views.challenge),
+    url(r'^agent/v1/start/?$', agent_views.start),
+    url(r'^agent/v1/status/?$', agent_views.status),
+    url(r'^agent/v1/submit/?$', agent_views.submit),
+    url(r'^agent/v1/stop/?$', agent_views.stop),
+    url(r'^agent/v1/restart/?$', agent_views.restart),
     url(r'^', include(router.urls)),
     url(r'^user/login', obtain_jwt_token),
     url(r'^user/logout', LogoutView.as_view(), name="logout"),

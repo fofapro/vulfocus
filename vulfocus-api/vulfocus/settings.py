@@ -31,7 +31,7 @@ except:
     os.environ['SECRET_KEY'] = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('VULFOCUS_DEBUG', '1') == '1'
 
 ALLOWED_HOSTS = ["*"]
 
@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'user',
     'corsheaders',
     'dockerapi',
+    'agentapi',
     'network',
     'tasks',
     'layout_image',
@@ -167,6 +168,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'OPTIONS': {'timeout': 30},
     }
 }
 
